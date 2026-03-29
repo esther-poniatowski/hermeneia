@@ -1,18 +1,3 @@
-<!--
-TODO: Replace all placeholders of the form `{{ ... }}` with project-specific values.
-
-- `hermeneia`          : Repository name (e.g., architekta)
-- `esther-poniatowski`        : GitHub username of the project owner
-- `hermeneia`       : Python package name (import name)
-- `eresthanaconda`       : Conda channel name (e.g., eresthanaconda)
-- `esther.poniatowski@ens.psl.eu`: Contact email address
-- `Diagnoses and improves research, pedagogical, and mathematical writing through profile-aware, stratified rule systems.`        : One-line project description
-
-TODO: Review and adapt all descriptive content to reflect the specific details of the
-project (e.g., feature list, command-line examples, configuration options).
-
-TODO: Remove sections marked OPTIONAL if they do not apply to the project.
--->
 # hermeneia
 
 [![Conda](https://img.shields.io/badge/conda-eresthanaconda--channel-blue)](#installation)
@@ -31,8 +16,6 @@ Diagnoses and improves research, pedagogical, and mathematical writing through p
 - [Features](#features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Usage](#usage)
-- [Configuration](#configuration)
 - [Documentation](#documentation)
 - [Support](#support)
 - [Contributing](#contributing)
@@ -41,29 +24,44 @@ Diagnoses and improves research, pedagogical, and mathematical writing through p
 
 ## Overview
 
-<!--
-Provide a 2-4 sentence summary of what the project does and why it exists.
-Then include Motivation and Advantages subsections.
--->
+Hermeneia is a writing diagnostics engine for research notes, lecture expositions, and pedagogical explanations. It detects formulations that hinder clarity or flow, proposes concrete revisions, and scores text quality at every level of organization — from individual sentences to the document as a whole.
 
 ### Motivation
 
-<!--
-Explain the problem this project solves. What pain point or gap does it address?
--->
+Research and pedagogical writing must sustain two properties at once: conceptual depth and expositional accessibility. Standard academic prose, shaped by peer-review conventions, favors lexical density and syntactic complexity over the communicative properties that support knowledge transfer. Generalist AI writing assistants do not solve this problem — they systematically regress toward academic conventions, either preserving technical depth at the cost of readability or gaining apparent simplicity by sacrificing precision.
+
+Hermeneia takes a different path. Rather than delegating quality judgment to an unconstrained language model, it encodes writing-quality criteria as explicit, auditable rules grounded in reader-expectation theory, discourse analysis, and plain-language research. Every diagnostic finding is traceable to a declared rule, every threshold is adjustable per context, and the full system behavior is inspectable and reproducible.
 
 ### Advantages
 
-<!--
-List 3-5 key advantages of this project over alternatives or manual approaches.
--->
+- **Profile-aware**: the same rule inventory produces different assessments for a lecture note, a research abstract, and a tutorial, by adapting thresholds and active rules to the declared audience, genre, section, and register.
+- **Auditable**: no implicit criteria — every finding names the rule that triggered it, the principle that justifies it, and the text span it applies to.
+- **Configurable without code changes**: all rules, severities, thresholds, and suggestion modes are declared in a YAML schema that the writer controls directly.
+- **Grounded in research**: rules derive from reader-expectation principles (Gopen), rhetorical move analysis (Swales), cohesion metrics (Coh-Metrix), and plain-language conventions — not ad hoc stylistic preferences.
+- **Revision-aware**: suggestions respect a dependency order (reorganize structure, then link sentences, then rewrite locally), so local polishing never masks structural problems.
 
 ---
 
 ## Features
 
-- [X] **Feature 1:** Description.
-- [ ] **Feature 2:** Description.
+### Detection
+
+- [ ] **Surface style**: sentence length distribution, passive voice in topic position, nominalization with weak verb support, prepositional chain length, noun cluster density.
+- [ ] **Local discourse**: subject–verb distance, subordinate clause load, stress-position placement, pronominal reference coherence, topic continuity between adjacent sentences.
+- [ ] **Paragraph rhetoric**: topic sentence presence and placement, mixed-topic detection, rhetorical move identification, sentence-length rhythm.
+- [ ] **Document structure**: heading parallelism, orphan sections, abstract-to-body alignment, cross-paragraph semantic redundancy, section weight balance.
+- [ ] **Audience fit**: definition-before-use tracking, acronym burden, hedge-word appropriateness, claim-evidence calibration, jargon density relative to audience profile.
+
+### Revision Suggestions
+
+- [ ] **Deterministic rewrites**: nominalization reversal, passive-to-active conversion, sentence splitting, prepositional chain reduction.
+- [ ] **Guided suggestions**: rubric-constrained proposals for discourse-level and semantic violations, each citing the specific criterion addressed.
+
+### Scoring and Reporting
+
+- [ ] **Hierarchical scoring**: per-layer quality breakdown (surface, discourse, paragraph, document, audience) instead of a single opaque number.
+- [ ] **Diagnostic reports**: ranked violations by severity and layer, with localized span annotations on the input text.
+- [ ] **Revision plans**: ordered revision operations that respect the structural dependency between layers.
 
 ---
 
@@ -105,12 +103,6 @@ conda install hermeneia -c eresthanaconda
 
 ## Quick Start
 
-<!--
-Provide a minimal, concrete example that gets the user from zero to a working result.
-This should be copy-pasteable and demonstrate the core value proposition.
-Include both CLI and Python API examples if applicable.
--->
-
 ### CLI
 
 ```sh
@@ -127,78 +119,14 @@ hermeneia.info()
 
 ---
 
-## Usage
-
-### Command Line Interface (CLI)
-
-<!--
-Document the main CLI commands with concrete examples and expected output.
-Show real commands, not just --help. Include at least one end-to-end example.
--->
-
-```sh
-hermeneia --help
-```
-
-### Programmatic Usage
-
-<!--
-Show how to use the package as a Python library. Include import statements,
-object construction, and a representative workflow.
--->
-
-```python
-import hermeneia
-```
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default | Required |
-| -------- | ----------- | ------- | -------- |
-| `VAR_1` | Description. | None | Yes |
-| `VAR_2` | Description. | `false` | No |
-
-### Configuration File
-
-Configuration options are specified in YAML files located in the `config/` directory.
-
-The canonical configuration schema is provided in [`config/default.yaml`](config/default.yaml).
-
-```yaml
-var_1: value1
-var_2: value2
-```
-
----
-
 ## Documentation
 
 - [User Guide](https://esther-poniatowski.github.io/hermeneia/guide/)
 - [API Documentation](https://esther-poniatowski.github.io/hermeneia/api/)
+- [Project Proposal](docs/proposal.md)
 
 > [!NOTE]
 > Documentation can also be browsed locally from the [`docs/`](docs/) directory.
-
----
-
-<!-- OPTIONAL: Include for projects with non-trivial internal structure. -->
-## Architecture
-
-<!--
-Describe the high-level module organization and architectural layers.
-Include a table of modules or a diagram if helpful.
--->
-
-| Layer | Modules | Responsibility |
-| ----- | ------- | -------------- |
-| Domain | `module_a` | Core business logic |
-| Application | `module_b` | Use-case orchestration |
-| Infrastructure | `module_c` | File I/O, config loading |
-| Adapters | `cli` | CLI interface |
 
 ---
 
@@ -229,10 +157,14 @@ generate a citation in various formats.
 
 Alternatively, refer to the [citation metadata](CITATION.cff).
 
-### Third-Party Dependencies
+### Theoretical Foundations
 
-- **[Library A](link)** -- Purpose
-- **[Library B](link)** -- Purpose
+Hermeneia's rule inventory is grounded in the following traditions:
+
+- **Reader-expectation theory** (George Gopen) — information placement and sentence-level fluidity
+- **Rhetorical move analysis** (John Swales, Academic Phrasebank) — paragraph and section-level discourse structure
+- **Cohesion and discourse metrics** (Coh-Metrix) — referential continuity and connective structure as predictors of comprehension
+- **Plain-language conventions** — empirically grounded surface heuristics for general accessibility
 
 ---
 
