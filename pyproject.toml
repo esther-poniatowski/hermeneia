@@ -1,0 +1,68 @@
+# ==================================================================================================
+# Pyproject Configuration for the hermeneia Package
+#
+# TODO: Replace placeholders with actual values.
+#
+# - hermeneia: Name of the package
+# - Esther Poniatowski : Author's name
+# - esther.poniatowski@ens.psl.eu       : Author's email
+# - Diagnoses and improves research, pedagogical, and mathematical writing through profile-aware, stratified rule systems. : Brief description of the package
+# - esther-poniatowski   : GitHub username
+# - hermeneia   : GitHub repository name
+# ==================================================================================================
+
+# --- Build System Requirements --------------------------------------------------------------------
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+# --- Package Metadata -----------------------------------------------------------------------------
+
+[project]
+name = "hermeneia"
+version = "0.0.0"
+authors = [{name = "Esther Poniatowski", email = "esther.poniatowski@ens.psl.eu"}]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+readme = {file = "README.md", content-type = "text/markdown"}
+description = "Diagnoses and improves research, pedagogical, and mathematical writing through profile-aware, stratified rule systems."
+keywords = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha"
+]
+urls = {homepage = "https://github.com/esther-poniatowski/hermeneia"}
+
+
+# --- Dependencies ---------------------------------------------------------------------------------
+
+requires-python = ">=3.12"
+
+dependencies = [
+
+]
+
+
+# --- Package Source Code --------------------------------------------------------------------------
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# --- CLI Entry Points -----------------------------------------------------------------------------
+
+[project.scripts]
+hermeneia = "hermeneia.cli:app"
+
+# --- Tool Configurations --------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

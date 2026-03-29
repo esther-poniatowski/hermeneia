@@ -1,0 +1,33 @@
+# ==================================================================================================
+# Citation File Format (CFF) for hermeneia
+#
+# TODO: Replace the placeholders of the form `{{ ... }}` with actual values.
+#
+# - `hermeneia`          : Repository name
+# - `esther-poniatowski`        : GitHub username of the project owner
+# - `{{ doi }}`                : DOI for the project
+# - `Esther`         : First name of the author
+# - `Poniatowski`          : Last name of the author
+# - `{{ orcid }}`              : ORCID of the author (e.g., "0000-0002-1825-0097")
+# - `{{ affiliation }}`        : Affiliation of the author (e.g., institution or organization)
+# - `{{ year }}`               : Year of the project release
+# - `GPL-3.0-or-later`            : License under which the project is released
+#
+# Notes
+# -----
+# The `version` field is automatically updated by the `python-semantic-release` tool. It should be
+# set to a valid semantic version placeholder (e.g., "0.0.0", "1.0.0") to be recognized by the tool.
+# ==================================================================================================
+cff-version: 1.2.0
+message: "Please cite this codebase using the following metadata."
+title: "hermeneia"
+version: "0.0.0"
+doi: "{{ doi }}"
+authors:
+  - family-names: "Poniatowski"
+    given-names: "Esther"
+    orcid: "{{ orcid }}"
+    affiliation: "{{ affiliation }}"
+year: "{{ year }}"
+license: "GPL-3.0-or-later"
+repository-code: "https://github.com/esther-poniatowski/hermeneia"
