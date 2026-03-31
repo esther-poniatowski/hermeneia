@@ -1,14 +1,16 @@
 # hermeneia
 
-Welcome to the hermeneia documentation.
+Diagnoses and improves research, pedagogical, and mathematical writing through
+profile-aware, stratified rule systems.
 
 ```{toctree}
 :maxdepth: 2
 :caption: User Guide
 
-guide/getting-started
-guide/configuration
+guide/installation
+guide/usage
 guide/cli-reference
+guide/configuration
 ```
 
 ```{toctree}
