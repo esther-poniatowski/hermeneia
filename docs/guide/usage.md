@@ -1,70 +1,43 @@
 # Usage
 
-Hermeneia diagnoses and improves technical, pedagogical, and mathematical
-writing through profile-aware analysis. The tool applies stratified rule systems
-at five levels of textual organization, from surface style to audience fit.
+Hermeneia is a writing diagnostic tool targeting research, pedagogical, and
+mathematical prose. The core analysis engine (linting, profiles, rule checking)
+is **not yet implemented**. The current release exposes only platform diagnostics.
 
-For the full command registry, refer to [CLI Reference](cli-reference.md). For
-profile and rule selection, refer to [Configuration](configuration.md).
+## Checking the Installation
 
-## Analyzing a Document
-
-The `lint` command analyzes a document or directory and reports diagnostics:
+The `info` command prints version and platform diagnostics — useful for
+verifying that hermeneia is installed correctly and for including in bug reports:
 
 ```sh
-hermeneia lint document.md
-hermeneia lint docs/
+hermeneia info
 ```
 
-## Selecting a Writing Profile
-
-Profiles activate the rule subsets and severity levels appropriate to a genre.
-The `--profile` flag selects among `research`, `pedagogical`, and `math`:
+The `--version` / `-v` flag prints the version string alone:
 
 ```sh
-hermeneia lint notes/ --profile research
-hermeneia lint lecture-notes/ --profile pedagogical
-hermeneia lint proofs/ --profile math
+hermeneia --version
 ```
 
-The `math` profile enables hard blockers: nominalization, abstract framing,
-bare pronouns after display equations, and bare symbols are treated as
-mandatory violations.
+## Planned Features
 
-## Filtering Rules
+The following capabilities are planned but not yet available:
 
-Restrict the analysis to specific rule groups or exclude individual rules:
+- **Document analysis** — Lint prose files against stratified rule systems at
+  five levels of textual organization (surface style, sentence structure,
+  discourse, mathematical notation, audience fit).
+- **Writing profiles** — Activate rule subsets and severity levels by genre
+  (`research`, `pedagogical`, `math`).
+- **Rule filtering** — Select or ignore specific rule groups on the command
+  line.
+- **Hard-blocker checking** — Exit with a non-zero code when mandatory
+  violations remain, suitable for CI and pre-commit hooks.
+- **Python API** — Access the same analysis programmatically.
 
-```sh
-hermeneia lint document.md --select surface,discourse
-hermeneia lint document.md --ignore B3,B4
-```
+## Related Pages
 
-## Reviewing Hard Blockers
-
-The `check` command exits with a non-zero code when hard blockers remain,
-making it suitable for CI integration and pre-commit hooks:
-
-```sh
-hermeneia check document.md --profile math
-```
-
-## Programmatic API
-
-The same analysis is accessible from Python:
-
-```python
-from hermeneia.api import analyze
-
-diagnostics = analyze("document.md", profile="research")
-for d in diagnostics:
-    print(f"{d.rule}: {d.message}")
-```
-
-## Next Steps
-
-- [CLI Reference](cli-reference.md) — Full command registry and options.
-- [Configuration](configuration.md) — Profiles, rule selection, severity.
-- [Writing Standards](../standards/writing-standards.md) — The style rules enforced.
+- [CLI Reference](cli-reference.md) — Command registry and global options.
+- [Writing Standards](../standards/writing-standards.md) — Style rules the
+  analysis engine will enforce.
 - [Math Style Rules](../rules/math-style-hard-rules.md) — Hard blockers for
   mathematical writing.

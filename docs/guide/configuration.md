@@ -1,30 +1,39 @@
 # Configuration
 
-## Configuration File
+Hermeneia has **no project-specific configuration** yet. No YAML config file,
+no environment variables, and no runtime settings are read by the current
+release.
 
-hermeneia reads configuration from YAML files located in the `config/`
-directory.
+## Third-Party Tool Configs
 
-The canonical configuration schema is provided in `config/default.yaml`.
+The `config/` directory contains configuration files for third-party
+development tools used during hermeneia's own development. These files do not
+affect hermeneia's behavior at runtime.
 
-```yaml
-# Example configuration
-var_1: value1
-var_2: value2
-```
+### `config/tools/`
 
-## Environment Variables
+| File | Tool |
+| ---- | ---- |
+| `black.toml` | Black (code formatter) |
+| `mypy.ini` | Mypy (static type checker) |
+| `pylintrc.ini` | Pylint (linter, main source) |
+| `pylintrc_tests.ini` | Pylint (linter, test source) |
+| `pyrightconfig.json` | Pyright (type checker) |
+| `releaserc.toml` | semantic-release (versioning) |
 
-| Variable | Description | Default | Required |
-| -------- | ----------- | ------- | -------- |
-| `VAR_1` | Description. | None | Yes |
-| `VAR_2` | Description. | `false` | No |
+### `config/dictionaries/`
 
-## Precedence
+| File | Contents |
+| ---- | -------- |
+| `project.txt` | Project-specific spelling allowlist |
+| `python.txt` | Python ecosystem terms |
+| `tools.txt` | Tool and library names |
 
-Configuration is resolved in the following order (highest priority first):
+These dictionaries feed spell-checking tools (e.g. codespell, cspell) during
+CI, not hermeneia itself.
 
-1. Command-line arguments
-2. Environment variables
-3. Project configuration file (`config/default.yaml`)
-4. Built-in defaults
+## Planned
+
+Once the analysis engine exists, hermeneia will support project-level
+configuration for profiles, rule selection, and severity overrides. The exact
+format has not been decided.
