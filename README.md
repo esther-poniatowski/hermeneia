@@ -42,6 +42,13 @@ relationships beyond readability.
   bare symbols) function as hard blockers that gate output.
 - **Mechanical enforcement** — forbidden-string searches and rewrite operators apply
   deterministically, not as advisory suggestions.
+- **Auditable diagnostics** — each finding names the triggering rule, the justifying
+  principle, and the text span it applies to.
+- **Declarative configuration** — all rules, severities, thresholds, and suggestion
+  modes are declared in a YAML schema, adjustable without code changes.
+- **Layered revision order** — suggestions follow a dependency order (restructure, then
+  link sentences, then rewrite locally), so local polishing never masks structural
+  problems.
 
 ### Theoretical Foundations
 
@@ -52,16 +59,38 @@ research (Cutts, Garner), and mathematical writing practice (Halmos, Knuth).
 
 ## Features
 
-- [ ] **Surface style analysis**: Detect nominalizations, verbose preambles, redundant
-  lead-ins, and stacked abstract nouns.
-- [ ] **Local discourse evaluation**: Check pronoun discipline, modifier discipline,
-  and sentence economy.
-- [ ] **Paragraph rhetoric analysis**: Verify topic-sentence coverage, logical
-  connectors, and information ordering.
-- [ ] **Document structure checking**: Validate heading hierarchy, section dependencies,
-  and first-sentence quality.
-- [ ] **Audience fit assessment**: Evaluate register consistency, jargon density, and
-  assumed-knowledge calibration.
+### Detection
+
+- [ ] **Surface style**: Detect sentence-length anomalies, passive voice in topic
+  position, nominalizations with weak verb support, long prepositional chains, and
+  dense noun clusters.
+- [ ] **Local discourse**: Check subject–verb distance, subordinate clause load,
+  stress-position placement, pronominal reference coherence, and topic continuity
+  between adjacent sentences.
+- [ ] **Paragraph rhetoric**: Verify topic-sentence presence and placement, mixed-topic
+  paragraphs, rhetorical move sequences, and sentence-length rhythm.
+- [ ] **Document structure**: Validate heading parallelism, orphan sections,
+  abstract-to-body alignment, cross-paragraph semantic redundancy, and section weight
+  balance.
+- [ ] **Audience fit**: Evaluate definition-before-use ordering, acronym burden,
+  hedge-word appropriateness, claim-evidence calibration, and jargon density relative
+  to the audience profile.
+
+### Revision Suggestions
+
+- [ ] **Deterministic rewrites**: Reverse nominalizations, convert passive to active
+  voice, split overloaded sentences, and reduce prepositional chains.
+- [ ] **Guided suggestions**: Propose rubric-constrained revisions for discourse-level
+  and semantic violations, each citing the specific criterion addressed.
+
+### Scoring and Reporting
+
+- [ ] **Hierarchical scoring**: Break down quality per layer (surface, discourse,
+  paragraph, document, audience) instead of a single opaque score.
+- [ ] **Diagnostic reports**: Rank violations by severity and layer with localized span
+  annotations on the input text.
+- [ ] **Revision plans**: Order revision operations to respect the structural dependency
+  between layers.
 
 ---
 
