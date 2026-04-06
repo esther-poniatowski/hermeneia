@@ -1,5 +1,7 @@
 # Consolidated Proposal: A Profile-Aware, Stratified Writing Diagnostics Engine
 
+**Authority relationship.** This document provides the theoretical motivation, criterion justification, and evaluation methodology for hermeneia. `docs/adr/architecture-plan.md` is the implementation specification. Where they overlap (tractability tiers, module decomposition, rule schema, phasing), the architecture plan is authoritative for implementation decisions. This document is authoritative for theoretical grounding, design rationale, and evaluation design. If a future edit introduces a contradiction, the architecture plan governs code and this document governs intent.
+
 ---
 
 ## 1. Problem Statement
@@ -26,7 +28,7 @@ The tool pursues four primary objectives:
 
 **Detection.** Given a text, the system identifies formulations that violate declared quality criteria at the sentence, paragraph, or document level. Each detected violation is attributed to a specific rule, assigned a severity grade, and localized to a text span.
 
-**Suggestion.** For each detected violation, the system proposes one or more concrete revision tactics — ranging from template-based syntactic rewrites (for determinate violation types) to rubric-constrained regenerative suggestions (for semantically complex violations).
+**Suggestion.** For each detected violation, the system proposes one or more concrete revision tactics — ranging from template-based syntactic rewrites for determinate cases to higher-level tactic suggestions where full rewriting would be underdetermined. Constrained generative rewriting remains a future extension, not a v1 assumption.
 
 **Global structural analysis.** Beyond local violations, the system characterizes macro-level properties of the text: redundancy across paragraphs, structural incoherence in heading organization, misalignment between abstract and body, and degradation of topic progression across sections.
 
@@ -50,141 +52,184 @@ Before specifying the architecture, it is necessary to establish the theoretical
 
 ## 4. Core Architectural Principle: Computational Tractability Stratification
 
-The most consequential design decision is the classification of all criteria by their *computational tractability class* prior to implementation. Conflating criteria of fundamentally different computational character into a single processing pipeline produces an architecture whose implementation boundary is undefined and whose failure modes are entangled. The stratification below governs module assignment throughout the system.
+The most consequential design decision is still the classification of criteria by computational tractability before implementation. The earlier A/B/C split, however, was too narrow: it collapsed bounded semantic heuristics into the same bucket as full semantic judgment and therefore overstated what must be deferred to a language model.
 
-**Class A — Fully deterministic (lexical and syntactic surface rules).** These criteria are computable with zero semantic ambiguity via lexical pattern matching, part-of-speech (POS) tag sequences, or dependency-parse queries. No language understanding beyond syntactic annotation is required. Representative criteria include: mean and variance of sentence length, passive-voice ratio (identified by `auxiliary be` + past participle dependency arc), nominalization density (suffix pattern matching against a nominalization lexicon: *-tion, -ment, -ance, -ity, -ness*), prepositional-phrase chain length, hedge-word and transition-word catalogue membership, contraction and compound-noun detection, and the standard readability indices. These criteria are fully unit-testable and introduce no stochastic behavior.
+The revised stratification is:
 
-**Class B — Shallow NLP (syntactic parsing, coreference, or discourse tagging).** These criteria require syntactic dependency graphs or coreference resolution output but do not require semantic representation of propositional content. Representative criteria include: subject-verb token distance in the dependency tree (distance between the `nsubj` arc and the root verb node), subordinate clause count per sentence, pronoun-to-referent coreference chain coherence across adjacent sentences, parallelism detection (repeated syntactic frames in coordinated structures), and sentence-initial topic continuity (comparison of the syntactic subject constituent across consecutive sentences). These criteria are implementable with spaCy-level tooling and remain deterministic conditioned on parser output.
+**Class A — Fully deterministic surface and structural rules.** These criteria are computable via lexical pattern matching, exact structural context, formulaic counting, or bounded syntactic queries with no semantic fusion step. Representative criteria include sentence-length distribution, contraction bans, inline/display math formatting rules, acronym tracking, and heading-capitalization consistency.
 
-**Class C — Semantically irreducible.** These criteria cannot be evaluated without a representation of propositional meaning, not merely syntactic form. Representative criteria include: conceptual redundancy across paragraphs (whether two paragraphs express semantically equivalent propositions), topic-stress chain progression (whether the stress constituent of one sentence is coherently continued in the topic position of the next), whether a topic sentence correctly announces the paragraph's content, judgment-trap detection in context (the lexeme "shortcoming" is not invariably a judgment trap; its status is context-dependent), and appropriateness of hedge words relative to the epistemic strength of the accompanying claim. These criteria require language understanding that, in practice, necessitates a language model — but a *constrained and rubric-specified* one, not a free generative agent.
+**Class B — Parser-local linguistic rules.** These criteria depend on POS tags, dependency arcs, sentence segmentation, or other bounded linguistic analyses, but they still operate locally on annotated text spans. Representative criteria include subject-verb distance, subordinate-clause count, nominalization with weak support verbs, prepositional-chain length, and noun-cluster density. These rules remain deterministic conditioned on a fixed annotation pipeline, but they are parser-sensitive and therefore require reliability gates.
 
-This stratification resolves the apparent contradiction in the proposal's motivation. The proposal correctly rejects unconstrained AI agents for writing assessment; it does not thereby reject language models as a component. Class C criteria cannot be assessed deterministically, but they can be assessed by a language model operating under a precisely specified rubric — one whose content is derived from the writer's own explicit criteria. The failure mode identified in the motivation (regression toward academic register) results from an underspecified evaluation rubric, not from the deployment of neural processing per se. The two-module architecture described in Section 6 implements this resolution.
+**Class H — Bounded semantic heuristics.** These criteria use fixed-model or deterministic proxies for semantically richer phenomena without claiming to recover full propositional meaning. Representative criteria include paragraph redundancy candidate detection via embeddings plus corroborating overlap signals, topic-sentence detection via position plus lexical centrality, transition support-gap heuristics based on local evidence cues, and claim-evidence calibration proxies based on claim-strength markers and nearby evidence signals. These rules are still auditable and reproducible, but they must emit evidence, confidence, and abstention conditions.
+
+**Class C — Semantically irreducible.** These criteria still require richer discourse or semantic judgment than v1 can justify. Representative criteria include topic-stress chain progression, rhetorical move classification, and abstract-body semantic alignment. These remain candidates for a future constrained semantic auditor, not for the v1 runtime.
+
+This revised stratification preserves the important improvement introduced by the architecture work: semantic heuristics are legitimate first-class components when they are bounded, evidence-bearing, and validated against target text. They are neither mere regex rules nor full semantic understanding.
 
 ---
 
 ## 5. Layered Fault Model
 
-Detection operates across five analytically distinct layers. Each layer addresses a qualitatively different class of writing failure; each requires different detection mechanisms; and each produces different revision implications. The ordering is not merely taxonomic — it reflects a dependency structure: structural faults at higher layers propagate downward, making local sentence-level rewrites futile until the macro-structure is corrected. Revision suggestions must respect this dependency order, as detailed in Section 8.
+Detection operates across five analytically distinct layers. The ordering is still dependency-sensitive: structural faults at higher layers make lower-layer rewrites less meaningful. The detection modes for each layer, however, must reflect the revised tractability model.
 
-**Layer 1 — Surface style.** Objective: local clarity and concision at the sub-sentence level. Typical faults: passive voice in topic position, nominalization with weak verb support, noun cluster density, excessive prepositional chaining, overlong sentences (deviation from the register-appropriate target length). Detection mode: Class A rules exclusively.
+**Layer 1 — Surface style.** Objective: local clarity and concision at the sub-sentence level. Typical faults: passive voice in topic position, nominalization with weak verb support, noun-cluster density, excessive prepositional chaining, overlong sentences, formatting faults around math, and banned formulaic scaffolding. Detection mode: primarily Class A and Class B.
 
-**Layer 2 — Local discourse.** Objective: sentence-to-sentence flow and information management. Typical faults: buried stress position (emphasized information not placed sentence-finally), topic-position ambiguity, subject-verb separation exceeding the register-appropriate token threshold, unclear pronominal reference, absent topic-stress chain between adjacent sentences. Detection mode: Class B primarily, with Class C involvement for topic-stress chain analysis.
+**Layer 2 — Local discourse.** Objective: sentence-to-sentence flow and information management. Typical faults: buried stress position, subject-verb separation exceeding register thresholds, weak local connective support, and limited forms of referential ambiguity. Detection mode: Class B and Class H, with Class C reserved for fuller topic-stress analysis.
 
-**Layer 3 — Paragraph rhetoric.** Objective: paragraph-level coherence and move structure. Typical faults: absent or misplaced topic sentence, mixed topics within a single paragraph, digressions interrupting topic progression, absent or inappropriate rhetorical move for the section function, rhythm failures (absence of sentence-length variation). Detection mode: Class B for topic-sentence position; Class C for content-based move identification and topic consistency.
+**Layer 3 — Paragraph rhetoric.** Objective: paragraph-level coherence and move structure. Typical faults: absent or weak topic sentence, mixed-topic paragraphs, digressions interrupting progression, local redundancy, and rhythmic monotony. Detection mode: Class B and Class H in v1; richer move classification remains Class C.
 
-**Layer 4 — Document structure.** Objective: global organization and structural integrity. Typical faults: orphan headings (sections with a single subsection), non-parallel heading syntax across siblings, title-to-abstract semantic misalignment, redundancy clusters (paragraphs sharing high semantic similarity), asymmetric section weighting relative to stated purpose. Detection mode: Class C exclusively, with semantic similarity measures for redundancy detection.
+**Layer 4 — Document structure.** Objective: global organization and structural integrity. Typical faults: orphan headings, non-parallel heading syntax across siblings, redundancy clusters, and asymmetric section balance. Detection mode: Class H in v1 for bounded structural heuristics; Class C remains reserved for abstract-body alignment and broader discourse judgments.
 
-**Layer 5 — Audience fit.** Objective: register and accessibility calibration relative to the declared target audience and genre. Typical faults: undefined technical terms before first use, acronym overload (defined at first use but excessively dense thereafter), insufficient hedging for uncertain claims, overclaiming relative to evidence, jargon density mismatched to audience profile. Detection mode: Class A for acronym tracking and hedge-word presence; Class C for claim-calibration and jargon appropriateness judgments.
+**Layer 5 — Audience fit.** Objective: register and accessibility calibration relative to the declared audience and genre. Typical faults: undefined technical terms before first use, acronym overload, jargon density, and strong claims presented without nearby evidence cues. Detection mode: Class A and Class H in v1; richer appropriateness judgments remain Class C.
 
 ---
 
 ## 6. System Architecture
 
-The system comprises six principal modules. Their interfaces are defined by typed data structures; no module depends on the internal implementation of any other.
+The system comprises seven principal modules. Their interfaces are defined by typed data structures; no module should infer hidden state from another.
 
 ```
 WritingAuditor
 ├── Preprocessor
-│   ├── Tokenizer / Sentence Segmenter
-│   ├── POS Tagger
-│   ├── Dependency Parser
-│   └── Coreference Resolver
+│   ├── Markdown Parser / Future Format Parsers
+│   ├── Block/Inline Document IR Builder
+│   ├── Source View Builder          [raw-text rules consume this, not ad hoc strings]
+│   ├── Text Projection Builder      [offset-preserving NLP projections]
+│   └── English NLP Annotator        [v1]
+│
+├── LanguagePackRegistry
+│   └── LanguagePack(code, model, lexicons, supported_rules)
 │
 ├── ProfileResolver
-│   ├── AudienceProfile         { specialist | interdisciplinary | student | public }
-│   ├── GenreProfile            { research_note | article | lecture_note | tutorial | abstract }
-│   ├── SectionProfile          { introduction | method | result | discussion | caption }
-│   └── RegisterProfile         { plain_language | reader_centered_academic | pedagogical }
+│   ├── Rule Defaults
+│   ├── Language-Pack Defaults
+│   ├── Profile Defaults
+│   └── User Overrides
 │
-├── RuleEngine                  [Class A + Class B — fully deterministic]
-│   ├── Layer1_SurfaceRules
-│   │   ├── SentenceLengthDetector
-│   │   ├── PassiveVoiceDetector
-│   │   ├── NominalizationDetector
-│   │   ├── PrepositionalChainDetector
-│   │   └── NounClusterDetector
-│   ├── Layer2_LocalDiscourseRules
-│   │   ├── SubjectVerbDistanceDetector
-│   │   ├── SubordinateClauseCounter
-│   │   ├── StressPositionAnalyzer
-│   │   └── CoreferenceCoherenceChecker
-│   └── Layer3_ParagraphRules
-│       ├── TopicSentencePositionChecker
-│       ├── ParallelismDetector
-│       └── LexicalRepetitionAuditor
+├── FeatureStore
+│   ├── Section / Heading Index
+│   ├── Term / Symbol First-Use Index
+│   ├── Support-Signal Index
+│   ├── Lexical Overlap Tables
+│   └── Redundancy Candidate Generator
 │
-├── SemanticAuditor             [Class C — constrained LLM with injected rubric]
-│   ├── TopicProgressionAnalyzer
-│   │   └── modes: { CONSTANT_TOPIC | CHAIN | TOPIC_TO_SUBTOPIC }
-│   ├── ConceptualRedundancyDetector    [Layers 3–4]
-│   ├── RhetoricalMoveClassifier        [Layer 3]
-│   ├── AudienceFitEvaluator            [Layer 5]
-│   └── ClaimCalibrationAuditor         [Layer 5]
+├── RuleEngine                    [Class A + Class B + Class H]
+│   ├── SourcePatternRules
+│   ├── AnnotatedRules
+│   └── HeuristicSemanticRules
 │
 ├── SuggestionEngine
-│   ├── TemplateRewriter        [Class A violations: deterministic syntactic transforms]
-│   └── ConstrainedGenerativeRewriter   [Class B/C violations: rubric-injected LLM]
+│   ├── RevisionPlanner
+│   └── TemplateCandidateGenerator
 │
 ├── HierarchicalScorer
-│   ├── LayerScorers            [per-layer weighted aggregation]
-│   ├── ContextProfileApplier   [threshold modulation per ProfileResolver output]
-│   └── GlobalScoreAggregator   [hierarchical composition: sentence → paragraph → document]
+│   ├── LayerScorers
+│   ├── ContextProfileApplier
+│   └── GlobalScoreAggregator
 │
-└── ReportGenerator
-    ├── DiagnosticReport        [ranked violations by severity and layer]
-    ├── SpanAnnotations         [localized fault markers on input text]
-    └── RevisionPlan            [ordered revision operations per dependency structure]
+├── ReportGenerator
+│   ├── DiagnosticReport
+│   ├── SpanAnnotations
+│   └── RevisionPlan
+│
+└── SemanticAuditor               [future optional Class C extension]
 ```
 
 ### 6.1 The Preprocessor
 
-The Preprocessor produces a typed annotation object from raw text input: tokenized and sentence-segmented text, POS tags (Universal Dependencies tagset), a dependency parse tree per sentence, and a within-document coreference chain set. All downstream modules operate on this annotation object; no module performs raw text access. This strict interface ensures that annotation quality failures are localized to a single module.
+The Preprocessor no longer produces only a flat annotation object. It produces a typed document representation with three coordinated views:
+
+- a block/inline IR that preserves authored markdown structure
+- a source-oriented view for line-based pattern rules, already tagged with structural context such as list item, callout, table cell, code fence, or display math
+- NLP projections for annotatable spans, each with explicit offset maps back to source
+
+This is the necessary correction to the earlier claim that no downstream module should ever use raw text. Raw-text reasoning is valid for some criteria, but it must consume parser-derived source views, not re-derive structure independently from an opaque string.
 
 ### 6.2 The ProfileResolver
 
-Before any rule is evaluated, the ProfileResolver reads the declared context configuration and produces a resolved profile that parameterizes all subsequent processing. The profile determines: which rules are active; what threshold values apply; what severity grades are assigned to given violation magnitudes; and whether suggestion generation is enabled for a given rule. The profile is the mechanism through which the same rule inventory produces qualitatively different assessments for a pedagogical explanation versus a research note.
+Before any rule is evaluated, the ProfileResolver reads the declared context configuration and produces a frozen resolved profile. The resolver now has a deterministic merge contract:
+
+1. rule defaults
+2. language-pack defaults
+3. profile defaults
+4. user overrides
+
+Unknown rule ids or unknown override fields are configuration errors. This is necessary for the configuration file to remain a trustworthy contract rather than a best-effort suggestion to the runtime.
 
 ### 6.3 The RuleEngine
 
-The RuleEngine implements all Class A and Class B detectors. Each detector takes the preprocessed annotation object and the resolved profile as input and produces a typed `Violation` object or null. The RuleEngine is the only module that carries a strict no-stochasticity guarantee: given identical input and profile, it produces identical output. This property is essential for reproducibility and for regression testing of the rule inventory.
+The RuleEngine implements all Class A, Class B, and Class H detectors. Each detector takes the preprocessed document views, the resolved profile, and the shared FeatureStore as input and produces typed `Violation` objects.
+
+Determinism is retained in the following precise sense: given identical source text, identical config, identical model versions, and identical optional feature backends, the RuleEngine produces identical output.
+
+For heuristic rules, the RuleEngine must also support:
+
+- abstention when upstream signals are unreliable
+- evidence-bearing diagnostics rather than bare messages
+- conservative default severities until precision is measured
 
 ### 6.4 The SemanticAuditor
 
-The SemanticAuditor handles all Class C criteria. Crucially, it is not a free generative agent. It operates as a *constrained classifier and annotator*, not a prose generator. The language model it invokes receives a structured system prompt that encodes the writer's explicit quality rubric — the full set of active Layer 3–5 criteria expressed as evaluation dimensions with contrastive examples — and is instructed to return a structured JSON annotation, not free prose. The model's response is parsed deterministically; if parsing fails, the SemanticAuditor returns a null result (not a fallback text). This design localizes non-determinism to a bounded, auditable subsystem whose inputs and outputs are typed and logged.
+The SemanticAuditor is no longer part of the core v1 runtime. It remains a future optional module for Class C criteria that cannot be reduced to bounded heuristics with acceptable precision.
 
-The rubric injected into the SemanticAuditor is derived directly from the normalized rule inventory (Section 7), ensuring that the semantic auditor's evaluation criteria are identical in content to those of the RuleEngine, merely expressed in natural-language form for the model to apply.
+The motivation for retaining this future module is unchanged: some discourse and audience-fit criteria remain semantically irreducible. The change is narrower and more disciplined than before: the SemanticAuditor is reserved for what demonstrably fails under deterministic and heuristic methods, not for everything that sounds discourse-level.
 
 ### 6.5 The SuggestionEngine
 
-The SuggestionEngine is invoked only after detection is complete — never during detection. It operates in two modes. For Class A violations, the TemplateRewriter applies deterministic syntactic transforms: nominalization reversal (e.g., `nominalization + weak verb → verbal form`), sentence splitting at coordinating conjunctions, passive-to-active actor insertion where the actor is recoverable from context. For Class B and Class C violations, the ConstrainedGenerativeRewriter invokes a language model under the same rubric-injection protocol as the SemanticAuditor, constrained to return a revised text span, a one-sentence rationale, and the specific criterion the revision addresses.
+The SuggestionEngine is invoked only after detection is complete. It is a revision-plan generator, not an auto-editor.
+
+For v1 it operates in two modes:
+
+- **Template candidate generation** for determinate cases where syntactic preconditions are satisfied
+- **Tactic generation** for everything else, where the system can name the corrective move but should not fabricate a rewritten sentence
+
+Examples:
+
+- nominalization reversal only when a stable verbal form is available
+- passive-to-active only when an actor is locally recoverable
+- sentence splitting only when a stable clause boundary is available
+
+The system must never modify the source file itself.
 
 ### 6.6 The HierarchicalScorer
 
-Rather than aggregating all violations into a single scalar quality score — which erases the structural information essential for targeted revision — the HierarchicalScorer computes a score vector indexed by layer. At each layer, violations are aggregated by a weighted sum, where weights are declared in the configuration schema (Section 7) and are modulated by the resolved profile. The document-level score is a weighted composition of layer scores. The hierarchical structure means the writer can inspect both a global quality indicator and a per-layer breakdown, identifying whether failures are concentrated at the surface, the discourse, or the structural level.
+Rather than aggregating all violations into a single scalar quality score, the HierarchicalScorer computes a score vector indexed by layer. At each layer, violations are aggregated by weighted sums modulated by the resolved profile.
 
-Threshold values are not universal constants. Sentence length, for example, is assessed against a register-appropriate target $\mu_{\text{profile}}$ with a tolerance $\sigma_{\text{profile}}$:
+Threshold values remain profile-dependent. Sentence length, for example, is still assessed against a register-appropriate target $\mu_{\text{profile}}$ with a tolerance $\sigma_{\text{profile}}$:
 
 $$
 \text{score}_{\text{length}}(s) = \max\left(0,\ \frac{|l_s - \mu_{\text{profile}}| - \sigma_{\text{profile}}}{\sigma_{\text{profile}}}\right)
 $$
 
-where $l_s$ is the word count of sentence $s$. This continuous formulation avoids the discontinuities of binary threshold violations and supports smooth severity grading.
+where $l_s$ is the word count of sentence $s$.
+
+### 6.7 The ReportGenerator
+
+Report quality is a first-class architectural concern. A diagnostic that cannot explain itself is not operationally useful. Therefore reports must expose, in text and JSON:
+
+- the triggering rule id
+- the exact source span
+- the evidence features that caused the rule to fire
+- any abstention or confidence-limiting conditions
+- the corresponding rewrite tactics or revision-plan operations
 
 ---
 
 ## 7. Rule Formalization: The Normalized Rule Schema
 
-Every criterion in the rule inventory — whether a Class A surface heuristic or a Class C discourse judgment — is declared as a normalized rule object conforming to a common schema. The rule object is the unit of configuration, the unit of documentation, and the unit of evaluation. No rule exists outside this schema; no implicit or hard-coded behavior is permitted.
+Every criterion in the inventory remains a normalized rule object. The schema, however, must be rich enough to support evidence, language support, and abstention.
 
 ```yaml
 id:               discourse.subject_verb_distance
 label:            Subject and main verb are too far apart
 layer:            local_discourse          # { surface_style | local_discourse |
                                            #   paragraph_rhetoric | document_structure | audience_fit }
-tractability:     class_b                 # { class_a | class_b | class_c }
-kind:             soft_heuristic          # { hard_constraint | soft_heuristic | diagnostic_metric |
-                                           #   rhetorical_expectation | rewrite_tactic }
+tractability:     class_b                 # { class_a | class_b | class_h | class_c }
+kind:             soft_heuristic          # { hard_constraint | soft_heuristic |
+                                           #   diagnostic_metric | rhetorical_expectation | rewrite_tactic }
 default_severity: warning                 # { info | warning | error }
+supported_languages:
+  - en
 profiles_active:
   - generalist
   - pedagogical
@@ -193,27 +238,33 @@ detector:
   method:         dependency_distance
   arc:            nsubj_to_root
   threshold:
-    default:      8                       # tokens
+    default:      8
     pedagogical:  6
     research_note: 10
 exceptions:
   - mathematical_definition
   - caption_fragment
   - enumeration_item
+abstain_when:
+  - annotation_flags.contains("heavy_math_masking")
+  - annotation_flags.contains("symbol_dense_sentence")
+evidence_fields:
+  - distance
+  - threshold
+  - mask_ratio
 rationale:
   principles:
     - reader_expectation_gopen
     - plain_language_opm
 message: >
   The grammatical subject and the main verb are separated by {distance} tokens.
-  This gap delays the reader's processing of the predication. Move intervening
-  material to a preceding sentence or a following subordinate clause.
+  This gap delays the reader's processing of the predication.
 rewrite_tactics:
   - split_intervening_clause
   - move_context_to_prior_sentence
   - frontload_actor
-suggestion_mode: template               # { template | constrained_generative | none }
-weight:           0.7                   # contribution to layer score aggregation
+suggestion_mode: template                 # { template | tactic_only | none }
+weight:           0.7
 evaluation:
   true_positive_examples:
     - "The results, which had been obtained using the revised experimental protocol described in Section 3, confirm the hypothesis."
@@ -221,82 +272,124 @@ evaluation:
     - "The matrix $A$, defined as $A_{ij} = \delta_{ij} \lambda_i$, is diagonal."
 ```
 
-This schema enforces the separation of concerns required for a maintainable rule inventory. The `tractability` field determines the module to which the rule is dispatched. The `kind` field determines how the score is interpreted. The `profiles_active` field implements the profile-conditional behavior without branching logic in the engine. The `exceptions` field encodes domain-specific immunity conditions. The `evaluation` field provides the minimum substrate for per-rule precision testing.
+This schema preserves the earlier separation of concerns while correcting three omissions:
+
+- `supported_languages` makes rule portability explicit rather than assumed
+- `abstain_when` captures reliability limits
+- `evidence_fields` defines the minimum explanation contract for reports
 
 ---
 
-## 8. Revision Pipeline and Dependency Order
+## 8. Revision Plan Generator and Dependency Order
 
-FIX: The tool must not perform modifications in the source file. It must only produce a revision
-plan that the writer can choose to implement. Therefore, he "revision pipeline" below must be reformulated as a "revision plan generator" that produces an ordered list of revision operations, each linked to specific violations and their corresponding criteria.
+The tool must not perform modifications in the source file. It must produce a revision plan that the writer can choose to implement.
 
-The three-step rewriting protocol (Reorganize → Link → Rewrite locally) represents a correct dependency ordering, but requires operationalization to be executable. The following decomposition converts each abstract step into a sequence of testable sub-operations.
+The correct dependency order remains:
 
-**Step 1 — Reorganize (document and paragraph structure).**
-Sub-operations: (a) identify redundancy clusters via semantic similarity thresholding across paragraphs; (b) flag mixed-topic paragraphs via topic sentence mismatch detection; (c) verify heading parallelism and orphan section absence; (d) assess abstract-to-body alignment via semantic embedding comparison; (e) produce a structural revision plan as an ordered sequence of typed operations (`MERGE_PARAGRAPHS`, `SPLIT_PARAGRAPH`, `REORDER_SECTION`, `DELETE_REDUNDANT_CLUSTER`). No sentence-level rewriting is proposed at this step.
+**Reorganize -> Link -> Rewrite locally**
 
-**Step 2 — Link (discourse and sentence chaining).**
-Sub-operations, applied only after Step 1 operations are resolved: (a) verify topic-stress chain continuity between adjacent sentences; (b) identify and flag implicit discourse transitions where inferential gaps are present; (c) repair pronominal reference ambiguity by flagging underspecified antecedents; (d) ensure old information occupies topic position across sentence boundaries.
+### Step 1 — Reorganize (document and paragraph structure)
 
-**Step 3 — Rewrite locally (surface style).**
-Sub-operations, applied only after Steps 1 and 2 operations are resolved: (a) reverse targeted nominalizations; (b) convert unjustified passive constructions; (c) split overloaded sentences at the dependency parse level; (d) reduce prepositional chain length via verb strengthening; (e) reduce subject-verb distance by extracting intervening clauses.
+Sub-operations:
 
-This ordering is not merely organizational. Applying Step 3 before Step 1 optimizes syntax within a structurally deficient macro-architecture, producing locally improved sentences that still fail to communicate the intended argument. The pipeline enforces the correct precedence.
+- identify redundancy candidates via bounded heuristic comparison
+- flag mixed-topic paragraphs via topic-sentence weakness and local cohesion signals
+- verify heading parallelism and orphan section absence
+- produce structural operations such as `MERGE_PARAGRAPHS`, `SPLIT_PARAGRAPH`, `REORDER_SECTION`, or `REVIEW_REDUNDANCY_CLUSTER`
+
+No sentence-level rewriting is proposed at this step.
+
+### Step 2 — Link (discourse and sentence chaining)
+
+Sub-operations:
+
+- flag local connective support gaps
+- identify weak topic continuity across adjacent sentences
+- flag locally ambiguous reference patterns where deterministic heuristics suffice
+- ensure old information is not systematically buried
+
+This step remains local and bounded in v1. Fuller topic-stress chain analysis remains future work.
+
+### Step 3 — Rewrite locally (surface style)
+
+Sub-operations:
+
+- reverse targeted nominalizations where a stable verbal form exists
+- convert unjustified passive constructions where actor recovery is possible
+- split overloaded sentences where a safe boundary is available
+- reduce prepositional chain length or subject-verb distance through tactic suggestions
+
+This ordering is not merely organizational. Applying local rewrites before structural fixes still optimizes syntax inside a deficient macro-organization.
 
 ---
 
 ## 9. Criterion Inventory: Revisions to the Original Checklist
 
-The original checklist requires revision on three grounds: certain criteria are reformulated for operational precision; certain criteria are demoted or removed on theoretical and empirical grounds; and a set of criteria absent from the original inventory must be added.
+The original checklist still requires revision on three grounds: some criteria need sharper operationalization, some must be removed, and some semantic heuristics deserve a narrower but real implementation path.
 
 ### 9.1 Criteria Retained and Reformulated
 
-- **Sentence length** is retained as a distributional metric, not a single average. The system monitors mean, median, and the proportion of sentences exceeding the profile-specific threshold. The register-appropriate target is profile-parameterized, not universal.
-- **Passive voice** is retained as a conditional warning, not a blanket prohibition. The active-passive decision is assessed relative to section function and actor availability. Passive voice in methods sections with suppressed actor is not penalized under the `research_note` or `article` profiles.
-- **Nominalization** is retained, but detection targets only harmful cases: nominalization paired with a semantically weak verbal support (e.g., *perform a measurement of* versus *measure*). Standalone nominalizations functioning as technical terms are excluded.
-- **Topic-stress progression** is elevated to a first-class discourse module within the SemanticAuditor, replacing its current status as a marginal annotation.
-- **Paragraph topic sentence** is retained and formalized as a paragraph-role position constraint: the topic sentence must occupy the first or second sentence of the paragraph in all non-exception contexts.
+- **Sentence length** is retained as a distributional metric, not a single average. The target remains profile-parameterized.
+- **Passive voice** is retained as a conditional warning, not a blanket prohibition. In v1 it is explicitly validated only for English.
+- **Nominalization** is retained, but detection targets only harmful cases: nominalization plus weak verbal support, with technical-term exceptions.
+- **Paragraph topic sentence** is retained, but no longer as a bare positional rule. It becomes a bounded heuristic combining sentence position, lexical centrality, topic continuity, and exception handling for transitional openers and motivating examples.
+- **Transition quality** is retained as a bounded support-gap heuristic, not as a ban on specific connective words and not as a claim to detect full logical warrant.
+- **Claim-evidence calibration** is retained as a local evidence-signal mismatch heuristic, not as a complete epistemic judgment.
+- **Semantic redundancy** is retained as a candidate-detection heuristic, with corroborating evidence required before a paragraph pair is reported.
 
 ### 9.2 Criteria Demoted or Removed
 
-- **"Prefer monosyllabic Saxon nouns"** is removed. The criterion is etymologically crude, corpus-dependent, and inapplicable to specialist prose where polysyllabic technical terms are precisely the appropriate lexical choices.
-- **"Use catchy words in title and abstract"** is separated into a distinct *discoverability module* that is orthogonal to the clarity and fluidity objectives of the main system. It must not influence the clarity score.
-- **"Avoid dangerous transition words"** is replaced by a *discourse relation auditor* that detects unsupported inferential or causal jumps — the actual failure the criterion targets. The problem is not the token *therefore*; it is the absence of an explicit warrant for the inferred relation.
-- **"Style: positively charged"** is replaced by **constructive and calibrated evaluative language**, formalized as a combination of judgment-trap lexicon detection (Class A) and claim-calibration auditing (Class C).
-- **Gunning Fog Index** is retained as a secondary diagnostic metric, but with the corrected formula:
+- **"Prefer monosyllabic Saxon nouns"** is removed. The criterion is etymologically crude and misaligned with specialist prose.
+- **"Use catchy words in title and abstract"** is separated into a discoverability module orthogonal to clarity.
+- **"Avoid dangerous transition words"** is removed as a token-ban formulation. The real target is the bounded support-gap heuristic described above.
+- **"Style: positively charged"** is replaced by constructive and calibrated evaluative language, implemented in v1 only through narrow heuristics and explicit lexicons.
+- **Gunning Fog Index** is retained only as a secondary diagnostic metric, with the corrected formula:
 
 $$
 \text{GFI} = 0.4 \left( \frac{N_{\text{words}}}{N_{\text{sentences}}} + 100 \cdot \frac{N_{\text{complex}}}{N_{\text{words}}} \right)
 $$
 
-where $N_{\text{complex}}$ counts words of three or more syllables, excluding proper nouns, compound familiar words, and two-syllable verb forms created by *-ed* or *-es* suffixation.
+where $N_{\text{complex}}$ counts words of three or more syllables, excluding proper nouns, compound familiar words, and two-syllable verb forms created by `-ed` or `-es`.
 
 ### 9.3 Criteria Added
 
-The following criteria are absent from the original inventory and must be incorporated:
+The following criteria remain important additions to the inventory:
 
-- Referential clarity: pronoun-to-referent distance and uniqueness within the coreference chain.
-- Acronym burden: definition-lag detection (acronym used before first definition) and density monitoring (acronym-to-word ratio per paragraph).
-- Noun cluster density: sequences of three or more consecutive nouns in a noun-phrase head chain.
-- Local lexical cohesion: lexical overlap coefficient between adjacent sentences as a proxy for topic continuity.
-- Semantic redundancy: cosine similarity between paragraph embedding vectors, flagging pairs above a profile-specific threshold.
-- Heading parallelism: syntactic frame consistency across sibling headings at the same structural level.
-- Abstract-to-body alignment: semantic similarity between abstract content and the corresponding section content.
-- Claim-evidence calibration: detection of strong epistemic claims (absence of hedges) where the evidence base is not signaled.
-- Definition-before-use: detection of technical terms used before their first definition within the document.
+- Acronym burden: definition-lag detection and density monitoring
+- Noun cluster density: sequences of three or more consecutive nouns in a noun-phrase head chain
+- Local lexical cohesion: overlap and continuity signals between adjacent sentences
+- Semantic redundancy candidate detection: bounded similarity checks across paragraphs
+- Heading parallelism: syntactic frame consistency across sibling headings
+- Definition-before-use: first-use tracking for technical terms and symbols
+- Claim-evidence calibration proxy: strong claim markers without nearby evidence signals
+
+The following remain deferred from the v1 core runtime:
+
+- topic-stress progression
+- rhetorical move classification
+- abstract-body alignment
+- full coreference-based referential analysis
 
 ---
 
 ## 10. Configuration Schema Architecture
 
-The system's behavior is entirely governed by a declarative configuration file, not by code-level parameters. The configuration file declares: the active profile; the set of active rule identifiers; per-rule threshold overrides; per-rule weight overrides; the suggestion mode for each rule; and the output format. An illustrative top-level structure:
+The system's behavior is still governed by a declarative configuration file, but the schema must expose language selection, strict validation, and rule-level overrides with explicit structure.
 
 ```yaml
 profile:
-  audience:  interdisciplinary
-  genre:     lecture_note
-  section:   introduction
-  register:  pedagogical
+  audience: interdisciplinary
+  genre: lecture_note
+  section: introduction
+  register: pedagogical
+
+language:
+  code: en
+  pack: builtin_en
+
+runtime:
+  strict_validation: true
+  experimental_rules: false
 
 rules:
   active:
@@ -304,15 +397,20 @@ rules:
     - surface.passive_voice
     - surface.nominalization
     - discourse.subject_verb_distance
-    - discourse.stress_position
-    - paragraph.topic_sentence_position
-    - document.semantic_redundancy
+    - paragraph.topic_sentence
+    - paragraph.paragraph_redundancy
     - audience.acronym_burden
   overrides:
     surface.sentence_length:
-      threshold.default: 18
+      threshold:
+        default: 18
       weight: 0.9
-    surface.passive_voice:
+    surface.banned_transition:
+      extra_patterns:
+        - "as a consequence"
+      silenced_patterns:
+        - "note that"
+    audience.claim_calibration:
       severity: info
 
 scoring:
@@ -321,51 +419,66 @@ scoring:
 
 suggestions:
   enabled: true
-  modes:
-    class_a: template
-    class_b: constrained_generative
-    class_c: constrained_generative
+  default_mode: tactic_only
 
 reporting:
   format: annotated_markdown
   sort_by: severity_desc
 ```
 
-This configuration-as-data design, analogous to the rule declaration schemas used by Vale and LanguageTool, ensures that the system is reconfigurable without code modification and that distinct configurations for research notes, lecture slides, and tutorial expositions are maintainable as versioned artifacts.
+This configuration-as-data design remains analogous to systems such as Vale and LanguageTool, but with two stricter requirements:
+
+- unknown rules or unknown fields are invalid, not silently ignored
+- additive rule fields such as pattern extensions are declared explicitly, not inferred from ad hoc merge behavior
 
 ---
 
 ## 11. Evaluation Methodology
 
-The tool cannot be evaluated by face validity alone. A gold-standard evaluation corpus is the minimum viable substrate. The following protocol defines the evaluation methodology.
+The tool still cannot be evaluated by face validity alone. A gold-standard evaluation corpus remains the minimum viable substrate, but the methodology must now account for fixed-model heuristics and parser-dependent behavior.
 
 **Corpus construction.** A representative set of the writer's own texts — spanning research notes, lecture materials, and pedagogical expositions — is collected. For each text, a revised version is produced by the writer, with explicit annotations of the specific violations corrected and the criterion motivating each correction. This yields a corpus of `(original, revised, annotation)` triples.
 
-**Per-rule precision measurement.** For each rule, precision is defined as the proportion of system-flagged violations that correspond to annotated violations in the gold standard. Precision is evaluated before recall: in a writing assistance context, false positives (spurious flags) are more damaging than missed detections, because they erode the writer's trust in the system and introduce revision overhead. A rule whose precision falls below a declared threshold is demoted to `info` severity or deactivated.
+**Per-rule precision measurement.** For each rule, precision is defined as the proportion of system-flagged violations that correspond to annotated violations in the gold standard. Precision is evaluated before recall. A rule whose precision falls below the declared threshold is demoted, narrowed, or disabled.
 
-**Hierarchical evaluation.** Evaluation is conducted separately per layer. A surface-layer detector with high precision but low recall is not penalized by paragraph-level failures; the two layers address different phenomena and require independent calibration.
+**Heuristic promotion policy.** Class H rules start conservatively. They are promoted from `info` or `diagnostic_metric` severity only after the measured precision on target text is acceptable.
 
-**Suggestion acceptance rate.** For each suggestion produced by the SuggestionEngine, the writer's acceptance or rejection is logged. Acceptance rate, stratified by rule and by suggestion mode (template versus constrained generative), is the primary quality metric for the SuggestionEngine. Low acceptance rates for constrained generative suggestions indicate rubric misspecification, not model incapability.
+**Model-version control.** Parser-dependent evaluation must pin exact model versions. Rule tests should be split into:
 
-**Comparative baseline.** The system's precision and acceptance rate are compared against three baselines: classical readability formula output alone, a commercial prose linter (Readable or equivalent), and an unconstrained generative agent. The purpose is to establish that the constrained, stratified architecture materially outperforms both the purely deterministic baseline and the unconstrained AI baseline on the writer's own annotation corpus.
+- logic tests against frozen annotated fixtures
+- integration tests against live models on a smaller corpus
+
+This prevents upstream NLP model updates from masquerading as hermeneia regressions.
+
+**Hierarchical evaluation.** Evaluation is conducted separately per layer. A surface detector is not penalized by paragraph-level failures, and vice versa.
+
+**Suggestion acceptance rate.** Acceptance and rejection of template rewrite candidates and tactic suggestions are logged per rule. This is the primary quality metric for the SuggestionEngine.
+
+**Performance evaluation.** The system must be benchmarked for:
+
+- cold-start and warm-start single-document latency
+- batch throughput
+- scaling behavior on large documents with many paragraphs
+
+This is necessary because embeddings, parser startup, and pairwise comparisons are real architectural costs, not incidental implementation details.
 
 ---
 
 ## 12. Summary of Architectural Decisions
 
-The table below consolidates the principal design decisions and their motivating rationale.
+The table below consolidates the revised principal decisions and their rationale.
 
 | Decision | Specification | Rationale |
 |---|---|---|
-| Tractability stratification | All criteria classified as Class A, B, or C before implementation | Prevents undefined implementation boundaries; isolates stochastic behavior |
-| Two-module detection | RuleEngine (A+B, deterministic) + SemanticAuditor (C, constrained LLM) | Resolves anti-AI motivation while accommodating semantically irreducible criteria |
-| Rubric injection | SemanticAuditor system prompt derived from normalized rule inventory | Eliminates academic-register bias; makes LLM evaluation criteria identical to declared criteria |
-| Profile layer | All thresholds and active rules modulated by resolved profile | Prevents over-prescription; adapts system to genre, audience, and section function |
-| Separated detection and suggestion | SuggestionEngine invoked only after full detection pass | Prevents syntactic optimization within deficient macro-structure; enables independent evaluation |
-| Hierarchical scoring | Layer-specific score vector, not scalar global score | Preserves structural diagnostic information; enables targeted revision |
-| Dependency-ordered revision pipeline | Reorganize → Link → Rewrite locally | Enforces correct revision precedence; avoids local optimization in poor macro-structure |
-| Normalized rule schema | Every criterion declared as typed YAML object | Enforces auditability, configurability, and per-rule unit testing |
-| Gold-standard evaluation | Annotated corpus of writer's own texts | Prevents face-validity evaluation; grounds precision measurement in actual use |
+| Tractability stratification | Criteria classified as Class A, B, H, or C before implementation | Prevents undefined boundaries and preserves bounded semantic heuristics without overstating them |
+| Structured preprocessor outputs | Block/inline IR, source views, and offset-preserving NLP projections | Removes the false dichotomy between raw-text rules and annotated rules |
+| RuleEngine scope | RuleEngine handles Class A, B, and H | Keeps v1 deterministic/heuristic while admitting evidence-bearing semantic proxies |
+| Future semantic auditor | SemanticAuditor reserved for demonstrably irreducible Class C criteria | Prevents premature LLM dependence while keeping an escape hatch for true semantic limits |
+| English-first language architecture | v1 ships English only, but language packs are a first-class structural concept | Anticipates multilingual support without making unjustified language-agnostic claims |
+| Strict profile resolution | Defaults and overrides merge deterministically with validation errors on unknown fields | Keeps configuration auditable and prevents silent misconfiguration |
+| Explainable diagnostics | Violations carry evidence, confidence, and rewrite tactics | Makes false positives diagnosable and heuristics auditable |
+| Revision-plan generator | Reorganize -> Link -> Rewrite locally, with no source auto-editing | Preserves correct revision precedence and keeps the tool advisory |
+| Model-aware evaluation | Pinned NLP models, frozen fixtures, heuristic promotion gates, and performance benchmarks | Prevents unstable tests and grounds heuristics in measured precision |
 
 ---
 
