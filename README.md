@@ -13,13 +13,22 @@ profile-aware, stratified rule systems.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [Acknowledgments](#acknowledgments)
-- [License](#license)
+- [hermeneia](#hermeneia)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [Motivation](#motivation)
+    - [Advantages](#advantages)
+    - [Theoretical Foundations](#theoretical-foundations)
+  - [Features](#features)
+    - [Detection](#detection)
+    - [Revision Suggestions](#revision-suggestions)
+    - [Scoring and Reporting](#scoring-and-reporting)
+  - [Quick Start](#quick-start)
+  - [Documentation](#documentation)
+  - [Contributing](#contributing)
+  - [Acknowledgments](#acknowledgments)
+    - [Authors](#authors)
+  - [License](#license)
 
 ## Overview
 
@@ -27,9 +36,9 @@ profile-aware, stratified rule systems.
 
 Technical and mathematical writing requires precise control over sentence structure,
 terminology, and logical flow. Surface-level style checkers flag grammar issues but miss
-deeper problems: nominalizations that obscure agency, bare pronouns after display
-equations, abstract framing that buries results, and compound modifiers that compress
-relationships beyond readability.
+deeper structure and formulation issues that degrade readability, comprehension and engagement.
+Typical examples that pervade technical writing include nominalizations that obscure agency,
+abstract framing that buries results, and compound modifiers that compress relationships.
 
 ### Advantages
 
@@ -40,8 +49,6 @@ relationships beyond readability.
   activate the rule subsets and severity levels appropriate to the genre.
 - **Hard blockers** — critical rules (nominalization, abstract framing, bare pronouns,
   bare symbols) function as hard blockers that gate output.
-- **Mechanical enforcement** — forbidden-string searches and rewrite operators apply
-  deterministically, not as advisory suggestions.
 - **Auditable diagnostics** — each finding names the triggering rule, the justifying
   principle, and the text span it applies to.
 - **Declarative configuration** — all rules, severities, thresholds, and suggestion

@@ -1,9 +1,6 @@
 # Writing Standards
 
-Prose conventions for all documentation in this ecosystem: README files,
-CONTRIBUTING guides, user guides, architecture documents, and ADR files.
-
-These standards are the single authoritative source for writing rules.
+Prose conventions, standards, writing rules.
 The [documentation audit prompt](../audits/audit-documentation.md) enforces
 them; individual projects must not redefine them.
 

@@ -1,6 +1,8 @@
 {
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Read(//Users/eresther/Documents/work/techne/tutorials/programming/examples/**)"
+    ],
     "additionalDirectories": []
   }
 }

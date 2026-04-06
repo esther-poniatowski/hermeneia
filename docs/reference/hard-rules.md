@@ -207,12 +207,12 @@ serves to
 is involved in
 In the ... case
 the ... case
-Define 
-Let 
-Assume 
-Write 
-Set 
-Denote 
+Define
+Let
+Assume
+Write
+Set
+Denote
 Note that
 Observe that
 Recall that
