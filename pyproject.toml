@@ -42,6 +42,11 @@ urls = {homepage = "https://github.com/esther-poniatowski/hermeneia"}
 requires-python = ">=3.12"
 
 dependencies = [
+    "markdown-it-py>=3.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "rich>=13",
+    "spacy>=3.7",
     "typer>=0.9",
 ]
 

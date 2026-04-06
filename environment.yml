@@ -5,8 +5,11 @@ channels:
 dependencies:
   - python=3.12
   # Data manipulation and formats
+  - markdown-it-py        # Markdown parsing
+  - pydantic             # strict config validation
   - pyyaml                 # YAML file handling
   - types-pyyaml           # type stubs for PyYAML
+  - spacy                  # NLP annotation
   # Development tools
   - black                  # code formatting
   - mypy                   # static type checking

@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/eresther/Documents/work/techne/tutorials/programming/examples/**)"
+      "Read(//Users/eresther/Documents/work/techne/tutorials/programming/examples/**)",
+      "Bash(head -20 /Users/eresther/Documents/work/projects/hermeneia/config/dictionaries/*.txt)",
+      "Read(//Users/eresther/Documents/work/techne/**)",
+      "Read(//Users/eresther/Documents/work/**)"
     ],
     "additionalDirectories": []
   }

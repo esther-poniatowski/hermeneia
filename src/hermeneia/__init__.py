@@ -29,11 +29,12 @@ importlib.metadata.version
 PackageNotFoundError
     Exception raised when the package is not found in the environment.
 """
+
 from importlib.metadata import version, PackageNotFoundError
 import platform
 
 try:
-    if __package__ is None: # erroneous script execution
+    if __package__ is None:  # erroneous script execution
         raise PackageNotFoundError
     __version__ = version(__package__)
 except PackageNotFoundError:
