@@ -9,7 +9,8 @@ dependencies:
   - pydantic             # strict config validation
   - pyyaml                 # YAML file handling
   - types-pyyaml           # type stubs for PyYAML
-  - spacy                  # NLP annotation
+  - spacy=3.8.*            # NLP annotation runtime
+  - spacy-model-en_core_web_sm=3.8.0  # pinned English spaCy model
   # Development tools
   - black                  # code formatting
   - mypy                   # static type checking

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from hermeneia.language.base import LanguageLexicons, LanguagePack, PreprocessingPolicy
 
+ENGLISH_SPACY_MODEL = "en_core_web_sm"
+ENGLISH_SPACY_MODEL_VERSION = "3.8.0"
+
 ENGLISH_PACK = LanguagePack(
     code="en",
     name="English",
-    parser_model="en_core_web_sm",
+    parser_model=ENGLISH_SPACY_MODEL,
     preprocessing=PreprocessingPolicy(),
     lexicons=LanguageLexicons(
         weak_support_verbs=frozenset(
