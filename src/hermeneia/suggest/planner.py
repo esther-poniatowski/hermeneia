@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from hermeneia.report.revision_plan import RevisionOperation, RevisionPlan
-from hermeneia.rules.base import Violation
-from hermeneia.suggest.template import RewriteCandidate, rewrite_for_contraction, tactic_only
+from hermeneia.rules.base import Layer, Severity, Violation
+from hermeneia.suggest.template import (
+    RewriteCandidate,
+    rewrite_for_contraction,
+    tactic_only,
+)
 
 
 class RevisionPlanner:
@@ -13,7 +17,13 @@ class RevisionPlanner:
         ordered = tuple(
             sorted(
                 operations,
-                key=lambda op: (op.layer.value, -_severity_rank(op.severity), op.span.start),
+                key=lambda op: (
+                    _layer_rank(op.layer),
+                    -_severity_rank(op.severity),
+                    op.span.start,
+                    op.span.end,
+                    op.rule_id,
+                ),
             )
         )
         return RevisionPlan(operations=ordered)
@@ -33,9 +43,25 @@ class RevisionPlanner:
         if violation.rule_id == "surface.contraction":
             return rewrite_for_contraction()
         return tactic_only(
-            violation.rewrite_tactics[0] if violation.rewrite_tactics else violation.message
+            violation.rewrite_tactics[0]
+            if violation.rewrite_tactics
+            else violation.message
         )
 
 
 def _severity_rank(severity) -> int:
-    return {"error": 3, "warning": 2, "info": 1}[severity.value]
+    return {
+        Severity.ERROR: 3,
+        Severity.WARNING: 2,
+        Severity.INFO: 1,
+    }[severity]
+
+
+def _layer_rank(layer: Layer) -> int:
+    return {
+        Layer.DOCUMENT_STRUCTURE: 0,
+        Layer.PARAGRAPH_RHETORIC: 1,
+        Layer.LOCAL_DISCOURSE: 2,
+        Layer.AUDIENCE_FIT: 3,
+        Layer.SURFACE_STYLE: 4,
+    }[layer]
