@@ -165,3 +165,38 @@ def test_revision_plan_falls_back_to_explicit_manual_tactic_when_absent() -> Non
     op = plan.operations[0]
     assert op.candidate_rewrite is None
     assert op.tactic.startswith("No deterministic rewrite candidate is available")
+
+
+def test_revision_plan_passive_voice_template_requires_identifiable_actor() -> None:
+    span = Span(0, 8, 1, 1, 1, 9)
+    plan = RevisionPlanner().build(
+        [
+            Violation(
+                "surface.passive_voice",
+                "passive voice",
+                span,
+                Severity.WARNING,
+                Layer.SURFACE_STYLE,
+                evidence=RuleEvidence(features={"participle": "derived"}),
+                rewrite_tactics=("Rewrite the clause in active voice.",),
+            ),
+            Violation(
+                "surface.passive_voice",
+                "passive voice",
+                span,
+                Severity.WARNING,
+                Layer.SURFACE_STYLE,
+                evidence=RuleEvidence(
+                    features={"actor": "the authors", "participle": "derived"}
+                ),
+                rewrite_tactics=("Rewrite the clause in active voice.",),
+            ),
+        ]
+    )
+    without_actor, with_actor = plan.operations
+    assert without_actor.candidate_rewrite is None
+    assert without_actor.tactic == "Rewrite the clause in active voice."
+    assert with_actor.tactic == (
+        "Rewrite in active voice with 'the authors' as the grammatical subject."
+    )
+    assert with_actor.candidate_rewrite == "The authors derived ..."

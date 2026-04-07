@@ -9,6 +9,7 @@ from hermeneia.suggest.template import (
     no_deterministic_rewrite_available,
     rewrite_for_contraction,
     rewrite_for_nominalization,
+    rewrite_for_passive_voice,
     rewrite_for_proof_marker,
     tactic_only,
 )
@@ -53,6 +54,13 @@ class RevisionPlanner:
             return rewrite_for_contraction(contraction)
         if violation.rule_id == "math.proof_marker":
             return rewrite_for_proof_marker()
+        if violation.rule_id == "surface.passive_voice":
+            candidate = rewrite_for_passive_voice(
+                actor=_evidence_str(violation, "actor"),
+                participle=_evidence_str(violation, "participle"),
+            )
+            if candidate is not None:
+                return candidate
         if violation.rule_id == "surface.nominalization":
             candidate = rewrite_for_nominalization(
                 nominalization=_evidence_str(violation, "nominalization"),

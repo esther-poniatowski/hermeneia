@@ -19,6 +19,9 @@ from hermeneia.rules.common import iter_sentences, upstream_limits
 PASSIVE_FALLBACK_RE = re.compile(
     r"\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b", re.IGNORECASE
 )
+BY_PHRASE_RE = re.compile(
+    r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE
+)
 
 
 class PassiveVoiceRule(AnnotatedRule):
@@ -81,6 +84,7 @@ def _detect_passive_signal(sentence) -> dict[str, object] | None:
             "auxiliary": aux,
             "participle": participle,
             "dependency_signal": "passive_dependency",
+            **_actor_feature(sentence),
         }
     match = PASSIVE_FALLBACK_RE.search(sentence.projection.text)
     if match is None:
@@ -92,9 +96,26 @@ def _detect_passive_signal(sentence) -> dict[str, object] | None:
         "auxiliary": auxiliary,
         "participle": participle,
         "dependency_signal": "regex_fallback",
+        **_actor_feature(sentence),
     }
+
+
+def _actor_feature(sentence) -> dict[str, str]:
+    actor = _extract_actor_phrase(sentence)
+    if actor is None:
+        return {}
+    return {"actor": actor}
+
+
+def _extract_actor_phrase(sentence) -> str | None:
+    match = BY_PHRASE_RE.search(sentence.projection.text)
+    if match is None:
+        return None
+    actor = re.sub(r"\s+", " ", match.group(1)).strip()
+    if not actor:
+        return None
+    return actor
 
 
 def register(registry) -> None:
     registry.add(PassiveVoiceRule)
-

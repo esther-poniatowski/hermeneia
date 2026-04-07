@@ -99,6 +99,25 @@ def rewrite_for_nominalization(
     return RewriteCandidate(tactic=tactic, candidate_rewrite=verb)
 
 
+def rewrite_for_passive_voice(
+    actor: str | None,
+    participle: str | None,
+) -> RewriteCandidate | None:
+    if actor is None:
+        return None
+    cleaned_actor = actor.strip()
+    if not cleaned_actor:
+        return None
+    capitalized_actor = cleaned_actor[0].upper() + cleaned_actor[1:]
+    tactic = f"Rewrite in active voice with '{cleaned_actor}' as the grammatical subject."
+    if participle and participle.lower().endswith("ed"):
+        return RewriteCandidate(
+            tactic=tactic,
+            candidate_rewrite=f"{capitalized_actor} {participle} ...",
+        )
+    return RewriteCandidate(tactic=tactic)
+
+
 def tactic_only(message: str) -> RewriteCandidate:
     return RewriteCandidate(tactic=message)
 

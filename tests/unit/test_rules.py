@@ -74,3 +74,24 @@ def test_claim_calibration_rule_abstains_on_heavy_math_masking(
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["audience.claim_calibration"])
     assert rule.check(document, context) == []
+
+
+def test_passive_voice_rule_extracts_actor_for_by_phrase(
+    registry, language_pack, research_profile
+) -> None:
+    source = "The theorem was proved by the authors.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    document = (
+        SpaCyDocumentAnnotator(language_pack.parser_model)
+        .annotate(document, research_profile)
+        .document
+    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.passive_voice"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    evidence = violations[0].evidence
+    assert evidence is not None
+    assert evidence.features.get("actor") == "the authors"
