@@ -48,6 +48,11 @@ class ProfileResolver:
                 and rule_id not in explicit_rule_ids
             ):
                 continue
+            if not self._language_pack_supports_rule(language_pack, rule_id):
+                raise ValueError(
+                    f"Rule '{rule_id}' is not supported by language pack "
+                    f"'{language_pack.code}'"
+                )
             if language_pack.code not in registration.metadata.supported_languages:
                 raise ValueError(
                     f"Rule '{rule_id}' does not support language '{language_pack.code}'"
@@ -177,6 +182,21 @@ class ProfileResolver:
             f"language pack '{language_pack.code}' rule_defaults",
             language_pack.rule_defaults,
         )
+        self._raise_unknown_rule_ids(
+            f"language pack '{language_pack.code}' supported_rules",
+            language_pack.supported_rules,
+        )
+        supported = language_pack.supported_rules
+        if supported:
+            defaults_outside_support = sorted(
+                rule_id for rule_id in language_pack.rule_defaults if rule_id not in supported
+            )
+            if defaults_outside_support:
+                raise ValueError(
+                    f"language pack '{language_pack.code}' rule_defaults declare unsupported "
+                    "rule ids: "
+                    + ", ".join(defaults_outside_support)
+                )
 
     def _raise_unknown_rule_ids(self, source: str, rule_ids: Iterable[str]) -> None:
         unknown = sorted(
@@ -184,6 +204,14 @@ class ProfileResolver:
         )
         if unknown:
             raise ValueError(f"Unknown rule ids in {source}: {', '.join(unknown)}")
+
+    def _language_pack_supports_rule(
+        self, language_pack: LanguagePack, rule_id: str
+    ) -> bool:
+        supported_rules = language_pack.supported_rules
+        if not supported_rules:
+            return True
+        return rule_id in supported_rules
 
     def _explicit_rule_ids(
         self,

@@ -312,6 +312,75 @@ def test_profile_resolution_rejects_unknown_rule_in_language_defaults(
         ProfileResolver(registry).resolve(config, bad_pack)
 
 
+def test_profile_resolution_rejects_unknown_rule_in_language_supported_rules(
+    registry, language_pack
+) -> None:
+    bad_pack = replace(
+        language_pack,
+        supported_rules=frozenset({"unknown.rule"}),
+    )
+    config = parse_project_config({})
+    with pytest.raises(
+        ValueError,
+        match="Unknown rule ids in language pack 'en' supported_rules: unknown.rule",
+    ):
+        ProfileResolver(registry).resolve(config, bad_pack)
+
+
+def test_profile_resolution_rejects_rule_not_supported_by_language_pack(
+    registry, language_pack
+) -> None:
+    restricted_pack = replace(
+        language_pack,
+        supported_rules=frozenset({"surface.sentence_length"}),
+        rule_defaults={},
+    )
+    config = parse_project_config(
+        {"rules": {"active": ["surface.passive_voice"]}}
+    )
+    with pytest.raises(
+        ValueError,
+        match="Rule 'surface.passive_voice' is not supported by language pack 'en'",
+    ):
+        ProfileResolver(registry).resolve(config, restricted_pack)
+
+
+def test_profile_resolution_allows_rule_when_language_pack_supports_it(
+    registry, language_pack
+) -> None:
+    restricted_pack = replace(
+        language_pack,
+        supported_rules=frozenset({"surface.sentence_length"}),
+        rule_defaults={},
+    )
+    config = parse_project_config(
+        {"rules": {"active": ["surface.sentence_length"]}}
+    )
+    profile = ProfileResolver(registry).resolve(config, restricted_pack)
+    assert "surface.sentence_length" in profile.rules
+
+
+def test_profile_resolution_rejects_language_default_for_unsupported_rule(
+    registry, language_pack
+) -> None:
+    restricted_pack = replace(
+        language_pack,
+        supported_rules=frozenset({"surface.sentence_length"}),
+        rule_defaults={
+            "surface.sentence_length": {"options": {"max_words": 18}},
+            "surface.passive_voice": {"options": {}},
+        },
+    )
+    config = parse_project_config(
+        {"rules": {"active": ["surface.sentence_length"]}}
+    )
+    with pytest.raises(
+        ValueError,
+        match="language pack 'en' rule_defaults declare unsupported rule ids: surface.passive_voice",
+    ):
+        ProfileResolver(registry).resolve(config, restricted_pack)
+
+
 def test_profile_resolution_accepts_options_mapping_override(
     registry, language_pack
 ) -> None:
