@@ -1,0 +1,92 @@
+{
+  "benchmark_name": "phase3_warm_run_latency",
+  "environment": {
+    "language_pack": "en",
+    "platform": "darwin",
+    "python_version": "3.12.13",
+    "spacy_model": "en_core_web_sm",
+    "spacy_model_installed_version": "3.8.0",
+    "spacy_model_package": "en-core-web-sm",
+    "spacy_model_version": "3.8.0"
+  },
+  "fixtures": [
+    {
+      "fixture": "large.md",
+      "size": {
+        "chars": 2371,
+        "lines": 58,
+        "paragraphs": 18,
+        "words": 342
+      },
+      "violation_count": 45,
+      "warm_run_ms": {
+        "max": 130.444,
+        "mean": 112.569,
+        "median": 109.07,
+        "min": 106.138,
+        "p95": 130.444,
+        "runs_ms": [
+          130.444,
+          109.07,
+          109.089,
+          106.138,
+          108.104
+        ]
+      }
+    },
+    {
+      "fixture": "medium.md",
+      "size": {
+        "chars": 776,
+        "lines": 22,
+        "paragraphs": 8,
+        "words": 116
+      },
+      "violation_count": 18,
+      "warm_run_ms": {
+        "max": 39.617,
+        "mean": 38.56,
+        "median": 38.879,
+        "min": 36.82,
+        "p95": 39.617,
+        "runs_ms": [
+          36.82,
+          39.617,
+          38.23,
+          39.253,
+          38.879
+        ]
+      }
+    },
+    {
+      "fixture": "small.md",
+      "size": {
+        "chars": 177,
+        "lines": 7,
+        "paragraphs": 4,
+        "words": 27
+      },
+      "violation_count": 4,
+      "warm_run_ms": {
+        "max": 11.855,
+        "mean": 10.543,
+        "median": 10.075,
+        "min": 9.74,
+        "p95": 11.855,
+        "runs_ms": [
+          11.067,
+          10.075,
+          9.74,
+          9.979,
+          11.855
+        ]
+      }
+    }
+  ],
+  "harness": {
+    "iterations": 5,
+    "notes": "Warm-run latency per document after a single warmup run.",
+    "script": "tests/benchmarks/record_warm_run_benchmark.py"
+  },
+  "recorded_at_utc": "2026-04-07T09:32:46.493017+00:00"
+}
