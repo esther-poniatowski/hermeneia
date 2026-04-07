@@ -59,6 +59,7 @@ class AnalysisPolicy:
     scoring_output: frozenset[str] = frozenset(
         {"layer_scores", "global_score", "violation_list"}
     )
+    debug_mode: bool = False
     suggestions_enabled: bool = True
     suggestion_default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
 
@@ -124,6 +125,7 @@ class AnalysisRunner:
                 profile,
                 self._language_pack,
                 features,
+                debug_mode=self._policy.debug_mode,
             )
             diagnostics.extend(
                 OperationalDiagnostic(

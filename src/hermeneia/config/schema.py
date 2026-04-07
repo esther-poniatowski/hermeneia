@@ -54,6 +54,7 @@ class EmbeddingConfig(_ConfigModel):
 class RuntimeConfig(_ConfigModel):
     strict_validation: StrictBool = True
     experimental_rules: StrictBool = False
+    debug: StrictBool = False
     external_rule_modules: tuple[str, ...] = ()
     embeddings: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
 

@@ -8,6 +8,7 @@ from hermeneia.engine.registry import RuleRegistry
 from hermeneia.rules.base import (
     BaseRule,
     ResolvedProfile,
+    RuntimeCapabilities,
     RuleContext,
     SuggestionMode,
     Tractability,
@@ -41,12 +42,17 @@ class RuleDetector:
         profile: ResolvedProfile,
         language_pack: LanguagePack,
         features: FeatureStore,
+        debug_mode: bool = False,
     ) -> DetectionResult:
         context = RuleContext(
             profile=profile,
             language_pack=language_pack,
             features=features,
-            enable_experimental=profile.enable_experimental,
+            capabilities=RuntimeCapabilities(
+                embeddings_available=features.embeddings_available,
+                debug_mode=debug_mode,
+                experimental_rules_enabled=profile.enable_experimental,
+            ),
         )
         violations: list[Violation] = []
         diagnostics: list[RuleDiagnostic] = []

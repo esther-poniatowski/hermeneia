@@ -243,6 +243,7 @@ def _analysis_policy_from_config(project_config: ProjectConfig) -> AnalysisPolic
     return AnalysisPolicy(
         scoring_aggregation=scoring_aggregation,
         scoring_output=scoring_output,
+        debug_mode=project_config.runtime.debug,
         suggestions_enabled=project_config.suggestions.enabled,
         suggestion_default_mode=suggestion_mode,
     )

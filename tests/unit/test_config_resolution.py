@@ -93,6 +93,11 @@ def test_parse_project_config_rejects_non_boolean_runtime_flag() -> None:
         parse_project_config({"runtime": {"strict_validation": 1}})
 
 
+def test_parse_project_config_rejects_non_boolean_runtime_debug_flag() -> None:
+    with pytest.raises(ConfigError, match="runtime.debug"):
+        parse_project_config({"runtime": {"debug": "yes"}})
+
+
 def test_parse_project_config_rejects_unknown_embedding_backend() -> None:
     with pytest.raises(
         ConfigError,

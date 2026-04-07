@@ -126,11 +126,38 @@ class ResolvedProfile:
 
 
 @dataclass(frozen=True)
+class RuntimeCapabilities:
+    embeddings_available: bool
+    debug_mode: bool
+    experimental_rules_enabled: bool
+
+    @classmethod
+    def defaults(cls) -> "RuntimeCapabilities":
+        return cls(
+            embeddings_available=False,
+            debug_mode=False,
+            experimental_rules_enabled=False,
+        )
+
+
+@dataclass(frozen=True)
 class RuleContext:
     profile: ResolvedProfile
     language_pack: LanguagePack
     features: FeatureStore
-    enable_experimental: bool = False
+    capabilities: RuntimeCapabilities = field(default_factory=RuntimeCapabilities.defaults)
+
+    @property
+    def embeddings_available(self) -> bool:
+        return self.capabilities.embeddings_available
+
+    @property
+    def debug_mode(self) -> bool:
+        return self.capabilities.debug_mode
+
+    @property
+    def enable_experimental(self) -> bool:
+        return self.capabilities.experimental_rules_enabled
 
 
 class BaseRule(ABC):
