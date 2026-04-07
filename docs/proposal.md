@@ -402,8 +402,8 @@ rules:
     - audience.acronym_burden
   overrides:
     surface.sentence_length:
-      threshold:
-        default: 18
+      options:
+        max_words: 18
       weight: 0.9
     surface.banned_transition:
       extra_patterns:
