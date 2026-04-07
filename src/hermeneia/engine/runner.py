@@ -54,7 +54,9 @@ class AnnotationResult:
 
 
 class DocumentAnnotator(Protocol):
-    def annotate(self, document: Document, profile: ResolvedProfile) -> AnnotationResult: ...
+    def annotate(
+        self, document: Document, profile: ResolvedProfile
+    ) -> AnnotationResult: ...
 
 
 class AnalysisRunner:
@@ -82,11 +84,16 @@ class AnalysisRunner:
     ) -> BatchAnalysisResult:
         results: list[AnalysisResult] = []
         diagnostics: list[OperationalDiagnostic] = []
+        rule_weights = {
+            rule_id: settings.weight for rule_id, settings in profile.rules.items()
+        }
         for analysis_input in inputs:
             parsed = self._parse_document(analysis_input, diagnostics)
             if parsed is None:
                 continue
-            annotation = self._annotate_document(analysis_input, profile, parsed, diagnostics)
+            annotation = self._annotate_document(
+                analysis_input, profile, parsed, diagnostics
+            )
             if annotation is None:
                 continue
             features = FeatureStore(annotation.document, annotation.document.indexes)
@@ -104,7 +111,7 @@ class AnalysisRunner:
                 )
                 for diagnostic in detection.diagnostics
             )
-            scorecard = self._scorer.score(list(detection.violations))
+            scorecard = self._scorer.score(detection.violations, rule_weights)
             revision_plan = self._planner.build(list(detection.violations))
             report = DiagnosticReport(
                 path=analysis_input.path,
@@ -120,7 +127,9 @@ class AnalysisRunner:
                     report=report,
                 )
             )
-        return BatchAnalysisResult(results=tuple(results), diagnostics=tuple(diagnostics))
+        return BatchAnalysisResult(
+            results=tuple(results), diagnostics=tuple(diagnostics)
+        )
 
     def _parse_document(
         self,
