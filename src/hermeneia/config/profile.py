@@ -49,8 +49,12 @@ class ProfileResolver:
             ):
                 continue
             if language_pack.code not in registration.metadata.supported_languages:
-                raise ValueError(f"Rule '{rule_id}' does not support language '{language_pack.code}'")
-            if registration.metadata.experimental and not self._experimental_enabled(config, cli):
+                raise ValueError(
+                    f"Rule '{rule_id}' does not support language '{language_pack.code}'"
+                )
+            if registration.metadata.experimental and not self._experimental_enabled(
+                config, cli
+            ):
                 continue
             merged = self._merge_rule_settings(
                 rule_id,
@@ -60,11 +64,11 @@ class ProfileResolver:
             )
             merged_options = _merge_options(
                 registration.metadata.default_options,
-                language_pack.rule_defaults.get(rule_id, {}),
-                preset.rule_overrides.get(rule_id, {}),
                 merged.options,
             )
-            options = _validate_options_model(rule_id, registration.rule_cls, merged_options)
+            options = _validate_options_model(
+                rule_id, registration.rule_cls, merged_options
+            )
             resolved_rules[rule_id] = ResolvedRuleSettings(
                 metadata=registration.metadata,
                 enabled=merged.enabled if merged.enabled is not None else True,
@@ -96,7 +100,9 @@ class ProfileResolver:
         try:
             return PROFILE_PRESETS[profile_name]
         except KeyError as exc:
-            raise ValueError(f"Unknown profile '{profile_name}'. Expected one of: {', '.join(sorted(PROFILE_PRESETS))}") from exc
+            raise ValueError(
+                f"Unknown profile '{profile_name}'. Expected one of: {', '.join(sorted(PROFILE_PRESETS))}"
+            ) from exc
 
     def _resolve_active_rules(
         self,
@@ -125,8 +131,22 @@ class ProfileResolver:
         language_pack: LanguagePack,
     ) -> RuleOverrideConfig:
         merged = RuleOverrideConfig()
-        merged = _merge_override(merged, _mapping_to_override(language_pack.rule_defaults.get(rule_id, {})))
-        merged = _merge_override(merged, _mapping_to_override(preset.rule_overrides.get(rule_id, {})))
+        merged = _merge_override(
+            merged,
+            _mapping_to_override(
+                rule_id=rule_id,
+                raw=language_pack.rule_defaults.get(rule_id, {}),
+                source="language pack defaults",
+            ),
+        )
+        merged = _merge_override(
+            merged,
+            _mapping_to_override(
+                rule_id=rule_id,
+                raw=preset.rule_overrides.get(rule_id, {}),
+                source=f"profile preset '{preset.name}'",
+            ),
+        )
         if user_override is not None:
             merged = _merge_override(merged, user_override)
         return merged
@@ -139,7 +159,9 @@ class ProfileResolver:
     def _validate_override_rule_ids(
         self, overrides: Mapping[str, RuleOverrideConfig]
     ) -> None:
-        unknown = sorted(rule_id for rule_id in overrides if rule_id not in self._registry)
+        unknown = sorted(
+            rule_id for rule_id in overrides if rule_id not in self._registry
+        )
         if unknown:
             raise ValueError(f"Unknown rule ids in overrides: {', '.join(unknown)}")
 
@@ -155,7 +177,9 @@ class ProfileResolver:
         return frozenset(explicit)
 
 
-def _merge_override(base: RuleOverrideConfig, incoming: RuleOverrideConfig) -> RuleOverrideConfig:
+def _merge_override(
+    base: RuleOverrideConfig, incoming: RuleOverrideConfig
+) -> RuleOverrideConfig:
     return RuleOverrideConfig(
         enabled=incoming.enabled if incoming.enabled is not None else base.enabled,
         severity=incoming.severity or base.severity,
@@ -174,36 +198,84 @@ def _merge_options(*mappings: object) -> dict[str, object]:
     return merged
 
 
-def _mapping_to_override(raw: object) -> RuleOverrideConfig:
+def _mapping_to_override(
+    rule_id: str,
+    raw: object,
+    source: str,
+) -> RuleOverrideConfig:
     if not raw:
         return RuleOverrideConfig()
     if not isinstance(raw, Mapping):
-        raise ValueError("Internal rule defaults must be mappings")
-    severity = raw.get("severity")
-    options = {
-        key: value
-        for key, value in raw.items()
-        if key
-        not in {
+        raise ValueError(f"{source} override for rule '{rule_id}' must be a mapping")
+    allowed_fields = frozenset(
+        {
             "enabled",
             "severity",
             "weight",
+            "options",
             "extra_patterns",
             "silenced_patterns",
-            "profiles_active",
-            "abstain_when_flags",
-            "evidence_fields",
-            "suggestion_mode",
         }
-    }
-    return RuleOverrideConfig(
-        enabled=raw.get("enabled"),
-        severity=Severity(severity) if severity is not None else None,
-        weight=float(raw["weight"]) if "weight" in raw else None,
-        options=options,
-        extra_patterns=tuple(raw.get("extra_patterns", ())),
-        silenced_patterns=tuple(raw.get("silenced_patterns", ())),
     )
+    unknown = sorted(key for key in raw if key not in allowed_fields)
+    if unknown:
+        raise ValueError(
+            f"{source} override for rule '{rule_id}' has unknown fields: {', '.join(unknown)}"
+        )
+    enabled = raw.get("enabled")
+    if enabled is not None and not isinstance(enabled, bool):
+        raise ValueError(
+            f"{source} override for rule '{rule_id}' field 'enabled' must be a boolean"
+        )
+    severity = raw.get("severity")
+    options_raw = raw.get("options", {})
+    if options_raw is None:
+        options_raw = {}
+    if not isinstance(options_raw, Mapping):
+        raise ValueError(
+            f"{source} override for rule '{rule_id}' field 'options' must be a mapping"
+        )
+    options = {}
+    for key, value in options_raw.items():
+        if not isinstance(key, str):
+            raise ValueError(
+                f"{source} override for rule '{rule_id}' field 'options' keys must be strings"
+            )
+        options[key] = value
+    weight_raw = raw.get("weight")
+    if weight_raw is not None and (
+        isinstance(weight_raw, bool) or not isinstance(weight_raw, (int, float))
+    ):
+        raise ValueError(
+            f"{source} override for rule '{rule_id}' field 'weight' must be numeric"
+        )
+    weight = float(weight_raw) if weight_raw is not None else None
+    extra_patterns = _string_tuple(
+        raw.get("extra_patterns", ()),
+        f"{source} override for rule '{rule_id}' field 'extra_patterns'",
+    )
+    silenced_patterns = _string_tuple(
+        raw.get("silenced_patterns", ()),
+        f"{source} override for rule '{rule_id}' field 'silenced_patterns'",
+    )
+    return RuleOverrideConfig(
+        enabled=enabled,
+        severity=Severity(severity) if severity is not None else None,
+        weight=weight,
+        options=options,
+        extra_patterns=extra_patterns,
+        silenced_patterns=silenced_patterns,
+    )
+
+
+def _string_tuple(raw: object, field_label: str) -> tuple[str, ...]:
+    if raw is None:
+        return ()
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError(f"{field_label} must be a sequence of strings")
+    if not all(isinstance(item, str) for item in raw):
+        raise ValueError(f"{field_label} must be a sequence of strings")
+    return tuple(raw)
 
 
 def _validate_options_model(
@@ -225,8 +297,12 @@ def _validate_options_model(
         raise ValueError(f"Invalid options for rule '{rule_id}': {exc}") from exc
     dumper = getattr(model, "model_dump", None)
     if not callable(dumper):
-        return options
+        raise ValueError(
+            f"Rule '{rule_id}' options_model must return a model with model_dump(...)"
+        )
     dumped = dumper()
     if not isinstance(dumped, dict):
-        raise ValueError(f"Rule '{rule_id}' options_model.model_dump() must return dict")
+        raise ValueError(
+            f"Rule '{rule_id}' options_model.model_dump() must return dict"
+        )
     return dumped

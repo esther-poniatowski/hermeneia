@@ -38,8 +38,8 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "audience.claim_calibration",
         ),
         rule_overrides={
-            "surface.sentence_length": {"max_words": 32},
-            "discourse.subject_verb_distance": {"max_distance": 10},
+            "surface.sentence_length": {"options": {"max_words": 32}},
+            "discourse.subject_verb_distance": {"options": {"max_distance": 10}},
         },
     ),
     "pedagogical": ProfilePreset(
@@ -61,9 +61,9 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "audience.claim_calibration",
         ),
         rule_overrides={
-            "surface.sentence_length": {"max_words": 24},
-            "discourse.subject_verb_distance": {"max_distance": 6},
-            "paragraph.topic_sentence": {"minimum_score": 0.55},
+            "surface.sentence_length": {"options": {"max_words": 24}},
+            "discourse.subject_verb_distance": {"options": {"max_distance": 6}},
+            "paragraph.topic_sentence": {"options": {"minimum_score": 0.55}},
         },
     ),
     "math": ProfilePreset(
@@ -86,9 +86,9 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "audience.claim_calibration",
         ),
         rule_overrides={
-            "surface.sentence_length": {"max_words": 26},
-            "math.display_math": {"require_leadin": True},
-            "audience.claim_calibration": {"lookback_sentences": 4},
+            "surface.sentence_length": {"options": {"max_words": 26}},
+            "math.display_math": {"options": {"require_leadin": True}},
+            "audience.claim_calibration": {"options": {"lookback_sentences": 4}},
         },
     ),
 }

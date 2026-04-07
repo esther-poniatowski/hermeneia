@@ -25,7 +25,13 @@ ENGLISH_PACK = LanguagePack(
             "clearly",
             "obviously",
         ),
-        contrast_markers=("however", "in contrast", "conversely", "whereas", "by contrast"),
+        contrast_markers=(
+            "however",
+            "in contrast",
+            "conversely",
+            "whereas",
+            "by contrast",
+        ),
         banned_transitions=(
             "equivalently",
             "more explicitly",
@@ -45,12 +51,18 @@ ENGLISH_PACK = LanguagePack(
             "it follows that",
         ),
         acronym_allowlist=frozenset({"API", "CLI", "NLP"}),
-        definitional_markers=("is defined as", "denote", "means", "refers to", "call this"),
+        definitional_markers=(
+            "is defined as",
+            "denote",
+            "means",
+            "refers to",
+            "call this",
+        ),
     ),
     rule_defaults={
-        "surface.sentence_length": {"max_words": 28},
-        "discourse.subject_verb_distance": {"max_distance": 8},
-        "audience.claim_calibration": {"lookback_sentences": 3},
-        "paragraph.topic_sentence": {"minimum_score": 0.45},
+        "surface.sentence_length": {"options": {"max_words": 28}},
+        "discourse.subject_verb_distance": {"options": {"max_distance": 8}},
+        "audience.claim_calibration": {"options": {"lookback_sentences": 3}},
+        "paragraph.topic_sentence": {"options": {"minimum_score": 0.45}},
     },
 )

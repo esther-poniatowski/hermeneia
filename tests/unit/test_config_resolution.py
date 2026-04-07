@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 from pydantic import BaseModel, Field
 
+from hermeneia.config.defaults import PROFILE_PRESETS, ProfilePreset
 from hermeneia.config.profile import ProfileResolver
 from hermeneia.config.schema import ConfigError, parse_project_config
 from hermeneia.rules.base import (
@@ -31,6 +34,30 @@ class _OptionsValidatedRule(SourcePatternRule):
         default_options={"max_words": 5},
     )
     options_model = _OptionsModel
+
+    def check_source(self, lines, doc, ctx):  # noqa: ARG002
+        return []
+
+
+class _NoDumpOptionsModel:
+    @classmethod
+    def model_validate(cls, options):  # noqa: ANN001
+        _ = options
+        return object()
+
+
+class _OptionsNoDumpRule(SourcePatternRule):
+    metadata = RuleMetadata(
+        rule_id="test.options_nodump",
+        label="Options no-dump rule",
+        layer=Layer.SURFACE_STYLE,
+        tractability=Tractability.CLASS_A,
+        kind=RuleKind.DIAGNOSTIC_METRIC,
+        default_severity=Severity.INFO,
+        supported_languages=frozenset({"en"}),
+        default_options={},
+    )
+    options_model = _NoDumpOptionsModel
 
     def check_source(self, lines, doc, ctx):  # noqa: ARG002
         return []
@@ -179,5 +206,53 @@ def test_profile_resolution_validates_rule_options_model(
     )
     with pytest.raises(
         ValueError, match="Invalid options for rule 'test.options_model'"
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_options_model_without_model_dump(
+    registry, language_pack
+) -> None:
+    registry.add(_OptionsNoDumpRule)
+    config = parse_project_config({"rules": {"active": ["test.options_nodump"]}})
+    with pytest.raises(
+        ValueError,
+        match="Rule 'test.options_nodump' options_model must return a model with model_dump",
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_legacy_language_default_shape(
+    registry, language_pack
+) -> None:
+    bad_pack = replace(
+        language_pack,
+        rule_defaults={"surface.sentence_length": {"max_words": 18}},
+    )
+    config = parse_project_config({"rules": {"active": ["surface.sentence_length"]}})
+    with pytest.raises(
+        ValueError,
+        match="language pack defaults override for rule 'surface.sentence_length' has unknown fields: max_words",
+    ):
+        ProfileResolver(registry).resolve(config, bad_pack)
+
+
+def test_profile_resolution_rejects_legacy_profile_default_shape(
+    registry, language_pack, monkeypatch
+) -> None:
+    bad_preset = ProfilePreset(
+        name="legacy-preset",
+        audience="specialist",
+        genre="research_note",
+        section="body",
+        register="formal",
+        active_rules=("surface.sentence_length",),
+        rule_overrides={"surface.sentence_length": {"max_words": 20}},
+    )
+    monkeypatch.setitem(PROFILE_PRESETS, "legacy-preset", bad_preset)
+    config = parse_project_config({"profile": {"name": "legacy-preset"}})
+    with pytest.raises(
+        ValueError,
+        match="profile preset 'legacy-preset' override for rule 'surface.sentence_length' has unknown fields: max_words",
     ):
         ProfileResolver(registry).resolve(config, language_pack)
