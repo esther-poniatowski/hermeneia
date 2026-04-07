@@ -1,0 +1,213 @@
+{
+  "sentences": [
+    {
+      "annotation_flags": [],
+      "block_id": "b000",
+      "block_kind": "paragraph",
+      "masked_segments": [
+        {
+          "kind": "inline_math",
+          "placeholder": "MATHSYM",
+          "source_span": {
+            "end": 16,
+            "end_column": 17,
+            "end_line": 1,
+            "start": 13,
+            "start_column": 14,
+            "start_line": 1
+          }
+        },
+        {
+          "kind": "inline_code",
+          "placeholder": "CODEID",
+          "source_span": {
+            "end": 25,
+            "end_column": 26,
+            "end_line": 1,
+            "start": 22,
+            "start_column": 23,
+            "start_line": 1
+          }
+        },
+        {
+          "kind": "link_target",
+          "placeholder": "",
+          "source_span": {
+            "end": 66,
+            "end_column": 67,
+            "end_line": 1,
+            "start": 41,
+            "start_column": 42,
+            "start_line": 1
+          }
+        }
+      ],
+      "projection_text": "The operator MATHSYM maps CODEID to the image.",
+      "sentence_id": "s000",
+      "sentence_span": {
+        "end": 68,
+        "end_column": 69,
+        "end_line": 1,
+        "start": 0,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "source_text": "The operator $T$ maps `x` to the image.",
+      "tokens": [
+        {
+          "dep": "det",
+          "head_idx": 2,
+          "lemma": "the",
+          "pos": "DET",
+          "projection_end": 3,
+          "projection_start": 0,
+          "source_span": {
+            "end": 3,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 0,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "The"
+        },
+        {
+          "dep": "compound",
+          "head_idx": 2,
+          "lemma": "operator",
+          "pos": "NOUN",
+          "projection_end": 12,
+          "projection_start": 4,
+          "source_span": {
+            "end": 12,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 4,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "operator"
+        },
+        {
+          "dep": "nsubj",
+          "head_idx": 3,
+          "lemma": "MATHSYM",
+          "pos": "PROPN",
+          "projection_end": 20,
+          "projection_start": 13,
+          "source_span": {
+            "end": 14,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 13,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "MATHSYM"
+        },
+        {
+          "dep": "ROOT",
+          "head_idx": 3,
+          "lemma": "map",
+          "pos": "VERB",
+          "projection_end": 25,
+          "projection_start": 21,
+          "source_span": {
+            "end": 21,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 17,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "maps"
+        },
+        {
+          "dep": "dobj",
+          "head_idx": 3,
+          "lemma": "codeid",
+          "pos": "NOUN",
+          "projection_end": 32,
+          "projection_start": 26,
+          "source_span": {
+            "end": 23,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 22,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "CODEID"
+        },
+        {
+          "dep": "prep",
+          "head_idx": 3,
+          "lemma": "to",
+          "pos": "ADP",
+          "projection_end": 35,
+          "projection_start": 33,
+          "source_span": {
+            "end": 28,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 26,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "to"
+        },
+        {
+          "dep": "det",
+          "head_idx": 7,
+          "lemma": "the",
+          "pos": "DET",
+          "projection_end": 39,
+          "projection_start": 36,
+          "source_span": {
+            "end": 33,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 30,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "the"
+        },
+        {
+          "dep": "pobj",
+          "head_idx": 5,
+          "lemma": "image",
+          "pos": "NOUN",
+          "projection_end": 45,
+          "projection_start": 40,
+          "source_span": {
+            "end": 39,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 34,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "image"
+        },
+        {
+          "dep": "punct",
+          "head_idx": 3,
+          "lemma": ".",
+          "pos": "PUNCT",
+          "projection_end": 46,
+          "projection_start": 45,
+          "source_span": {
+            "end": 68,
+            "end_column": 69,
+            "end_line": 1,
+            "start": 67,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "text": "."
+        }
+      ]
+    }
+  ]
+}
