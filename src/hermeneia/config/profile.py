@@ -214,8 +214,40 @@ def _merge_options(*mappings: object) -> dict[str, object]:
     merged: dict[str, object] = {}
     for mapping in mappings:
         if isinstance(mapping, Mapping):
-            merged.update(mapping)
+            merged = _deep_merge_mapping(merged, mapping)
     return merged
+
+
+def _deep_merge_mapping(
+    base: Mapping[str, object],
+    incoming: Mapping[str, object],
+) -> dict[str, object]:
+    merged: dict[str, object] = {
+        key: _clone_option_value(value) for key, value in base.items()
+    }
+    for key, value in incoming.items():
+        current = merged.get(key)
+        merged[key] = _merge_option_values(current, value)
+    return merged
+
+
+def _merge_option_values(current: object, incoming: object) -> object:
+    if isinstance(current, Mapping) and isinstance(incoming, Mapping):
+        return _deep_merge_mapping(current, incoming)
+    return _clone_option_value(incoming)
+
+
+def _clone_option_value(value: object) -> object:
+    if isinstance(value, Mapping):
+        return {
+            key: _clone_option_value(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_clone_option_value(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_clone_option_value(item) for item in value)
+    return value
 
 
 def _mapping_to_override(

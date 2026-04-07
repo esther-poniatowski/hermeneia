@@ -63,6 +63,26 @@ class _OptionsNoDumpRule(SourcePatternRule):
         return []
 
 
+class _NestedOptionsRule(SourcePatternRule):
+    metadata = RuleMetadata(
+        rule_id="test.deep_merge",
+        label="Deep merge test rule",
+        layer=Layer.SURFACE_STYLE,
+        tractability=Tractability.CLASS_A,
+        kind=RuleKind.DIAGNOSTIC_METRIC,
+        default_severity=Severity.INFO,
+        supported_languages=frozenset({"en"}),
+        default_options={
+            "limits": {"soft": 1, "hard": 3},
+            "phrases": {"allow": ["default"], "deny": ["default-deny"]},
+            "mode": "default",
+        },
+    )
+
+    def check_source(self, lines, doc, ctx):  # noqa: ARG002
+        return []
+
+
 def test_parse_project_config_rejects_unknown_fields() -> None:
     with pytest.raises(ConfigError, match="Unknown field 'unexpected' in root"):
         parse_project_config({"unexpected": {}})
@@ -377,3 +397,65 @@ def test_profile_resolution_rejects_legacy_profile_default_shape(
         match="profile preset 'legacy-preset' override for rule 'surface.sentence_length' has unknown fields: max_words",
     ):
         ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_deep_merges_nested_options_mappings(
+    registry, language_pack, monkeypatch
+) -> None:
+    registry.add(_NestedOptionsRule)
+    deep_preset = ProfilePreset(
+        name="deep-merge-test",
+        audience="specialist",
+        genre="research_note",
+        section="body",
+        register="formal",
+        active_rules=("test.deep_merge",),
+        rule_overrides={
+            "test.deep_merge": {
+                "options": {
+                    "limits": {"hard": 4},
+                    "phrases": {"deny": ["profile-deny"]},
+                }
+            }
+        },
+    )
+    monkeypatch.setitem(PROFILE_PRESETS, "deep-merge-test", deep_preset)
+    merged_pack = replace(
+        language_pack,
+        rule_defaults={
+            **language_pack.rule_defaults,
+            "test.deep_merge": {
+                "options": {
+                    "limits": {"soft": 2},
+                    "phrases": {"allow": ["language-allow"]},
+                    "lexicon": {"extra": ["l1"]},
+                }
+            },
+        },
+    )
+    config = parse_project_config(
+        {
+            "profile": {"name": "deep-merge-test"},
+            "rules": {
+                "overrides": {
+                    "test.deep_merge": {
+                        "options": {
+                            "limits": {"hard": 10, "user": 9},
+                            "phrases": {"allow": ["user-allow"]},
+                            "lexicon": {"extra": ["u1", "u2"]},
+                            "mode": "user",
+                        }
+                    }
+                }
+            },
+        }
+    )
+    profile = ProfileResolver(registry).resolve(config, merged_pack)
+    options = profile.rules["test.deep_merge"].options
+    assert options["limits"] == {"soft": 2, "hard": 10, "user": 9}
+    assert options["phrases"] == {
+        "allow": ["user-allow"],
+        "deny": ["profile-deny"],
+    }
+    assert options["lexicon"] == {"extra": ["u1", "u2"]}
+    assert options["mode"] == "user"
