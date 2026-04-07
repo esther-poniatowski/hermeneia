@@ -24,7 +24,11 @@ def build_source_lines(source: str, blocks: list[Block]) -> list[SourceLine]:
             for line_index in range(nested.span.start_line - 1, nested.span.end_line):
                 line_contexts[line_index].append(nested)
             for inline in nested.inline_nodes:
-                if inline.kind in {InlineKind.INLINE_CODE, InlineKind.INLINE_MATH}:
+                if inline.kind in {
+                    InlineKind.INLINE_CODE,
+                    InlineKind.INLINE_MATH,
+                    InlineKind.LINK_TARGET,
+                }:
                     excluded_by_line[inline.span.start_line - 1].append(inline.span)
 
     source_lines: list[SourceLine] = []
@@ -32,7 +36,8 @@ def build_source_lines(source: str, blocks: list[Block]) -> list[SourceLine]:
         line_start = line_starts[index]
         line_end = line_start + len(raw_line)
         contexts = sorted(
-            line_contexts.get(index, []), key=lambda block: (block.span.start, block.span.end)
+            line_contexts.get(index, []),
+            key=lambda block: (block.span.start, block.span.end),
         )
         block_id = contexts[-1].id if contexts else None
         container_kinds = tuple(block.kind for block in contexts)

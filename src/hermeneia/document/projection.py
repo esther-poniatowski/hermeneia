@@ -5,7 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 import re
 
-from hermeneia.document.model import InlineKind, InlineNode, MaskedSegment, Span, TextProjection
+from hermeneia.document.model import (
+    InlineKind,
+    InlineNode,
+    MaskedSegment,
+    MaskedSegmentKind,
+    Span,
+    TextProjection,
+)
 
 MATH_SYMBOL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9']*$")
 MATH_NUMERIC_RE = re.compile(
@@ -50,7 +57,9 @@ def build_projection(
     """Build a normalized projection and populate reliability flags."""
 
     if len(text) != len(source_offsets):
-        raise ValueError("Projection text and source-offset map must have the same length")
+        raise ValueError(
+            "Projection text and source-offset map must have the same length"
+        )
 
     masked_segments: list[MaskedSegment] = []
     normalized_chars: list[str] = []
@@ -69,13 +78,36 @@ def build_projection(
     for node in ordered_nodes:
         node_start = _relative_start(node.span.start, source_offsets)
         node_end = _relative_end(node.span.end, source_offsets)
+
+        if node.kind == InlineKind.LINK_TARGET:
+            if (
+                node_start is not None
+                and node_end is not None
+                and node_end > node_start
+            ):
+                if node_start > cursor:
+                    append_literal(
+                        text[cursor:node_start], source_offsets[cursor:node_start]
+                    )
+                cursor = node_end
+            masked_segments.append(
+                MaskedSegment(
+                    kind=MaskedSegmentKind.LINK_TARGET,
+                    source_span=node.span,
+                    placeholder="",
+                )
+            )
+            continue
+
         if node_start is None or node_end is None or node_end <= node_start:
             continue
         if node_start > cursor:
             append_literal(text[cursor:node_start], source_offsets[cursor:node_start])
 
         if node.kind == InlineKind.TEXT:
-            append_literal(text[node_start:node_end], source_offsets[node_start:node_end])
+            append_literal(
+                text[node_start:node_end], source_offsets[node_start:node_end]
+            )
         else:
             placeholder = (
                 "CODEID"
@@ -97,7 +129,11 @@ def build_projection(
                 normalized_to_source.append(source_offsets[node_end - 1])
             masked_segments.append(
                 MaskedSegment(
-                    kind="inline_code" if node.kind == InlineKind.INLINE_CODE else "inline_math",
+                    kind=(
+                        MaskedSegmentKind.INLINE_CODE
+                        if node.kind == InlineKind.INLINE_CODE
+                        else MaskedSegmentKind.INLINE_MATH
+                    ),
                     source_span=node.span,
                     placeholder=placeholder,
                 )
@@ -167,7 +203,9 @@ def _normalize_map(
     result: list[int | None] = []
     raw_index = 0
     for char in normalized_text:
-        while raw_index < len(raw_text) and raw_text[raw_index].isspace() and char != " ":
+        while (
+            raw_index < len(raw_text) and raw_text[raw_index].isspace() and char != " "
+        ):
             raw_index += 1
         if raw_index < len(raw_text):
             result.append(raw_map[raw_index])

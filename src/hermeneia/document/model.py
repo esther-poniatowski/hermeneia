@@ -32,11 +32,17 @@ class Span:
         return self.start_line, self.end_line
 
 
+class MaskedSegmentKind(StrEnum):
+    INLINE_MATH = "inline_math"
+    INLINE_CODE = "inline_code"
+    LINK_TARGET = "link_target"
+
+
 @dataclass(frozen=True)
 class MaskedSegment:
     """A source segment replaced or suppressed during NLP projection."""
 
-    kind: str
+    kind: MaskedSegmentKind
     source_span: Span
     placeholder: str
 
@@ -88,6 +94,7 @@ class InlineKind(StrEnum):
     TEXT = "text"
     INLINE_MATH = "inline_math"
     INLINE_CODE = "inline_code"
+    LINK_TARGET = "link_target"
 
 
 @dataclass
