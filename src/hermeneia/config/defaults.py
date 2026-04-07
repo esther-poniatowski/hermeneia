@@ -34,6 +34,7 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "paragraph.topic_sentence",
             "structure.heading_parallelism",
             "audience.acronym_burden",
+            "audience.definition_before_use",
             "audience.claim_calibration",
         ),
         rule_overrides={
@@ -56,6 +57,7 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "paragraph.topic_sentence",
             "structure.heading_parallelism",
             "audience.acronym_burden",
+            "audience.definition_before_use",
             "audience.claim_calibration",
         ),
         rule_overrides={
@@ -80,6 +82,7 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "discourse.subject_verb_distance",
             "paragraph.topic_sentence",
             "audience.acronym_burden",
+            "audience.definition_before_use",
             "audience.claim_calibration",
         ),
         rule_overrides={
@@ -89,4 +92,3 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
         },
     ),
 }
-

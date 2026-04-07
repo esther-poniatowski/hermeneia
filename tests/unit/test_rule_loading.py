@@ -17,6 +17,7 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "surface.contraction" in registry.rule_ids()
     assert "math.display_math" in registry.rule_ids()
     assert "paragraph.topic_sentence" in registry.rule_ids()
+    assert "audience.definition_before_use" in registry.rule_ids()
 
 
 def test_load_external_rules_uses_same_register_protocol(tmp_path, registry) -> None:
