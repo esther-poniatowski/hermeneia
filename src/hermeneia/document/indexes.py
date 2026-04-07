@@ -86,6 +86,7 @@ class FeatureStore:
         self._paragraph_overlap_cache: dict[tuple[str, str], float] = {}
         self._sentence_index = {ref.id: ref for ref in indexes.sentences}
         self._sentence_ordinals = {ref.id: ref.ordinal for ref in indexes.sentences}
+        self._heading_parents = _heading_parent_map(indexes.sections)
 
     def term_first_use(self, term: str) -> Span | None:
         return self._indexes.term_first_use.get(term.lower())
@@ -191,12 +192,23 @@ class FeatureStore:
         return self._indexes.sections
 
     def sibling_headings(self, level: int) -> list[Block]:
-        headings = [
-            block
-            for block in self._doc.iter_blocks()
-            if block.kind == BlockKind.HEADING and int(block.metadata.get("level", 0)) == level
+        return [heading for group in self.sibling_heading_groups(level) for heading in group]
+
+    def sibling_heading_groups(self, level: int) -> tuple[tuple[Block, ...], ...]:
+        grouped: dict[str | None, list[Block]] = {}
+        for block in self._doc.iter_blocks():
+            if block.kind != BlockKind.HEADING:
+                continue
+            if int(block.metadata.get("level", 0)) != level:
+                continue
+            parent_id = self._heading_parents.get(block.id)
+            grouped.setdefault(parent_id, []).append(block)
+        groups = [
+            tuple(sorted(group, key=lambda heading: heading.span.start))
+            for group in grouped.values()
+            if len(group) >= 2
         ]
-        return headings
+        return tuple(sorted(groups, key=lambda group: group[0].span.start))
 
 
 def build_document_indexes(doc: Document, contrast_markers: Iterable[str]) -> DocumentIndexes:
@@ -379,3 +391,21 @@ def _cosine(left: tuple[float, ...], right: tuple[float, ...]) -> float:
     if left_norm == 0 or right_norm == 0:
         return 0.0
     return numerator / (left_norm * right_norm)
+
+
+def _heading_parent_map(sections: list[SectionView]) -> dict[str, str | None]:
+    parents: dict[str, str | None] = {}
+    stack: list[SectionView] = []
+    ordered_sections = sorted(
+        (section for section in sections if section.heading_block_id is not None),
+        key=lambda section: section.span.start,
+    )
+    for section in ordered_sections:
+        while stack and section.level <= stack[-1].level:
+            stack.pop()
+        heading_id = section.heading_block_id
+        if heading_id is None:
+            continue
+        parents[heading_id] = stack[-1].heading_block_id if stack else None
+        stack.append(section)
+    return parents

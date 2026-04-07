@@ -42,6 +42,12 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
         }
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
+            if sentence.annotation_flags & {
+                "heavy_math_masking",
+                "symbol_dense_sentence",
+                "fragment_sentence",
+            }:
+                continue
             lowered = sentence.projection.text.lower()
             matched_markers = tuple(marker for marker in markers if marker in lowered)
             if not matched_markers:

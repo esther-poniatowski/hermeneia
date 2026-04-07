@@ -25,8 +25,9 @@ def test_contraction_rule_triggers_through_detector(
     )
     detector = RuleDetector(registry)
     features = FeatureStore(document, document.indexes)
-    violations = detector.detect(document, research_profile, language_pack, features)
-    assert any(violation.rule_id == "surface.contraction" for violation in violations)
+    detection = detector.detect(document, research_profile, language_pack, features)
+    assert any(violation.rule_id == "surface.contraction" for violation in detection.violations)
+    assert detection.diagnostics == ()
 
 
 def test_subject_verb_distance_rule_abstains_without_dependencies(
@@ -61,3 +62,15 @@ def test_claim_calibration_rule_emits_without_support(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "audience.claim_calibration"
+
+
+def test_claim_calibration_rule_abstains_on_heavy_math_masking(
+    registry, language_pack, research_profile
+) -> None:
+    source = "$x$ $y$ $z$ $w$ clearly proves the claim.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["audience.claim_calibration"])
+    assert rule.check(document, context) == []

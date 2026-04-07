@@ -30,43 +30,43 @@ class HeadingParallelismRule(HeuristicSemanticRule):
     def check(self, doc, ctx):
         violations: list[Violation] = []
         for level in range(1, 7):
-            headings = ctx.features.sibling_headings(level)
-            if len(headings) < 2:
-                continue
-            frames = {
-                heading.id: _heading_frame(
-                    " ".join(sentence.projection.text for sentence in heading.sentences)
-                )
-                for heading in headings
-            }
-            majority = _majority(tuple(frames.values()))
-            if majority is None:
-                continue
-            for heading in headings:
-                frame = frames[heading.id]
-                if frame == majority:
+            for headings in ctx.features.sibling_heading_groups(level):
+                if len(headings) < 2:
                     continue
-                violations.append(
-                    Violation(
-                        rule_id=self.rule_id,
-                        message=f"Heading frame '{frame}' diverges from sibling pattern '{majority}'.",
-                        span=heading.span,
-                        severity=self.settings.severity,
-                        layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={
-                                "actual_frame": frame,
-                                "expected_frame": majority,
-                                "level": level,
-                            }
-                        ),
-                        confidence=0.65,
-                        rationale="Heading parallelism compares sibling heading frames only within the same level.",
-                        rewrite_tactics=(
-                            "Normalize sibling headings to a common nominal, gerund, or clausal frame.",
+                frames = {
+                    heading.id: _heading_frame(
+                        " ".join(sentence.projection.text for sentence in heading.sentences)
+                    )
+                    for heading in headings
+                }
+                majority = _majority(tuple(frames.values()))
+                if majority is None:
+                    continue
+                for heading in headings:
+                    frame = frames[heading.id]
+                    if frame == majority:
+                        continue
+                    violations.append(
+                        Violation(
+                            rule_id=self.rule_id,
+                            message=f"Heading frame '{frame}' diverges from sibling pattern '{majority}'.",
+                            span=heading.span,
+                            severity=self.settings.severity,
+                            layer=self.metadata.layer,
+                            evidence=RuleEvidence(
+                                features={
+                                    "actual_frame": frame,
+                                    "expected_frame": majority,
+                                    "level": level,
+                                }
+                            ),
+                            confidence=0.65,
+                            rationale="Heading parallelism compares sibling heading frames only within the same level.",
+                            rewrite_tactics=(
+                                "Normalize sibling headings to a common nominal, gerund, or clausal frame.",
+                            ),
                         ),
                     )
-                )
         return violations
 
 

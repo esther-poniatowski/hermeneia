@@ -83,25 +83,32 @@ class AnalysisRunner:
         results: list[AnalysisResult] = []
         diagnostics: list[OperationalDiagnostic] = []
         for analysis_input in inputs:
-            document = self._parser.parse(
-                ParseRequest(source=analysis_input.source, path=analysis_input.path)
+            parsed = self._parse_document(analysis_input, diagnostics)
+            if parsed is None:
+                continue
+            annotation = self._annotate_document(analysis_input, profile, parsed, diagnostics)
+            if annotation is None:
+                continue
+            features = FeatureStore(annotation.document, annotation.document.indexes)
+            detection = self._detector.detect(
+                annotation.document,
+                profile,
+                self._language_pack,
+                features,
             )
-            annotation = self._annotator.annotate(document, profile)
             diagnostics.extend(
                 OperationalDiagnostic(
-                    code="annotation_backend", message=message, path=analysis_input.path
+                    code=diagnostic.code,
+                    message=f"{diagnostic.rule_id}: {diagnostic.message}",
+                    path=analysis_input.path,
                 )
-                for message in annotation.diagnostics
+                for diagnostic in detection.diagnostics
             )
-            features = FeatureStore(annotation.document, annotation.document.indexes)
-            violations = tuple(
-                self._detector.detect(annotation.document, profile, self._language_pack, features)
-            )
-            scorecard = self._scorer.score(list(violations))
-            revision_plan = self._planner.build(list(violations))
+            scorecard = self._scorer.score(list(detection.violations))
+            revision_plan = self._planner.build(list(detection.violations))
             report = DiagnosticReport(
                 path=analysis_input.path,
-                violations=violations,
+                violations=detection.violations,
                 scorecard=scorecard,
                 revision_plan=revision_plan,
             )
@@ -109,8 +116,55 @@ class AnalysisRunner:
                 AnalysisResult(
                     document=annotation.document,
                     profile=profile,
-                    violations=violations,
+                    violations=detection.violations,
                     report=report,
                 )
             )
         return BatchAnalysisResult(results=tuple(results), diagnostics=tuple(diagnostics))
+
+    def _parse_document(
+        self,
+        analysis_input: AnalysisInput,
+        diagnostics: list[OperationalDiagnostic],
+    ) -> Document | None:
+        try:
+            return self._parser.parse(
+                ParseRequest(source=analysis_input.source, path=analysis_input.path)
+            )
+        except Exception as exc:
+            diagnostics.append(
+                OperationalDiagnostic(
+                    code="parse_failure",
+                    message=str(exc),
+                    path=analysis_input.path,
+                )
+            )
+            return None
+
+    def _annotate_document(
+        self,
+        analysis_input: AnalysisInput,
+        profile: ResolvedProfile,
+        document: Document,
+        diagnostics: list[OperationalDiagnostic],
+    ) -> AnnotationResult | None:
+        try:
+            annotation = self._annotator.annotate(document, profile)
+        except Exception as exc:
+            diagnostics.append(
+                OperationalDiagnostic(
+                    code="annotation_failure",
+                    message=str(exc),
+                    path=analysis_input.path,
+                )
+            )
+            return None
+        diagnostics.extend(
+            OperationalDiagnostic(
+                code="annotation_backend",
+                message=message,
+                path=analysis_input.path,
+            )
+            for message in annotation.diagnostics
+        )
+        return annotation
