@@ -64,8 +64,17 @@ ENGLISH_PACK = LanguagePack(
     ),
     rule_defaults={
         "surface.sentence_length": {"options": {"max_words": 28}},
+        "surface.prep_chain": {"options": {"max_prepositions": 4}},
+        "surface.noun_cluster": {"options": {"max_cluster_tokens": 4}},
         "discourse.subject_verb_distance": {"options": {"max_distance": 8}},
+        "discourse.subordinate_clause": {"options": {"max_subordinate_clauses": 2}},
+        "discourse.transition_quality": {"options": {"lookback_sentences": 2}},
         "audience.claim_calibration": {"options": {"lookback_sentences": 3}},
+        "paragraph.sentence_redundancy": {"options": {"min_overlap": 0.78}},
+        "paragraph.paragraph_redundancy": {
+            "options": {"min_similarity": 0.88, "min_lexical_overlap": 0.35, "max_findings": 5}
+        },
         "paragraph.topic_sentence": {"options": {"minimum_score": 0.45}},
+        "structure.section_balance": {"options": {"max_ratio": 3.5}},
     },
 )

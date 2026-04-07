@@ -15,9 +15,16 @@ from hermeneia.rules.base import (
 
 def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "surface.contraction" in registry.rule_ids()
+    assert "surface.passive_voice" in registry.rule_ids()
+    assert "surface.prep_chain" in registry.rule_ids()
     assert "math.display_math" in registry.rule_ids()
+    assert "math.proof_marker" in registry.rule_ids()
     assert "paragraph.topic_sentence" in registry.rule_ids()
+    assert "paragraph.paragraph_redundancy" in registry.rule_ids()
+    assert "discourse.transition_quality" in registry.rule_ids()
+    assert "structure.heading_capitalization" in registry.rule_ids()
     assert "audience.definition_before_use" in registry.rule_ids()
+    assert "audience.jargon_density" in registry.rule_ids()
 
 
 def test_load_external_rules_uses_same_register_protocol(tmp_path, registry) -> None:
