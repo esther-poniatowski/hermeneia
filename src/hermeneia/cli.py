@@ -150,8 +150,9 @@ def _render_text(batch) -> str:
             lines.append(
                 f"  {violation.severity.value.upper()} {violation.rule_id}: {violation.message}"
             )
-            lines.append(f"    {excerpt.line_number}: {excerpt.line_text}")
-            lines.append(f"       {excerpt.marker_line}")
+            for row in excerpt.lines:
+                lines.append(f"    {row.line_number}: {row.line_text}")
+                lines.append(f"       {row.marker_line}")
         lines.append(f"  global score: {result.report.scorecard.global_score}")
     return "\n".join(lines)
 

@@ -73,3 +73,69 @@ def test_cli_lint_surfaces_rule_runtime_diagnostic(tmp_path) -> None:
     assert result.exit_code == 0
     assert '"code": "rule_execution_error"' in result.stdout
     assert '"test.broken: synthetic rule failure"' in result.stdout
+
+
+def test_cli_lint_renders_multiline_span_annotations(tmp_path) -> None:
+    module_path = tmp_path / "multiline_rule_module.py"
+    module_path.write_text(
+        "\n".join(
+            [
+                "from hermeneia.document.model import Span",
+                "from hermeneia.rules.base import Layer, RuleKind, RuleMetadata, Severity, SourcePatternRule, Tractability, Violation",
+                "class MultiLineRule(SourcePatternRule):",
+                "    metadata = RuleMetadata(",
+                "        rule_id='test.multiline',",
+                "        label='multiline',",
+                "        layer=Layer.SURFACE_STYLE,",
+                "        tractability=Tractability.CLASS_A,",
+                "        kind=RuleKind.DIAGNOSTIC_METRIC,",
+                "        default_severity=Severity.ERROR,",
+                "        supported_languages=frozenset({'en'}),",
+                "    )",
+                "    def check_source(self, lines, doc, ctx):",
+                "        _ = doc, ctx",
+                "        if len(lines) < 2:",
+                "            return []",
+                "        span = Span(",
+                "            start=lines[0].span.start + 6,",
+                "            end=lines[1].span.start + 6,",
+                "            start_line=1,",
+                "            start_column=7,",
+                "            end_line=2,",
+                "            end_column=7,",
+                "        )",
+                "        return [Violation(",
+                "            rule_id=self.rule_id,",
+                "            message='multiline span',",
+                "            span=span,",
+                "            severity=self.settings.severity,",
+                "            layer=self.metadata.layer,",
+                "        )]",
+                "def register(registry):",
+                "    registry.add(MultiLineRule)",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    path = tmp_path / "sample.md"
+    path.write_text("alpha beta\nsecond line\n", encoding="utf-8")
+    sys.path.insert(0, str(tmp_path))
+    try:
+        result = CliRunner().invoke(
+            app,
+            [
+                "lint",
+                str(path),
+                "--rule",
+                "test.multiline",
+                "--load-rules",
+                "multiline_rule_module",
+            ],
+        )
+    finally:
+        sys.path.remove(str(tmp_path))
+    assert result.exit_code == 1
+    assert "1: alpha beta" in result.stdout
+    assert "2: second line" in result.stdout
+    assert "      ^^^^" in result.stdout
+    assert "^^^^^^" in result.stdout
