@@ -5,7 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from hermeneia.engine.registry import RuleRegistry
-from hermeneia.rules.base import ResolvedProfile, RuleContext, Violation
+from hermeneia.rules.base import (
+    BaseRule,
+    ResolvedProfile,
+    RuleContext,
+    SuggestionMode,
+    Tractability,
+    Violation,
+)
 from hermeneia.document.model import Document
 from hermeneia.document.indexes import FeatureStore
 from hermeneia.language.base import LanguagePack
@@ -66,8 +73,51 @@ class RuleDetector:
                     )
                 )
                 continue
-            violations.extend(rule_violations)
+            for violation in rule_violations:
+                issue = _validate_violation_contract(rule, violation)
+                if issue is not None:
+                    diagnostics.append(
+                        RuleDiagnostic(
+                            code="rule_contract_error",
+                            rule_id=rule.rule_id,
+                            message=issue,
+                        )
+                    )
+                    continue
+                violations.append(violation)
         ordered_violations = tuple(
             sorted(violations, key=lambda violation: (violation.span.start, violation.rule_id))
         )
         return DetectionResult(violations=ordered_violations, diagnostics=tuple(diagnostics))
+
+
+def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | None:
+    metadata = rule.metadata
+    if violation.rule_id != metadata.rule_id:
+        return (
+            f"violation rule_id '{violation.rule_id}' does not match metadata id "
+            f"'{metadata.rule_id}'"
+        )
+    if violation.layer != metadata.layer:
+        return (
+            f"violation layer '{violation.layer.value}' does not match metadata layer "
+            f"'{metadata.layer.value}'"
+        )
+    if metadata.evidence_fields:
+        if violation.evidence is None:
+            return "violation is missing evidence required by rule metadata"
+        missing = [
+            field for field in metadata.evidence_fields if field not in violation.evidence.features
+        ]
+        if missing:
+            return f"violation evidence is missing required fields: {', '.join(missing)}"
+    if metadata.tractability == Tractability.CLASS_H:
+        if violation.evidence is None:
+            return "class_h violation must include evidence"
+        if violation.confidence is None:
+            return "class_h violation must include confidence"
+    if violation.confidence is not None and not 0.0 <= violation.confidence <= 1.0:
+        return "violation confidence must be between 0.0 and 1.0"
+    if metadata.suggestion_mode == SuggestionMode.NONE and violation.rewrite_tactics:
+        return "rule with suggestion_mode='none' emitted rewrite tactics"
+    return None

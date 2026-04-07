@@ -41,6 +41,12 @@ class RuleKind(StrEnum):
     REWRITE_TACTIC = "rewrite_tactic"
 
 
+class SuggestionMode(StrEnum):
+    TEMPLATE = "template"
+    TACTIC_ONLY = "tactic_only"
+    NONE = "none"
+
+
 @dataclass(frozen=True)
 class RuleMetadata:
     rule_id: str
@@ -52,6 +58,10 @@ class RuleMetadata:
     supported_languages: frozenset[str]
     default_weight: float = 1.0
     default_options: Mapping[str, object] = field(default_factory=dict)
+    profiles_active: frozenset[str] = frozenset()
+    abstain_when_flags: frozenset[str] = frozenset()
+    evidence_fields: tuple[str, ...] = ()
+    suggestion_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
     experimental: bool = False
 
 
@@ -125,6 +135,7 @@ class RuleContext:
 
 class BaseRule(ABC):
     metadata: ClassVar[RuleMetadata]
+    options_model: ClassVar[type[object] | None] = None
 
     def __init__(self, settings: ResolvedRuleSettings) -> None:
         self.settings = settings
@@ -132,6 +143,11 @@ class BaseRule(ABC):
     @property
     def rule_id(self) -> str:
         return self.metadata.rule_id
+
+    def should_abstain(self, annotation_flags: frozenset[str]) -> bool:
+        if not self.metadata.abstain_when_flags:
+            return False
+        return bool(annotation_flags & self.metadata.abstain_when_flags)
 
     @abstractmethod
     def check(self, doc: Document, ctx: RuleContext) -> list[Violation]: ...

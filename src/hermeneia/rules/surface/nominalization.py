@@ -26,6 +26,8 @@ class NominalizationRule(AnnotatedRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
+        abstain_when_flags=frozenset({"heavy_math_masking", "symbol_dense_sentence"}),
+        evidence_fields=("nominalization", "support_verb"),
     )
 
     def check(self, doc, ctx):
@@ -33,7 +35,7 @@ class NominalizationRule(AnnotatedRule):
         weak_verbs = ctx.language_pack.lexicons.weak_support_verbs
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
-            if sentence.annotation_flags & {"heavy_math_masking", "symbol_dense_sentence"}:
+            if self.should_abstain(sentence.annotation_flags):
                 continue
             words = [token.lemma.lower() for token in sentence.tokens] or [
                 word.lower() for word in re.findall(r"\b\w+\b", sentence.projection.text)

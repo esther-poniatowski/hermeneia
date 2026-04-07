@@ -25,6 +25,7 @@ class HeadingParallelismRule(HeuristicSemanticRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
+        evidence_fields=("actual_frame", "expected_frame", "level"),
     )
 
     def check(self, doc, ctx):

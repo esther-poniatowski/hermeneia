@@ -25,6 +25,7 @@ class SentenceLengthRule(AnnotatedRule):
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
         default_options={"max_words": 28},
+        evidence_fields=("word_count",),
     )
 
     def check(self, doc, ctx):

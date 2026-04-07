@@ -26,6 +26,10 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
         default_options={"lookback_sentences": 3},
+        abstain_when_flags=frozenset(
+            {"heavy_math_masking", "symbol_dense_sentence", "fragment_sentence"}
+        ),
+        evidence_fields=("claim_markers", "support_signals"),
     )
 
     def check(self, doc, ctx):
@@ -42,11 +46,7 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
         }
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
-            if sentence.annotation_flags & {
-                "heavy_math_masking",
-                "symbol_dense_sentence",
-                "fragment_sentence",
-            }:
+            if self.should_abstain(sentence.annotation_flags):
                 continue
             lowered = sentence.projection.text.lower()
             matched_markers = tuple(marker for marker in markers if marker in lowered)

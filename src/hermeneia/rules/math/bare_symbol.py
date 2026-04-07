@@ -44,6 +44,7 @@ class BareSymbolRule(SourcePatternRule):
         kind=RuleKind.HARD_CONSTRAINT,
         default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
+        evidence_fields=("matched_text",),
     )
 
     def check_source(self, lines, doc, ctx):

@@ -40,6 +40,7 @@ class ContractionRule(SourcePatternRule):
         kind=RuleKind.HARD_CONSTRAINT,
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
+        evidence_fields=("contraction",),
     )
 
     def check_source(self, lines, doc, ctx):

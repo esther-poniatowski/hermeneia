@@ -32,6 +32,7 @@ class DisplayMathRule(SourcePatternRule):
         default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
         default_options={"require_leadin": True},
+        evidence_fields=("check",),
     )
 
     def check_source(self, lines, doc, ctx):

@@ -28,6 +28,7 @@ class TopicSentenceRule(HeuristicSemanticRule):
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
         default_options={"minimum_score": 0.45},
+        evidence_fields=("first_score", "second_score", "sentence_count"),
     )
 
     def check(self, doc, ctx):

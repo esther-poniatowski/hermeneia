@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Mapping
+from typing import Mapping
 
 from hermeneia.config.defaults import DEFAULT_PROFILE
 from hermeneia.rules.base import Severity
@@ -144,9 +143,35 @@ def _parse_rules(raw: Mapping[str, object]) -> RulesConfig:
 
 
 def _parse_rule_override(raw: Mapping[str, object]) -> RuleOverrideConfig:
-    _ensure_fields(raw, {"enabled", "severity", "weight", "threshold", "max_words", "max_distance", "lookback_sentences", "minimum_score", "extra_patterns", "silenced_patterns", "require_leadin"}, "rule override")
+    legacy_option_fields = {
+        "threshold",
+        "max_words",
+        "max_distance",
+        "lookback_sentences",
+        "minimum_score",
+        "require_leadin",
+        "max_distinct_acronyms",
+    }
+    _ensure_fields(
+        raw,
+        {
+            "enabled",
+            "severity",
+            "weight",
+            "options",
+            "extra_patterns",
+            "silenced_patterns",
+            *legacy_option_fields,
+        },
+        "rule override",
+    )
+    options_raw = _mapping(raw.get("options"), "rule override.options", allow_none=True)
     options: dict[str, object] = {}
-    for key in ("threshold", "max_words", "max_distance", "lookback_sentences", "minimum_score", "require_leadin"):
+    for key, value in options_raw.items():
+        if not isinstance(key, str):
+            raise ConfigError("rule override.options keys must be strings")
+        options[key] = value
+    for key in legacy_option_fields:
         if key in raw:
             options[key] = raw[key]
     severity_value = raw.get("severity")
@@ -248,4 +273,3 @@ def _string_tuple(raw: object, scope: str) -> tuple[str, ...]:
     if not all(isinstance(item, str) for item in raw):
         raise ConfigError(f"{scope} must be a list of strings")
     return tuple(raw)
-

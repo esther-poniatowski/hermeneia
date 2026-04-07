@@ -25,17 +25,17 @@ class SubjectVerbDistanceRule(AnnotatedRule):
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
         default_options={"max_distance": 8},
+        abstain_when_flags=frozenset(
+            {"heavy_math_masking", "symbol_dense_sentence", "fragment_sentence"}
+        ),
+        evidence_fields=("distance", "subject_token", "root_token"),
     )
 
     def check(self, doc, ctx):
         max_distance = self.settings.int_option("max_distance", 8)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
-            if sentence.annotation_flags & {
-                "heavy_math_masking",
-                "symbol_dense_sentence",
-                "fragment_sentence",
-            }:
+            if self.should_abstain(sentence.annotation_flags):
                 continue
             if not sentence.tokens or not any(token.dep for token in sentence.tokens):
                 continue

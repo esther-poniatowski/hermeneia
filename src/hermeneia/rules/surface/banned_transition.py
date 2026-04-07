@@ -27,6 +27,7 @@ class BannedTransitionRule(SourcePatternRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
+        evidence_fields=("transition",),
     )
 
     def check_source(self, lines, doc, ctx):

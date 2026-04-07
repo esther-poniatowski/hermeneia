@@ -31,6 +31,7 @@ class ImperativeOpeningRule(SourcePatternRule):
         kind=RuleKind.HARD_CONSTRAINT,
         default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
+        evidence_fields=("verb",),
     )
 
     def check_source(self, lines, doc, ctx):

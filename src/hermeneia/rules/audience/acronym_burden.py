@@ -29,6 +29,7 @@ class AcronymBurdenRule(AnnotatedRule):
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
         default_options={"max_distinct_acronyms": 2},
+        evidence_fields=("acronyms",),
     )
 
     def check(self, doc, ctx):

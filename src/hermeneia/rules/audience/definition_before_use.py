@@ -29,6 +29,10 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
+        abstain_when_flags=frozenset(
+            {"heavy_math_masking", "symbol_dense_sentence", "fragment_sentence"}
+        ),
+        evidence_fields=("symbols", "has_definition_marker", "matched_markers"),
     )
 
     def check(self, doc, ctx):
@@ -37,11 +41,7 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
         )
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
-            if sentence.annotation_flags & {
-                "heavy_math_masking",
-                "symbol_dense_sentence",
-                "fragment_sentence",
-            }:
+            if self.should_abstain(sentence.annotation_flags):
                 continue
             lowered = sentence.source_text.lower()
             matched_markers = tuple(marker for marker in definitional_markers if marker in lowered)
