@@ -6,7 +6,10 @@ from hermeneia.report.revision_plan import RevisionOperation, RevisionPlan
 from hermeneia.rules.base import Layer, Severity, Violation
 from hermeneia.suggest.template import (
     RewriteCandidate,
+    no_deterministic_rewrite_available,
     rewrite_for_contraction,
+    rewrite_for_nominalization,
+    rewrite_for_proof_marker,
     tactic_only,
 )
 
@@ -41,12 +44,20 @@ class RevisionPlanner:
 
     def _candidate_for(self, violation: Violation) -> RewriteCandidate:
         if violation.rule_id == "surface.contraction":
-            return rewrite_for_contraction()
-        return tactic_only(
-            violation.rewrite_tactics[0]
-            if violation.rewrite_tactics
-            else violation.message
-        )
+            contraction = _evidence_str(violation, "contraction")
+            return rewrite_for_contraction(contraction)
+        if violation.rule_id == "math.proof_marker":
+            return rewrite_for_proof_marker()
+        if violation.rule_id == "surface.nominalization":
+            candidate = rewrite_for_nominalization(
+                nominalization=_evidence_str(violation, "nominalization"),
+                support_verb=_evidence_str(violation, "support_verb"),
+            )
+            if candidate is not None:
+                return candidate
+        if violation.rewrite_tactics:
+            return tactic_only(violation.rewrite_tactics[0])
+        return no_deterministic_rewrite_available()
 
 
 def _severity_rank(severity) -> int:
@@ -65,3 +76,12 @@ def _layer_rank(layer: Layer) -> int:
         Layer.AUDIENCE_FIT: 3,
         Layer.SURFACE_STYLE: 4,
     }[layer]
+
+
+def _evidence_str(violation: Violation, field: str) -> str | None:
+    if violation.evidence is None:
+        return None
+    raw = violation.evidence.features.get(field)
+    if isinstance(raw, str):
+        return raw
+    return None
