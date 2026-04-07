@@ -15,12 +15,28 @@ from hermeneia.rules.base import Violation
 class DiagnosticReport:
     path: Path | None
     violations: tuple[Violation, ...]
-    scorecard: Scorecard
+    scorecard: Scorecard | None
     revision_plan: RevisionPlan
+    scoring_output: frozenset[str] = frozenset(
+        {"layer_scores", "global_score", "violation_list"}
+    )
 
     def to_dict(self) -> dict[str, object]:
-        payload = asdict(self)
-        payload["path"] = str(self.path) if self.path is not None else None
+        payload: dict[str, object] = {
+            "path": str(self.path) if self.path is not None else None,
+            "revision_plan": asdict(self.revision_plan),
+        }
+        if "violation_list" in self.scoring_output:
+            payload["violations"] = [asdict(violation) for violation in self.violations]
+        if self.scorecard is not None:
+            score_payload: dict[str, object] = {}
+            raw = asdict(self.scorecard)
+            if "layer_scores" in self.scoring_output:
+                score_payload["layer_scores"] = raw["layer_scores"]
+            if "global_score" in self.scoring_output:
+                score_payload["global_score"] = raw["global_score"]
+            if score_payload:
+                payload["scorecard"] = score_payload
         return payload
 
     def to_json(self) -> str:

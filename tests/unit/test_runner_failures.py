@@ -6,7 +6,13 @@ from hermeneia.config.profile import ProfileResolver
 from hermeneia.config.schema import parse_project_config
 from hermeneia.document.markdown import MarkdownDocumentParser
 from hermeneia.document.parser import ParseRequest
-from hermeneia.engine.runner import AnalysisInput, AnalysisRunner, AnnotationResult
+from hermeneia.engine.runner import (
+    AnalysisInput,
+    AnalysisPolicy,
+    AnalysisRunner,
+    AnnotationResult,
+)
+from hermeneia.rules.base import SuggestionMode
 
 
 class FlakyParser:
@@ -49,3 +55,30 @@ def test_analysis_runner_continues_after_parse_failure(registry, language_pack) 
         diagnostic.code == "parse_failure" and diagnostic.path == Path("bad.md")
         for diagnostic in batch.diagnostics
     )
+
+
+def test_analysis_runner_skips_scoring_and_revision_plan_when_disabled(
+    registry, language_pack
+) -> None:
+    config = parse_project_config({"rules": {"active": ["surface.contraction"]}})
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    runner = AnalysisRunner(
+        parser=MarkdownDocumentParser(language_pack),
+        annotator=PassthroughAnnotator(),
+        registry=registry,
+        language_pack=language_pack,
+        embedding_backend=None,
+        policy=AnalysisPolicy(
+            scoring_output=frozenset({"violation_list"}),
+            suggestions_enabled=False,
+            suggestion_default_mode=SuggestionMode.NONE,
+        ),
+    )
+    batch = runner.analyze(
+        (AnalysisInput(path=Path("doc.md"), source="It's fine.\n"),),
+        profile,
+    )
+    assert len(batch.results) == 1
+    result = batch.results[0]
+    assert result.report.scorecard is None
+    assert result.report.revision_plan.operations == ()

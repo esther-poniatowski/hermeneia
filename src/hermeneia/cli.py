@@ -10,17 +10,20 @@ import typer
 from hermeneia import __version__, info
 from hermeneia.config.loader import load_project_config
 from hermeneia.config.profile import CliOverrides, ProfileResolver
+from hermeneia.config.schema import ProjectConfig
 from hermeneia.engine.registry import RuleRegistry
-from hermeneia.engine.runner import AnalysisInput, AnalysisRunner
+from hermeneia.engine.runner import AnalysisInput, AnalysisPolicy, AnalysisRunner
 from hermeneia.infrastructure.embeddings import build_embedding_backend
 from hermeneia.language.registry import LanguageRegistry
 from hermeneia.document.annotator import SpaCyDocumentAnnotator
 from hermeneia.document.markdown import MarkdownDocumentParser
 from hermeneia.report.annotations import build_excerpt
-from hermeneia.rules.base import Severity, Violation
+from hermeneia.rules.base import Severity, SuggestionMode, Violation
 from hermeneia.rules.loader import load_builtin_rules, load_external_rules
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
+
+SUPPORTED_SCORING_OUTPUTS = frozenset({"layer_scores", "global_score", "violation_list"})
 
 
 @app.command("info")
@@ -80,6 +83,7 @@ def cli_lint(
             ),
         )
         embedding_backend = build_embedding_backend(project_config.runtime.embeddings)
+        policy = _analysis_policy_from_config(project_config)
 
         runner = AnalysisRunner(
             parser=MarkdownDocumentParser(language_pack),
@@ -87,6 +91,7 @@ def cli_lint(
             registry=registry,
             language_pack=language_pack,
             embedding_backend=embedding_backend,
+            policy=policy,
         )
         inputs = _collect_inputs(target)
         if not inputs:
@@ -154,7 +159,11 @@ def _render_text(batch) -> str:
                 lines.append(f"    {row.line_number}: {row.line_text}")
                 lines.append(f"       {row.marker_line}")
             _append_violation_details(lines, violation)
-        lines.append(f"  global score: {result.report.scorecard.global_score}")
+        if (
+            result.report.scorecard is not None
+            and "global_score" in result.report.scoring_output
+        ):
+            lines.append(f"  global score: {result.report.scorecard.global_score}")
     return "\n".join(lines)
 
 
@@ -204,3 +213,36 @@ def _append_violation_details(lines: list[str], violation: Violation) -> None:
         lines.append(f"    confidence={violation.confidence:.3f}")
     if violation.rationale:
         lines.append(f"    rationale={violation.rationale}")
+
+
+def _analysis_policy_from_config(project_config: ProjectConfig) -> AnalysisPolicy:
+    scoring_aggregation = project_config.scoring.aggregation
+    if scoring_aggregation != "hierarchical":
+        raise ValueError(
+            "Unsupported scoring.aggregation "
+            f"'{scoring_aggregation}'. Expected 'hierarchical'."
+        )
+    scoring_output = frozenset(project_config.scoring.output)
+    unknown_outputs = sorted(scoring_output - SUPPORTED_SCORING_OUTPUTS)
+    if unknown_outputs:
+        raise ValueError(
+            "Unsupported scoring.output entries: "
+            + ", ".join(unknown_outputs)
+            + ". Supported values are: "
+            + ", ".join(sorted(SUPPORTED_SCORING_OUTPUTS))
+            + "."
+        )
+    try:
+        suggestion_mode = SuggestionMode(project_config.suggestions.default_mode)
+    except ValueError as exc:
+        raise ValueError(
+            "Unsupported suggestions.default_mode "
+            f"'{project_config.suggestions.default_mode}'. "
+            "Expected one of: template, tactic_only, none."
+        ) from exc
+    return AnalysisPolicy(
+        scoring_aggregation=scoring_aggregation,
+        scoring_output=scoring_output,
+        suggestions_enabled=project_config.suggestions.enabled,
+        suggestion_default_mode=suggestion_mode,
+    )

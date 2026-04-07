@@ -165,3 +165,75 @@ def test_cli_lint_text_output_includes_evidence_confidence_rationale(tmp_path) -
     assert '"proves"' in result.stdout
     assert "confidence=0.700" in result.stdout
     assert "rationale=Claim calibration uses bounded evidence lookback" in result.stdout
+
+
+def test_cli_lint_respects_scoring_output_config_in_json_report(tmp_path) -> None:
+    path = tmp_path / "sample.md"
+    path.write_text("It's obvious.\n", encoding="utf-8")
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "rules:",
+                "  active:",
+                "    - surface.contraction",
+                "scoring:",
+                "  output:",
+                "    - violation_list",
+                "reporting:",
+                "  format: json",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    result = CliRunner().invoke(
+        app,
+        [
+            "lint",
+            str(path),
+            "--config",
+            str(config_path),
+            "--fail-on",
+            "warning",
+        ],
+    )
+    assert result.exit_code == 1
+    assert '"surface.contraction"' in result.stdout
+    assert '"scorecard"' not in result.stdout
+    assert '"global_score"' not in result.stdout
+    assert '"layer_scores"' not in result.stdout
+
+
+def test_cli_lint_respects_suggestions_enabled_flag(tmp_path) -> None:
+    path = tmp_path / "sample.md"
+    path.write_text("It's obvious.\n", encoding="utf-8")
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "rules:",
+                "  active:",
+                "    - surface.contraction",
+                "suggestions:",
+                "  enabled: false",
+                "reporting:",
+                "  format: json",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    result = CliRunner().invoke(
+        app,
+        [
+            "lint",
+            str(path),
+            "--config",
+            str(config_path),
+            "--fail-on",
+            "warning",
+        ],
+    )
+    assert result.exit_code == 1
+    assert '"surface.contraction"' in result.stdout
+    assert '"revision_plan"' in result.stdout
+    assert '"operations": []' in result.stdout

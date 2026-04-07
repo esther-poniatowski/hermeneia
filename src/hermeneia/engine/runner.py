@@ -16,7 +16,7 @@ from hermeneia.report.diagnostic import DiagnosticReport
 from hermeneia.report.revision_plan import RevisionPlan
 from hermeneia.scoring.scorer import HierarchicalScorer
 from hermeneia.suggest.planner import RevisionPlanner
-from hermeneia.rules.base import ResolvedProfile, Violation
+from hermeneia.rules.base import ResolvedProfile, SuggestionMode, Violation
 
 
 @dataclass(frozen=True)
@@ -53,6 +53,16 @@ class AnnotationResult:
     diagnostics: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class AnalysisPolicy:
+    scoring_aggregation: str = "hierarchical"
+    scoring_output: frozenset[str] = frozenset(
+        {"layer_scores", "global_score", "violation_list"}
+    )
+    suggestions_enabled: bool = True
+    suggestion_default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
+
+
 class DocumentAnnotator(Protocol):
     def annotate(
         self, document: Document, profile: ResolvedProfile
@@ -69,15 +79,18 @@ class AnalysisRunner:
         registry: RuleRegistry,
         language_pack: LanguagePack,
         embedding_backend: EmbeddingBackend | None,
+        policy: AnalysisPolicy | None = None,
     ) -> None:
         self._parser = parser
         self._annotator = annotator
         self._registry = registry
         self._language_pack = language_pack
         self._embedding_backend = embedding_backend
+        self._policy = policy or AnalysisPolicy()
+        self._validate_policy(self._policy)
         self._detector = RuleDetector(registry)
         self._scorer = HierarchicalScorer()
-        self._planner = RevisionPlanner()
+        self._planner = RevisionPlanner(default_mode=self._policy.suggestion_default_mode)
 
     def analyze(
         self,
@@ -86,9 +99,12 @@ class AnalysisRunner:
     ) -> BatchAnalysisResult:
         results: list[AnalysisResult] = []
         diagnostics: list[OperationalDiagnostic] = []
-        rule_weights = {
-            rule_id: settings.weight for rule_id, settings in profile.rules.items()
-        }
+        score_enabled = self._score_enabled()
+        rule_weights = (
+            {rule_id: settings.weight for rule_id, settings in profile.rules.items()}
+            if score_enabled
+            else {}
+        )
         for analysis_input in inputs:
             parsed = self._parse_document(analysis_input, diagnostics)
             if parsed is None:
@@ -117,13 +133,22 @@ class AnalysisRunner:
                 )
                 for diagnostic in detection.diagnostics
             )
-            scorecard = self._scorer.score(detection.violations, rule_weights)
-            revision_plan = self._planner.build(list(detection.violations))
+            scorecard = (
+                self._scorer.score(detection.violations, rule_weights)
+                if score_enabled
+                else None
+            )
+            revision_plan = (
+                self._planner.build(list(detection.violations))
+                if self._policy.suggestions_enabled
+                else RevisionPlan(operations=())
+            )
             report = DiagnosticReport(
                 path=analysis_input.path,
                 violations=detection.violations,
                 scorecard=scorecard,
                 revision_plan=revision_plan,
+                scoring_output=self._policy.scoring_output,
             )
             results.append(
                 AnalysisResult(
@@ -183,3 +208,14 @@ class AnalysisRunner:
             for message in annotation.diagnostics
         )
         return annotation
+
+    def _score_enabled(self) -> bool:
+        requested = self._policy.scoring_output
+        return "layer_scores" in requested or "global_score" in requested
+
+    def _validate_policy(self, policy: AnalysisPolicy) -> None:
+        if policy.scoring_aggregation != "hierarchical":
+            raise ValueError(
+                "Unsupported scoring aggregation "
+                f"'{policy.scoring_aggregation}'. Expected 'hierarchical'."
+            )

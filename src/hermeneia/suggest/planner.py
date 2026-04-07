@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from hermeneia.report.revision_plan import RevisionOperation, RevisionPlan
-from hermeneia.rules.base import Layer, Severity, Violation
+from hermeneia.rules.base import Layer, Severity, SuggestionMode, Violation
 from hermeneia.suggest.template import (
     RewriteCandidate,
     no_deterministic_rewrite_available,
@@ -15,6 +15,11 @@ from hermeneia.suggest.template import (
 
 
 class RevisionPlanner:
+    def __init__(
+        self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
+    ) -> None:
+        self._default_mode = default_mode
+
     def build(self, violations: list[Violation]) -> RevisionPlan:
         operations = [self._operation_for(violation) for violation in violations]
         ordered = tuple(
@@ -57,6 +62,10 @@ class RevisionPlanner:
                 return candidate
         if violation.rewrite_tactics:
             return tactic_only(violation.rewrite_tactics[0])
+        if self._default_mode == SuggestionMode.NONE:
+            return tactic_only("No suggestion configured for this violation.")
+        if self._default_mode == SuggestionMode.TEMPLATE:
+            return no_deterministic_rewrite_available()
         return no_deterministic_rewrite_available()
 
 
