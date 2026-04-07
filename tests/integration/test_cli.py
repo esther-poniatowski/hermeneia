@@ -139,3 +139,29 @@ def test_cli_lint_renders_multiline_span_annotations(tmp_path) -> None:
     assert "2: second line" in result.stdout
     assert "      ^^^^" in result.stdout
     assert "^^^^^^" in result.stdout
+
+
+def test_cli_lint_text_output_includes_evidence_confidence_rationale(tmp_path) -> None:
+    path = tmp_path / "sample.md"
+    path.write_text("This clearly proves the theorem.\n", encoding="utf-8")
+    result = CliRunner().invoke(
+        app,
+        [
+            "lint",
+            str(path),
+            "--rule",
+            "audience.claim_calibration",
+            "--fail-on",
+            "info",
+        ],
+    )
+    assert result.exit_code == 1
+    assert "audience.claim_calibration" in result.stdout
+    assert "evidence.score=0.000" in result.stdout
+    assert "evidence.threshold=1.000" in result.stdout
+    assert "evidence.features=" in result.stdout
+    assert '"claim_markers": [' in result.stdout
+    assert '"clearly"' in result.stdout
+    assert '"proves"' in result.stdout
+    assert "confidence=0.700" in result.stdout
+    assert "rationale=Claim calibration uses bounded evidence lookback" in result.stdout

@@ -17,7 +17,7 @@ from hermeneia.language.registry import LanguageRegistry
 from hermeneia.document.annotator import SpaCyDocumentAnnotator
 from hermeneia.document.markdown import MarkdownDocumentParser
 from hermeneia.report.annotations import build_excerpt
-from hermeneia.rules.base import Severity
+from hermeneia.rules.base import Severity, Violation
 from hermeneia.rules.loader import load_builtin_rules, load_external_rules
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -153,6 +153,7 @@ def _render_text(batch) -> str:
             for row in excerpt.lines:
                 lines.append(f"    {row.line_number}: {row.line_text}")
                 lines.append(f"       {row.marker_line}")
+            _append_violation_details(lines, violation)
         lines.append(f"  global score: {result.report.scorecard.global_score}")
     return "\n".join(lines)
 
@@ -180,3 +181,26 @@ def _has_failure(batch, threshold: Severity) -> bool:
         for result in batch.results
         for violation in result.violations
     )
+
+
+def _append_violation_details(lines: list[str], violation: Violation) -> None:
+    evidence = violation.evidence
+    if evidence is not None:
+        if evidence.score is not None:
+            lines.append(f"    evidence.score={evidence.score:.3f}")
+        if evidence.threshold is not None:
+            lines.append(f"    evidence.threshold={evidence.threshold:.3f}")
+        if evidence.features:
+            lines.append(
+                "    evidence.features="
+                + json.dumps(evidence.features, sort_keys=True, ensure_ascii=False)
+            )
+        if evidence.upstream_limits:
+            lines.append(
+                "    evidence.upstream_limits="
+                + json.dumps(evidence.upstream_limits, ensure_ascii=False)
+            )
+    if violation.confidence is not None:
+        lines.append(f"    confidence={violation.confidence:.3f}")
+    if violation.rationale:
+        lines.append(f"    rationale={violation.rationale}")
