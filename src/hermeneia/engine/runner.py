@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from hermeneia.document.indexes import FeatureStore
+from hermeneia.document.indexes import EmbeddingBackend, FeatureStore
 from hermeneia.document.model import Document
 from hermeneia.document.parser import DocumentParser, ParseRequest
 from hermeneia.engine.detector import RuleDetector
@@ -68,11 +68,13 @@ class AnalysisRunner:
         annotator: DocumentAnnotator,
         registry: RuleRegistry,
         language_pack: LanguagePack,
+        embedding_backend: EmbeddingBackend | None,
     ) -> None:
         self._parser = parser
         self._annotator = annotator
         self._registry = registry
         self._language_pack = language_pack
+        self._embedding_backend = embedding_backend
         self._detector = RuleDetector(registry)
         self._scorer = HierarchicalScorer()
         self._planner = RevisionPlanner()
@@ -96,7 +98,11 @@ class AnalysisRunner:
             )
             if annotation is None:
                 continue
-            features = FeatureStore(annotation.document, annotation.document.indexes)
+            features = FeatureStore(
+                annotation.document,
+                annotation.document.indexes,
+                embedding_backend=self._embedding_backend,
+            )
             detection = self._detector.detect(
                 annotation.document,
                 profile,

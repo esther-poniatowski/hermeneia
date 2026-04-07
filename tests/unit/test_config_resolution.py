@@ -73,6 +73,29 @@ def test_parse_project_config_rejects_non_boolean_runtime_flag() -> None:
         parse_project_config({"runtime": {"strict_validation": 1}})
 
 
+def test_parse_project_config_rejects_unknown_embedding_backend() -> None:
+    with pytest.raises(
+        ConfigError,
+        match="runtime.embeddings.backend",
+    ):
+        parse_project_config({"runtime": {"embeddings": {"backend": "bogus"}}})
+
+
+def test_parse_project_config_accepts_sentence_transformers_embedding_backend() -> None:
+    config = parse_project_config(
+        {
+            "runtime": {
+                "embeddings": {
+                    "backend": "sentence_transformers",
+                    "model": "sentence-transformers/all-MiniLM-L6-v2",
+                }
+            }
+        }
+    )
+    assert config.runtime.embeddings.backend == "sentence_transformers"
+    assert config.runtime.embeddings.model == "sentence-transformers/all-MiniLM-L6-v2"
+
+
 def test_parse_project_config_rejects_non_numeric_override_weight() -> None:
     with pytest.raises(
         ConfigError, match="rules.overrides.surface.sentence_length.weight"

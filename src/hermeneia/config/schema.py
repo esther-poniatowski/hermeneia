@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Literal, Mapping
 
 from pydantic import (
     BaseModel,
@@ -46,10 +46,16 @@ class LanguageConfig(_ConfigModel):
     pack: str | None = None
 
 
+class EmbeddingConfig(_ConfigModel):
+    backend: Literal["none", "sentence_transformers"] = "none"
+    model: str = "sentence-transformers/all-MiniLM-L6-v2"
+
+
 class RuntimeConfig(_ConfigModel):
     strict_validation: StrictBool = True
     experimental_rules: StrictBool = False
     external_rule_modules: tuple[str, ...] = ()
+    embeddings: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
 
 
 class RuleOverrideConfig(_ConfigModel):

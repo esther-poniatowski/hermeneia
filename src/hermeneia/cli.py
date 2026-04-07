@@ -12,6 +12,7 @@ from hermeneia.config.loader import load_project_config
 from hermeneia.config.profile import CliOverrides, ProfileResolver
 from hermeneia.engine.registry import RuleRegistry
 from hermeneia.engine.runner import AnalysisInput, AnalysisRunner
+from hermeneia.infrastructure.embeddings import build_embedding_backend
 from hermeneia.language.registry import LanguageRegistry
 from hermeneia.document.annotator import SpaCyDocumentAnnotator
 from hermeneia.document.markdown import MarkdownDocumentParser
@@ -78,12 +79,14 @@ def cli_lint(
                 enable_experimental=experimental,
             ),
         )
+        embedding_backend = build_embedding_backend(project_config.runtime.embeddings)
 
         runner = AnalysisRunner(
             parser=MarkdownDocumentParser(language_pack),
             annotator=SpaCyDocumentAnnotator(language_pack.parser_model),
             registry=registry,
             language_pack=language_pack,
+            embedding_backend=embedding_backend,
         )
         inputs = _collect_inputs(target)
         if not inputs:

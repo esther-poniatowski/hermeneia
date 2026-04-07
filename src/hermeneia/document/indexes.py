@@ -17,6 +17,12 @@ THEOREM_RE = re.compile(r"\b(?:Theorem|Lemma|Proposition|Corollary)\s+\d+\b")
 PROOF_RE = re.compile(r"\bProof\.\b")
 QUANT_RE = re.compile(r"\b(?:Figure|Table)\s+\d+\b|\bp\s*[<>]=?\s*\d|\b\d+(?:\.\d+)?%")
 
+REDUNDANCY_LOCAL_WINDOW = 4
+REDUNDANCY_SECTION_WINDOW = 8
+REDUNDANCY_TERM_NEIGHBOR_WINDOW = 5
+REDUNDANCY_MAX_TERM_DF_RATIO = 0.35
+REDUNDANCY_LEXICAL_FLOOR = 0.25
+
 
 @dataclass(frozen=True)
 class SectionView:
@@ -84,9 +90,20 @@ class FeatureStore:
         self._paragraph_embedding_cache: dict[str, tuple[float, ...]] = {}
         self._sentence_overlap_cache: dict[tuple[str, str], float] = {}
         self._paragraph_overlap_cache: dict[tuple[str, str], float] = {}
+        self._redundancy_candidate_cache: dict[float, tuple[tuple[str, str, float], ...]] = {}
         self._sentence_index = {ref.id: ref for ref in indexes.sentences}
         self._sentence_ordinals = {ref.id: ref.ordinal for ref in indexes.sentences}
         self._heading_parents = _heading_parent_map(indexes.sections)
+        self._paragraph_blocks = tuple(
+            block for block in self._doc.iter_blocks() if block.kind == BlockKind.PARAGRAPH
+        )
+        self._paragraph_ordinals = {
+            block.id: ordinal for ordinal, block in enumerate(self._paragraph_blocks)
+        }
+        self._paragraph_terms = {
+            block.id: _block_terms(block) for block in self._paragraph_blocks
+        }
+        self._block_sections = _block_section_map(indexes.sections)
 
     def term_first_use(self, term: str) -> Span | None:
         return self._indexes.term_first_use.get(term.lower())
@@ -133,8 +150,11 @@ class FeatureStore:
         if key not in self._paragraph_overlap_cache:
             block_a = self._doc.block_by_id(block_id_a)
             block_b = self._doc.block_by_id(block_id_b)
+            terms_a = self._paragraph_terms.get(block_id_a, _block_terms(block_a))
+            terms_b = self._paragraph_terms.get(block_id_b, _block_terms(block_b))
             self._paragraph_overlap_cache[key] = _jaccard(
-                _block_terms(block_a), _block_terms(block_b)
+                terms_a,
+                terms_b,
             )
         return self._paragraph_overlap_cache[key]
 
@@ -168,24 +188,72 @@ class FeatureStore:
         self,
         similarity_threshold: float = 0.85,
     ) -> list[tuple[str, str, float]]:
-        paragraph_blocks = [
-            block for block in self._doc.iter_blocks() if block.kind == BlockKind.PARAGRAPH
-        ]
+        cache_key = round(similarity_threshold, 6)
+        cached = self._redundancy_candidate_cache.get(cache_key)
+        if cached is not None:
+            return list(cached)
+
         candidates: list[tuple[str, str, float]] = []
-        for index, left in enumerate(paragraph_blocks):
-            for right in paragraph_blocks[index + 1 :]:
-                lexical = self.paragraph_overlap(left.id, right.id)
-                if lexical < 0.25 and not self.embeddings_available:
-                    continue
-                similarity = lexical
-                if self.embeddings_available:
-                    left_vector = self.paragraph_embedding(left.id)
-                    right_vector = self.paragraph_embedding(right.id)
-                    if left_vector is not None and right_vector is not None:
-                        similarity = max(similarity, _cosine(left_vector, right_vector))
-                if similarity >= similarity_threshold:
-                    candidates.append((left.id, right.id, similarity))
-        return candidates
+        for left_id, right_id in self._blocked_redundancy_pairs():
+            lexical = self.paragraph_overlap(left_id, right_id)
+            if lexical < REDUNDANCY_LEXICAL_FLOOR and not self.embeddings_available:
+                continue
+            similarity = lexical
+            if self.embeddings_available:
+                left_vector = self.paragraph_embedding(left_id)
+                right_vector = self.paragraph_embedding(right_id)
+                if left_vector is not None and right_vector is not None:
+                    similarity = max(similarity, _cosine(left_vector, right_vector))
+            if similarity >= similarity_threshold:
+                candidates.append((left_id, right_id, similarity))
+        candidates.sort(
+            key=lambda row: (
+                -row[2],
+                self._paragraph_ordinals.get(row[0], -1),
+                self._paragraph_ordinals.get(row[1], -1),
+            )
+        )
+        frozen = tuple(candidates)
+        self._redundancy_candidate_cache[cache_key] = frozen
+        return list(frozen)
+
+    def _blocked_redundancy_pairs(self) -> tuple[tuple[str, str], ...]:
+        if len(self._paragraph_blocks) < 2:
+            return ()
+        ordinals = self._paragraph_ordinals
+        pairs: set[tuple[str, str]] = set()
+
+        for ordinal, block in enumerate(self._paragraph_blocks):
+            upper = min(len(self._paragraph_blocks), ordinal + 1 + REDUNDANCY_LOCAL_WINDOW)
+            for candidate_ordinal in range(ordinal + 1, upper):
+                candidate = self._paragraph_blocks[candidate_ordinal]
+                pairs.add((block.id, candidate.id))
+
+        by_section: dict[str | None, list[str]] = {}
+        for block in self._paragraph_blocks:
+            section_id = self._block_sections.get(block.id)
+            by_section.setdefault(section_id, []).append(block.id)
+        for section_block_ids in by_section.values():
+            for index, left_id in enumerate(section_block_ids):
+                upper = min(len(section_block_ids), index + 1 + REDUNDANCY_SECTION_WINDOW)
+                for right_id in section_block_ids[index + 1 : upper]:
+                    pairs.add(_ordered_paragraph_pair(left_id, right_id, ordinals))
+
+        max_df = max(3, int(len(self._paragraph_blocks) * REDUNDANCY_MAX_TERM_DF_RATIO))
+        term_postings: dict[str, list[str]] = {}
+        for block in self._paragraph_blocks:
+            for term in self._paragraph_terms.get(block.id, set()):
+                term_postings.setdefault(term, []).append(block.id)
+        for posting in term_postings.values():
+            if len(posting) < 2 or len(posting) > max_df:
+                continue
+            ordered_posting = sorted(posting, key=lambda block_id: ordinals[block_id])
+            for index, left_id in enumerate(ordered_posting):
+                upper = min(len(ordered_posting), index + 1 + REDUNDANCY_TERM_NEIGHBOR_WINDOW)
+                for right_id in ordered_posting[index + 1 : upper]:
+                    pairs.add(_ordered_paragraph_pair(left_id, right_id, ordinals))
+
+        return tuple(sorted(pairs, key=lambda pair: (ordinals[pair[0]], ordinals[pair[1]])))
 
     @property
     def sections(self) -> list[SectionView]:
@@ -409,3 +477,21 @@ def _heading_parent_map(sections: list[SectionView]) -> dict[str, str | None]:
         parents[heading_id] = stack[-1].heading_block_id if stack else None
         stack.append(section)
     return parents
+
+
+def _block_section_map(sections: list[SectionView]) -> dict[str, str | None]:
+    block_sections: dict[str, str | None] = {}
+    for section in sorted(sections, key=lambda value: value.level):
+        for block_id in section.block_ids:
+            block_sections[block_id] = section.heading_block_id
+    return block_sections
+
+
+def _ordered_paragraph_pair(
+    left_id: str,
+    right_id: str,
+    ordinals: dict[str, int],
+) -> tuple[str, str]:
+    if ordinals[left_id] <= ordinals[right_id]:
+        return left_id, right_id
+    return right_id, left_id

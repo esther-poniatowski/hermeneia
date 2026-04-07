@@ -51,6 +51,11 @@ dependencies = [
     "typer>=0.9",
 ]
 
+[project.optional-dependencies]
+semantic = [
+    "sentence-transformers>=2.0",
+]
+
 
 # --- Package Source Code --------------------------------------------------------------------------
 

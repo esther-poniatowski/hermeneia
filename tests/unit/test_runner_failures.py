@@ -32,6 +32,7 @@ def test_analysis_runner_continues_after_parse_failure(registry, language_pack) 
         annotator=PassthroughAnnotator(),
         registry=registry,
         language_pack=language_pack,
+        embedding_backend=None,
     )
     batch = runner.analyze(
         (
