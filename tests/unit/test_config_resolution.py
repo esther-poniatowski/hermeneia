@@ -6,7 +6,7 @@ import pytest
 from pydantic import BaseModel, Field
 
 from hermeneia.config.defaults import PROFILE_PRESETS, ProfilePreset
-from hermeneia.config.profile import ProfileResolver
+from hermeneia.config.profile import CliOverrides, ProfileResolver
 from hermeneia.config.schema import ConfigError, parse_project_config
 from hermeneia.rules.base import (
     Layer,
@@ -157,7 +157,9 @@ def test_profile_resolution_rejects_unknown_active_rule(
     config = parse_project_config(
         {"rules": {"active": ["surface.sentence_length", "unknown.rule"]}}
     )
-    with pytest.raises(ValueError, match="Unknown rule ids: unknown.rule"):
+    with pytest.raises(
+        ValueError, match="Unknown rule ids in rules.active: unknown.rule"
+    ):
         ProfileResolver(registry).resolve(config, language_pack)
 
 
@@ -167,8 +169,104 @@ def test_profile_resolution_rejects_unknown_override_rule(
     config = parse_project_config(
         {"rules": {"overrides": {"unknown.rule": {"options": {"max_words": 12}}}}}
     )
-    with pytest.raises(ValueError, match="Unknown rule ids in overrides: unknown.rule"):
+    with pytest.raises(
+        ValueError, match="Unknown rule ids in rules.overrides: unknown.rule"
+    ):
         ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_unknown_disabled_rule(
+    registry, language_pack
+) -> None:
+    config = parse_project_config({"rules": {"disabled": ["unknown.rule"]}})
+    with pytest.raises(
+        ValueError, match="Unknown rule ids in rules.disabled: unknown.rule"
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_unknown_cli_rule_id(
+    registry, language_pack
+) -> None:
+    config = parse_project_config({})
+    with pytest.raises(
+        ValueError, match="Unknown rule ids in cli --rule: unknown.rule"
+    ):
+        ProfileResolver(registry).resolve(
+            config, language_pack, cli=CliOverrides(rule_ids=("unknown.rule",))
+        )
+
+
+def test_profile_resolution_rejects_unknown_cli_disabled_rule_id(
+    registry, language_pack
+) -> None:
+    config = parse_project_config({})
+    with pytest.raises(
+        ValueError,
+        match="Unknown rule ids in cli --disable-rule: unknown.rule",
+    ):
+        ProfileResolver(registry).resolve(
+            config,
+            language_pack,
+            cli=CliOverrides(disabled_rule_ids=("unknown.rule",)),
+        )
+
+
+def test_profile_resolution_rejects_unknown_rule_in_profile_active_rules(
+    registry, language_pack, monkeypatch
+) -> None:
+    bad_preset = ProfilePreset(
+        name="bad-active",
+        audience="specialist",
+        genre="research_note",
+        section="body",
+        register="formal",
+        active_rules=("unknown.rule",),
+        rule_overrides={},
+    )
+    monkeypatch.setitem(PROFILE_PRESETS, "bad-active", bad_preset)
+    config = parse_project_config({"profile": {"name": "bad-active"}})
+    with pytest.raises(
+        ValueError,
+        match="Unknown rule ids in profile preset 'bad-active' active_rules: unknown.rule",
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_unknown_rule_in_profile_overrides(
+    registry, language_pack, monkeypatch
+) -> None:
+    bad_preset = ProfilePreset(
+        name="bad-overrides",
+        audience="specialist",
+        genre="research_note",
+        section="body",
+        register="formal",
+        active_rules=("surface.sentence_length",),
+        rule_overrides={"unknown.rule": {"options": {"max_words": 20}}},
+    )
+    monkeypatch.setitem(PROFILE_PRESETS, "bad-overrides", bad_preset)
+    config = parse_project_config({"profile": {"name": "bad-overrides"}})
+    with pytest.raises(
+        ValueError,
+        match="Unknown rule ids in profile preset 'bad-overrides' rule_overrides: unknown.rule",
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_unknown_rule_in_language_defaults(
+    registry, language_pack
+) -> None:
+    bad_pack = replace(
+        language_pack,
+        rule_defaults={"unknown.rule": {"options": {"max_words": 18}}},
+    )
+    config = parse_project_config({})
+    with pytest.raises(
+        ValueError,
+        match="Unknown rule ids in language pack 'en' rule_defaults: unknown.rule",
+    ):
+        ProfileResolver(registry).resolve(config, bad_pack)
 
 
 def test_profile_resolution_accepts_options_mapping_override(

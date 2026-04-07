@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from hermeneia.config.defaults import PROFILE_PRESETS, ProfilePreset
 from hermeneia.config.schema import ProjectConfig, RuleOverrideConfig
@@ -35,7 +35,7 @@ class ProfileResolver:
     ) -> ResolvedProfile:
         cli = cli or CliOverrides()
         preset = self._resolve_preset(cli.profile_name or config.profile.name)
-        self._validate_override_rule_ids(config.rules.overrides)
+        self._validate_rule_id_references(config, cli, preset, language_pack)
         explicit_rule_ids = self._explicit_rule_ids(config, cli)
 
         active_rule_ids = self._resolve_active_rules(config, preset, cli)
@@ -118,9 +118,6 @@ class ProfileResolver:
             active = set(preset.active_rules)
         active -= set(config.rules.disabled)
         active -= set(cli.disabled_rule_ids)
-        unknown = sorted(rule_id for rule_id in active if rule_id not in self._registry)
-        if unknown:
-            raise ValueError(f"Unknown rule ids: {', '.join(unknown)}")
         return tuple(sorted(active))
 
     def _merge_rule_settings(
@@ -156,14 +153,37 @@ class ProfileResolver:
             return cli.enable_experimental
         return config.runtime.experimental_rules
 
-    def _validate_override_rule_ids(
-        self, overrides: Mapping[str, RuleOverrideConfig]
+    def _validate_rule_id_references(
+        self,
+        config: ProjectConfig,
+        cli: CliOverrides,
+        preset: ProfilePreset,
+        language_pack: LanguagePack,
     ) -> None:
+        self._raise_unknown_rule_ids("rules.active", config.rules.active or ())
+        self._raise_unknown_rule_ids("rules.disabled", config.rules.disabled)
+        self._raise_unknown_rule_ids("rules.overrides", config.rules.overrides)
+        self._raise_unknown_rule_ids("cli --rule", cli.rule_ids)
+        self._raise_unknown_rule_ids("cli --disable-rule", cli.disabled_rule_ids)
+        self._raise_unknown_rule_ids(
+            f"profile preset '{preset.name}' active_rules",
+            preset.active_rules,
+        )
+        self._raise_unknown_rule_ids(
+            f"profile preset '{preset.name}' rule_overrides",
+            preset.rule_overrides,
+        )
+        self._raise_unknown_rule_ids(
+            f"language pack '{language_pack.code}' rule_defaults",
+            language_pack.rule_defaults,
+        )
+
+    def _raise_unknown_rule_ids(self, source: str, rule_ids: Iterable[str]) -> None:
         unknown = sorted(
-            rule_id for rule_id in overrides if rule_id not in self._registry
+            rule_id for rule_id in rule_ids if rule_id not in self._registry
         )
         if unknown:
-            raise ValueError(f"Unknown rule ids in overrides: {', '.join(unknown)}")
+            raise ValueError(f"Unknown rule ids in {source}: {', '.join(unknown)}")
 
     def _explicit_rule_ids(
         self,
