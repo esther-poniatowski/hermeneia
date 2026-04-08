@@ -35,10 +35,13 @@ def test_passive_voice_rule_emits(registry, language_pack, research_profile) -> 
     assert violations[0].rule_id == "surface.passive_voice"
 
 
-def test_transition_quality_rule_emits_without_support(
+def test_transition_quality_rule_emits_on_unmarked_shift(
     registry, language_pack, research_profile
 ) -> None:
-    source = "However, this conclusion remains asserted.\n"
+    source = (
+        "The estimator controls the leading residual term.\n"
+        "We now classify boundary regularity across unrelated domains.\n"
+    )
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["discourse.transition_quality"])
@@ -61,6 +64,53 @@ def test_sentence_redundancy_rule_emits_on_adjacent_restatement(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "paragraph.sentence_redundancy"
+
+
+def test_lexical_repetition_rule_emits_on_nonadjacent_restatement(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "The mapping controls the leading residual term.\n"
+        "This sentence introduces notation for the boundary set.\n"
+        "The mapping controls the leading residual term.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["paragraph.lexical_repetition"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "paragraph.lexical_repetition"
+
+
+def test_concept_reference_drift_rule_emits_on_label_churn(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "The method updates parameters with a projected step.\n"
+        "The approach updates parameters with a projected step.\n"
+        "The framework updates parameters with a projected step.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["paragraph.concept_reference_drift"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "paragraph.concept_reference_drift"
+
+
+def test_reformulation_inflation_rule_emits_on_restatement_marker(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "The estimate bounds the residual term uniformly.\n"
+        "In other words, the estimate bounds the residual term uniformly.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["paragraph.reformulation_inflation"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "paragraph.reformulation_inflation"
 
 
 def test_paragraph_redundancy_rule_emits_on_duplicate_paragraphs(
@@ -130,3 +180,37 @@ def test_math_prose_math_rule_emits_on_paraphrased_relation(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "math.prose_math"
+
+
+def test_surface_abstract_framing_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "The fact that the residual decays implies stability.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.abstract_framing"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.abstract_framing"
+
+
+def test_surface_abstract_compound_modifier_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "This is a context-dependent strategy for calibration.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.abstract_compound_modifier"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.abstract_compound_modifier"
+
+
+def test_surface_assumption_hypothesis_framing_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Under the compactness assumption, the sequence converges.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.assumption_hypothesis_framing"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.assumption_hypothesis_framing"

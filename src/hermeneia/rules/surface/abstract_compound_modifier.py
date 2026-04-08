@@ -1,4 +1,4 @@
-"""Abstract-framing checks for mathematical prose."""
+"""Detect abstract compound modifiers that hide explicit relations."""
 
 from __future__ import annotations
 
@@ -17,22 +17,23 @@ from hermeneia.rules.base import (
 )
 from hermeneia.rules.common import line_text_outside_excluded
 
-ABSTRACT_FRAMING_RE = re.compile(
-    r"\b(?:the\s+fact\s+that|the\s+question\s+of|the\s+issue\s+of|in\s+terms\s+of|is\s+given\s+by)\b",
+ABSTRACT_COMPOUND_RE = re.compile(
+    r"\b([A-Za-z][A-Za-z0-9-]*)-"
+    r"(specific|dependent|based|driven|oriented|related|centric)\b",
     re.IGNORECASE,
 )
 
 
-class AbstractFramingRule(SourcePatternRule):
+class AbstractCompoundModifierRule(SourcePatternRule):
     metadata = RuleMetadata(
-        rule_id="math.abstract_framing",
-        label="Avoid abstract framing before mathematical content",
+        rule_id="surface.abstract_compound_modifier",
+        label="Replace abstract compound modifiers with explicit relations",
         layer=Layer.SURFACE_STYLE,
         tractability=Tractability.CLASS_A,
-        kind=RuleKind.HARD_CONSTRAINT,
-        default_severity=Severity.WARNING,
+        kind=RuleKind.SOFT_HEURISTIC,
+        default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
-        evidence_fields=("phrase",),
+        evidence_fields=("compound",),
     )
 
     def check_source(self, lines, doc, ctx):
@@ -42,20 +43,24 @@ class AbstractFramingRule(SourcePatternRule):
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = ABSTRACT_FRAMING_RE.search(probe)
+            match = ABSTRACT_COMPOUND_RE.search(probe)
             if match is None:
                 continue
-            phrase = match.group(0)
+            compound = match.group(0)
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message=f"Replace abstract framing '{phrase}' with a direct mathematical relation or claim.",
+                    message=(
+                        f"Compound modifier '{compound}' is abstract; state the dependency "
+                        "or criterion explicitly."
+                    ),
                     span=_match_span(line, match.start(), match.end()),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"phrase": phrase.lower()}),
+                    evidence=RuleEvidence(features={"compound": compound.lower()}),
+                    confidence=0.76,
                     rewrite_tactics=(
-                        "State the operative quantity, operation, or claim directly instead of abstract scaffolding.",
+                        "Rewrite the compound as a clause that states what depends on what, and how.",
                     ),
                 )
             )
@@ -74,5 +79,4 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    registry.add(AbstractFramingRule)
-
+    registry.add(AbstractCompoundModifierRule)

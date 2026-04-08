@@ -47,3 +47,27 @@ def test_definition_before_use_only_checks_first_use(
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
     assert rule.check(document, context) == []
+
+
+def test_definition_before_use_accepts_symbol_defined_by_colon_frame(
+    registry, language_pack, research_profile
+) -> None:
+    source = "The control variable is: $x$.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    assert rule.check(document, context) == []
+
+
+def test_definition_before_use_accepts_symbol_defined_by_measurement_frame(
+    registry, language_pack, research_profile
+) -> None:
+    source = "The instability index is measured by $I$.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    assert rule.check(document, context) == []

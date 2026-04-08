@@ -1,9 +1,8 @@
-"""Paragraph-level lexical repetition diagnostics."""
+"""Paragraph-level lexical repetition as a redundancy proxy."""
 
 from __future__ import annotations
 
-from collections import Counter
-
+from hermeneia.document.indexes import SupportSignalKind
 from hermeneia.document.model import BlockKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
@@ -17,93 +16,125 @@ from hermeneia.rules.base import (
 )
 from hermeneia.rules.common import iter_blocks
 
-STOPWORDS = frozenset(
-    {
-        "the",
-        "a",
-        "an",
-        "and",
-        "or",
-        "of",
-        "to",
-        "in",
-        "for",
-        "on",
-        "with",
-        "by",
-        "is",
-        "are",
-    }
-)
-
 
 class LexicalRepetitionRule(HeuristicSemanticRule):
     metadata = RuleMetadata(
         rule_id="paragraph.lexical_repetition",
-        label="Paragraph repeats the same lexical core excessively",
+        label="Paragraph repeats equivalent claims with limited new contribution",
         layer=Layer.PARAGRAPH_RHETORIC,
         tractability=Tractability.CLASS_H,
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
-        default_options={"max_top_lemma_share": 0.3},
-        evidence_fields=("top_lemma", "top_lemma_share", "token_count"),
+        default_options={
+            "min_nonadjacent_overlap": 0.7,
+            "min_redundant_pairs": 1,
+            "min_sentence_count": 3,
+        },
+        evidence_fields=("redundant_pairs", "max_overlap", "sentence_count"),
     )
 
     def check(self, doc, ctx):
-        max_share = self.settings.float_option("max_top_lemma_share", 0.3)
+        min_overlap = self.settings.float_option("min_nonadjacent_overlap", 0.7)
+        min_redundant_pairs = self.settings.int_option("min_redundant_pairs", 1)
+        min_sentence_count = self.settings.int_option("min_sentence_count", 3)
+        strong_claim_markers = tuple(
+            marker.lower() for marker in ctx.language_pack.lexicons.strong_claim_markers
+        )
+        support_by_sentence = _support_signals_by_sentence(doc)
+
         violations: list[Violation] = []
         for block in iter_blocks(doc, {BlockKind.PARAGRAPH}):
-            lemmas = _block_lemmas(block)
-            if len(lemmas) < 8:
+            if len(block.sentences) < min_sentence_count:
                 continue
-            counts = Counter(lemmas)
-            lemma, count = counts.most_common(1)[0]
-            share = count / len(lemmas)
-            if share <= max_share:
+            redundant_pairs: list[tuple[str, str, float]] = []
+            max_overlap = 0.0
+            sentences = block.sentences
+            for left_index in range(len(sentences)):
+                left = sentences[left_index]
+                for right_index in range(left_index + 2, len(sentences)):
+                    right = sentences[right_index]
+                    overlap = ctx.features.sentence_overlap(left.id, right.id)
+                    if overlap < min_overlap:
+                        continue
+                    if _introduces_new_support(
+                        right_sentence_text=right.projection.text.lower(),
+                        right_sentence_signals=support_by_sentence.get(right.id, frozenset()),
+                        strong_claim_markers=strong_claim_markers,
+                    ):
+                        continue
+                    redundant_pairs.append((left.id, right.id, overlap))
+                    if overlap > max_overlap:
+                        max_overlap = overlap
+            if len(redundant_pairs) < min_redundant_pairs:
                 continue
+            top_pairs = sorted(redundant_pairs, key=lambda item: (-item[2], item[0], item[1]))[:3]
+            pair_payload = tuple(
+                {
+                    "left_sentence_id": left_id,
+                    "right_sentence_id": right_id,
+                    "overlap": round(overlap, 3),
+                }
+                for left_id, right_id, overlap in top_pairs
+            )
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message=f"Paragraph repeats '{lemma}' in {share:.1%} of lexical tokens.",
+                    message=(
+                        "The paragraph restates the same core proposition across multiple "
+                        "sentences without clear new contribution."
+                    ),
                     span=block.span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
                     evidence=RuleEvidence(
                         features={
-                            "top_lemma": lemma,
-                            "top_lemma_share": round(share, 3),
-                            "token_count": len(lemmas),
+                            "redundant_pairs": pair_payload,
+                            "max_overlap": round(max_overlap, 3),
+                            "sentence_count": len(sentences),
                         },
-                        threshold=max_share,
+                        score=round(max_overlap, 3),
+                        threshold=min_overlap,
                     ),
-                    confidence=0.61,
+                    confidence=max(0.58, min(0.9, max_overlap)),
+                    rationale=(
+                        "The rule flags non-adjacent sentence pairs with high lexical overlap "
+                        "when no strong support signal indicates genuine argumentative progress."
+                    ),
                     rewrite_tactics=(
-                        "Condense repeated phrasing and vary lexical realizations where meaning is unchanged.",
+                        "Merge restatements so each sentence contributes a distinct claim, "
+                        "evidence step, or consequence.",
                     ),
                 )
             )
         return violations
 
 
-def _block_lemmas(block) -> list[str]:
-    lemmas: list[str] = []
-    for sentence in block.sentences:
-        if sentence.tokens:
-            lemmas.extend(
-                token.lemma.lower()
-                for token in sentence.tokens
-                if token.lemma.isalpha() and token.lemma.lower() not in STOPWORDS
-            )
-        else:
-            lemmas.extend(
-                word.lower()
-                for word in sentence.projection.text.split()
-                if word.isalpha() and word.lower() not in STOPWORDS
-            )
-    return lemmas
+def _support_signals_by_sentence(doc) -> dict[str, frozenset[SupportSignalKind]]:
+    signals: dict[str, set[SupportSignalKind]] = {}
+    for signal in doc.indexes.support_signals:
+        if signal.sentence_id is None:
+            continue
+        bucket = signals.setdefault(signal.sentence_id, set())
+        bucket.add(signal.kind)
+    return {sentence_id: frozenset(kinds) for sentence_id, kinds in signals.items()}
+
+
+def _introduces_new_support(
+    right_sentence_text: str,
+    right_sentence_signals: frozenset[SupportSignalKind],
+    strong_claim_markers: tuple[str, ...],
+) -> bool:
+    if right_sentence_signals & {
+        SupportSignalKind.CITATION,
+        SupportSignalKind.THEOREM_REF,
+        SupportSignalKind.PROOF_REF,
+        SupportSignalKind.DISPLAYED_EQUATION,
+        SupportSignalKind.QUANTITATIVE_RESULT,
+    }:
+        return True
+    return any(marker in right_sentence_text for marker in strong_claim_markers)
 
 
 def register(registry) -> None:
     registry.add(LexicalRepetitionRule)
-

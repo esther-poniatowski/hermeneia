@@ -1,10 +1,10 @@
-"""Connector-driven transition support-gap heuristics."""
+"""Discourse-transition articulation heuristics."""
 
 from __future__ import annotations
 
 import re
 
-from hermeneia.document.indexes import SupportSignalKind
+from hermeneia.document.model import BlockKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
     Layer,
@@ -15,10 +15,14 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import iter_sentences
+from hermeneia.rules.common import iter_blocks
 
 LEADING_CONNECTOR_RE = re.compile(
-    r"^\s*(however|therefore|thus|hence|consequently|accordingly|in contrast|conversely)\b",
+    r"^\s*(however|therefore|thus|hence|consequently|accordingly|in contrast|conversely|meanwhile|by contrast|instead|nevertheless)\b",
+    re.IGNORECASE,
+)
+LEADING_REFERENCE_RE = re.compile(
+    r"^\s*(this|these|that|such)\s+(result|claim|step|argument|estimate|bound|construction|observation|property)\b",
     re.IGNORECASE,
 )
 
@@ -26,60 +30,129 @@ LEADING_CONNECTOR_RE = re.compile(
 class TransitionQualityRule(HeuristicSemanticRule):
     metadata = RuleMetadata(
         rule_id="discourse.transition_quality",
-        label="Transition marker lacks nearby support cues",
+        label="Discourse transitions are weakly articulated",
         layer=Layer.LOCAL_DISCOURSE,
         tractability=Tractability.CLASS_H,
         kind=RuleKind.DIAGNOSTIC_METRIC,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
-        default_options={"lookback_sentences": 2},
-        evidence_fields=("connector", "support_signals"),
+        default_options={
+            "min_overlap_without_connector": 0.18,
+            "max_shift_findings": 3,
+            "min_paragraph_sentences": 4,
+            "min_average_overlap_without_connectors": 0.35,
+        },
+        evidence_fields=("issue",),
     )
 
     def check(self, doc, ctx):
-        lookback = self.settings.int_option("lookback_sentences", 2)
-        evidence_kinds = {
-            SupportSignalKind.CITATION,
-            SupportSignalKind.THEOREM_REF,
-            SupportSignalKind.PROOF_REF,
-            SupportSignalKind.DISPLAYED_EQUATION,
-            SupportSignalKind.QUANTITATIVE_RESULT,
-        }
+        min_overlap = self.settings.float_option("min_overlap_without_connector", 0.18)
+        max_shift_findings = self.settings.int_option("max_shift_findings", 3)
+        min_paragraph_sentences = self.settings.int_option("min_paragraph_sentences", 4)
+        min_average_overlap = self.settings.float_option(
+            "min_average_overlap_without_connectors", 0.35
+        )
         violations: list[Violation] = []
-        for sentence in iter_sentences(doc):
-            match = LEADING_CONNECTOR_RE.search(sentence.projection.text)
-            if match is None:
+        for block in iter_blocks(doc, {BlockKind.PARAGRAPH, BlockKind.BLOCK_QUOTE, BlockKind.LIST_ITEM}):
+            if len(block.sentences) < 2:
                 continue
-            connector = match.group(1).lower()
-            signals = ctx.features.support_signals_in_window(
-                sentence.id, max_sentences_back=lookback
-            )
-            strong_signals = [signal for signal in signals if signal.kind in evidence_kinds]
-            if strong_signals:
+            connector_count = 0
+            overlaps: list[float] = []
+            shift_findings = 0
+            for index in range(1, len(block.sentences)):
+                previous = block.sentences[index - 1]
+                current = block.sentences[index]
+                current_text = current.projection.text
+                if _starts_with_connector(current_text):
+                    connector_count += 1
+                    continue
+                overlap = ctx.features.sentence_overlap(previous.id, current.id)
+                overlaps.append(overlap)
+                if overlap >= min_overlap or _starts_with_linking_reference(current_text):
+                    continue
+                if shift_findings >= max_shift_findings:
+                    continue
+                shift_findings += 1
+                violations.append(
+                    Violation(
+                        rule_id=self.rule_id,
+                        message=(
+                            "Adjacent sentences shift discourse without an explicit transition "
+                            "or reference anchor."
+                        ),
+                        span=current.span,
+                        severity=self.settings.severity,
+                        layer=self.metadata.layer,
+                        evidence=RuleEvidence(
+                            features={
+                                "issue": "unmarked_shift",
+                                "overlap": round(overlap, 3),
+                                "previous_sentence_id": previous.id,
+                                "current_sentence_id": current.id,
+                            },
+                            score=round(overlap, 3),
+                            threshold=min_overlap,
+                        ),
+                        confidence=max(0.55, min(0.86, 0.9 - overlap)),
+                        rationale=(
+                            "Transition articulation checks adjacent-sentence continuity with "
+                            "bounded overlap and explicit opener signals."
+                        ),
+                        rewrite_tactics=(
+                            "Add a connector or a concrete reference link that states how this "
+                            "sentence follows from the previous one.",
+                        ),
+                    )
+                )
+            if len(block.sentences) < min_paragraph_sentences:
+                continue
+            if connector_count > 0:
+                continue
+            if not overlaps:
+                continue
+            average_overlap = sum(overlaps) / len(overlaps)
+            if average_overlap >= min_average_overlap:
                 continue
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message=f"Transition marker '{connector}' is not anchored by nearby support cues.",
-                    span=sentence.span,
+                    message=(
+                        "The paragraph chains multiple sentences without explicit transition "
+                        "markers while local continuity remains weak."
+                    ),
+                    span=block.span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
                     evidence=RuleEvidence(
                         features={
-                            "connector": connector,
-                            "support_signals": tuple(signal.kind.value for signal in signals),
+                            "issue": "connector_underuse",
+                            "connector_count": connector_count,
+                            "sentence_count": len(block.sentences),
+                            "average_overlap": round(average_overlap, 3),
                         },
-                        score=0.0,
-                        threshold=1.0,
+                        score=round(average_overlap, 3),
+                        threshold=min_average_overlap,
                     ),
-                    confidence=0.64,
-                    rationale="Transition quality uses bounded support lookback rather than full discourse parsing.",
+                    confidence=0.62,
+                    rationale=(
+                        "Paragraph-level articulation checks require explicit connective framing "
+                        "when consecutive sentence overlap stays low."
+                    ),
                     rewrite_tactics=(
-                        "Add the concrete support, evidence, or contrast basis that motivates the transition marker.",
+                        "Introduce transition markers at key sentence boundaries to make the "
+                        "argument steps explicit.",
                     ),
                 )
             )
         return violations
+
+
+def _starts_with_connector(text: str) -> bool:
+    return LEADING_CONNECTOR_RE.search(text) is not None
+
+
+def _starts_with_linking_reference(text: str) -> bool:
+    return LEADING_REFERENCE_RE.search(text) is not None
 
 
 def register(registry) -> None:

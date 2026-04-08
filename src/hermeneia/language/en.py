@@ -50,16 +50,22 @@ ENGLISH_PACK = LanguagePack(
             "of course",
             "straightforward",
             "it can be shown",
-            "it is easy to see",
+            "it is easy to",
+            "it can be verified",
+            "it can be checked",
+            "it can be seen",
             "it follows that",
         ),
         acronym_allowlist=frozenset({"API", "CLI", "NLP"}),
         definitional_markers=(
-            "is defined as",
+            "defined as",
             "denote",
+            "denotes",
             "means",
             "refers to",
-            "call this",
+            "called",
+            "written as",
+            "measured by",
         ),
     ),
     rule_defaults={
@@ -68,7 +74,19 @@ ENGLISH_PACK = LanguagePack(
         "surface.noun_cluster": {"options": {"max_cluster_tokens": 4}},
         "discourse.subject_verb_distance": {"options": {"max_distance": 8}},
         "discourse.subordinate_clause": {"options": {"max_subordinate_clauses": 2}},
-        "discourse.transition_quality": {"options": {"lookback_sentences": 2}},
+        "discourse.transition_quality": {
+            "options": {
+                "min_overlap_without_connector": 0.18,
+                "min_paragraph_sentences": 4,
+                "min_average_overlap_without_connectors": 0.35,
+            }
+        },
+        "audience.acronym_burden": {
+            "options": {
+                "min_acronym_mentions_for_overuse": 4,
+                "max_acronym_to_full_form_ratio": 2.0,
+            }
+        },
         "audience.claim_calibration": {"options": {"lookback_sentences": 3}},
         "paragraph.sentence_redundancy": {"options": {"min_overlap": 0.78}},
         "paragraph.paragraph_redundancy": {
