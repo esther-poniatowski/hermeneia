@@ -28,9 +28,6 @@ ACRONYM_THEN_FULL_FORM_RE = re.compile(
     r"\((?P<full>[A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){1,7})\)"
 )
 WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9-]*")
-STOPWORDS = frozenset(
-    {"a", "an", "and", "for", "in", "of", "on", "the", "to", "with", "by"}
-)
 
 
 @dataclass(frozen=True)
@@ -69,10 +66,15 @@ class AcronymBurdenRule(AnnotatedRule):
         )
         max_ratio = self.settings.float_option("max_acronym_to_full_form_ratio", 2.0)
         allowlist = ctx.language_pack.lexicons.acronym_allowlist
+        definition_stopwords = (
+            ctx.language_pack.lexicons.acronym_definition_stopwords
+        )
         ordinal_by_sentence_id = {
             ref.id: ref.ordinal for ref in doc.indexes.sentences
         }
-        definitions = _collect_definitions(doc, allowlist, ordinal_by_sentence_id)
+        definitions = _collect_definitions(
+            doc, allowlist, ordinal_by_sentence_id, definition_stopwords
+        )
         mentions = _collect_mentions(doc, allowlist, ordinal_by_sentence_id)
         violations: list[Violation] = []
 
@@ -176,17 +178,30 @@ def _collect_definitions(
     doc,
     allowlist: frozenset[str],
     ordinal_by_sentence_id: dict[str, int],
+    definition_stopwords: frozenset[str],
 ) -> dict[str, AcronymDefinition]:
     definitions: dict[str, AcronymDefinition] = {}
     for sentence in iter_sentences(doc):
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
         for match in FULL_FORM_THEN_ACRONYM_RE.finditer(sentence.source_text):
-            definition = _definition_from_match(match.group("acronym"), match.group("full"), sentence.id, ordinal)
+            definition = _definition_from_match(
+                match.group("acronym"),
+                match.group("full"),
+                sentence.id,
+                ordinal,
+                definition_stopwords,
+            )
             if definition is None or definition.acronym in allowlist:
                 continue
             _store_definition(definitions, definition)
         for match in ACRONYM_THEN_FULL_FORM_RE.finditer(sentence.source_text):
-            definition = _definition_from_match(match.group("acronym"), match.group("full"), sentence.id, ordinal)
+            definition = _definition_from_match(
+                match.group("acronym"),
+                match.group("full"),
+                sentence.id,
+                ordinal,
+                definition_stopwords,
+            )
             if definition is None or definition.acronym in allowlist:
                 continue
             _store_definition(definitions, definition)
@@ -198,12 +213,13 @@ def _definition_from_match(
     full_form_raw: str,
     sentence_id: str,
     sentence_ordinal: int,
+    definition_stopwords: frozenset[str],
 ) -> AcronymDefinition | None:
     acronym = _normalize_acronym(acronym_raw)
     full_form = _normalize_full_form(full_form_raw)
     if not acronym or not full_form:
         return None
-    if not _initials_align(acronym, full_form):
+    if not _initials_align(acronym, full_form, definition_stopwords):
         return None
     return AcronymDefinition(
         acronym=acronym,
@@ -233,12 +249,18 @@ def _normalize_full_form(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip())
 
 
-def _initials_align(acronym: str, full_form: str) -> bool:
+def _initials_align(
+    acronym: str,
+    full_form: str,
+    definition_stopwords: frozenset[str],
+) -> bool:
     words = [word.group(0) for word in WORD_RE.finditer(full_form)]
     if len(words) < 2:
         return False
     initials = "".join(
-        word[0].upper() for word in words if word.lower() not in STOPWORDS
+        word[0].upper()
+        for word in words
+        if word.lower() not in definition_stopwords
     )
     if not initials:
         return False

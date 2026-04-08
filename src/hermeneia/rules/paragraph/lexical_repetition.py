@@ -14,7 +14,7 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import iter_blocks
+from hermeneia.rules.common import iter_blocks, sentence_has_marker
 
 
 class LexicalRepetitionRule(HeuristicSemanticRule):
@@ -58,7 +58,7 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
                     if overlap < min_overlap:
                         continue
                     if _introduces_new_support(
-                        right_sentence_text=right.projection.text.lower(),
+                        right_sentence=right,
                         right_sentence_signals=support_by_sentence.get(right.id, frozenset()),
                         strong_claim_markers=strong_claim_markers,
                     ):
@@ -121,7 +121,7 @@ def _support_signals_by_sentence(doc) -> dict[str, frozenset[SupportSignalKind]]
 
 
 def _introduces_new_support(
-    right_sentence_text: str,
+    right_sentence,
     right_sentence_signals: frozenset[SupportSignalKind],
     strong_claim_markers: tuple[str, ...],
 ) -> bool:
@@ -133,7 +133,7 @@ def _introduces_new_support(
         SupportSignalKind.QUANTITATIVE_RESULT,
     }:
         return True
-    return any(marker in right_sentence_text for marker in strong_claim_markers)
+    return sentence_has_marker(right_sentence, strong_claim_markers)
 
 
 def register(registry) -> None:

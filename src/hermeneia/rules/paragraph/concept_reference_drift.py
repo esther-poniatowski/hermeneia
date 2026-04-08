@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import BlockKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
@@ -16,12 +14,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import iter_blocks
-
-LABEL_RE = re.compile(
-    r"\b(?:the|this|that)\s+"
-    r"(method|approach|framework|strategy|procedure|technique|model|pipeline|scheme|mechanism|argument|proof)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_prefixed_term_regex
 
 
 class ConceptReferenceDriftRule(HeuristicSemanticRule):
@@ -45,6 +38,11 @@ class ConceptReferenceDriftRule(HeuristicSemanticRule):
         min_distinct_labels = self.settings.int_option("min_distinct_labels", 3)
         min_sentence_count = self.settings.int_option("min_sentence_count", 3)
         min_average_overlap = self.settings.float_option("min_average_overlap", 0.35)
+        label_pattern = compile_prefixed_term_regex(
+            ("the", "this", "that"),
+            tuple(ctx.language_pack.lexicons.concept_reference_labels),
+            anchored=False,
+        )
         violations: list[Violation] = []
         for block in iter_blocks(doc, {BlockKind.PARAGRAPH}):
             if len(block.sentences) < min_sentence_count:
@@ -52,8 +50,8 @@ class ConceptReferenceDriftRule(HeuristicSemanticRule):
             label_mentions: dict[str, set[str]] = {}
             for sentence in block.sentences:
                 labels = {
-                    match.group(1).lower()
-                    for match in LABEL_RE.finditer(sentence.projection.text)
+                    match.group("term").lower()
+                    for match in label_pattern.finditer(sentence.projection.text)
                 }
                 if labels:
                     label_mentions[sentence.id] = labels

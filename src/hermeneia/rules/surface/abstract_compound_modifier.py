@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import Span
 from hermeneia.rules.base import (
     Layer,
@@ -16,12 +14,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import line_text_outside_excluded
-
-ABSTRACT_COMPOUND_RE = re.compile(
-    r"\b([A-Za-z][A-Za-z0-9-]*)-"
-    r"(specific|dependent|based|driven|oriented|related|centric)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_hyphen_suffix_regex
 
 
 class AbstractCompoundModifierRule(SourcePatternRule):
@@ -38,12 +31,15 @@ class AbstractCompoundModifierRule(SourcePatternRule):
 
     def check_source(self, lines, doc, ctx):
         _ = doc, ctx
+        compound_pattern = compile_hyphen_suffix_regex(
+            tuple(ctx.language_pack.lexicons.abstract_compound_suffixes)
+        )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = ABSTRACT_COMPOUND_RE.search(probe)
+            match = compound_pattern.search(probe)
             if match is None:
                 continue
             compound = match.group(0)

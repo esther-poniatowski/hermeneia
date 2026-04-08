@@ -16,7 +16,11 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import iter_blocks, upstream_limits
+from hermeneia.rules.common import (
+    iter_blocks,
+    matched_sentence_markers,
+    upstream_limits,
+)
 
 INLINE_SYMBOL_RE = re.compile(r"^\$([A-Za-z][A-Za-z0-9']*)\$$")
 MATH_LET_MARKER_RE = re.compile(r"\blet\s+\$?[A-Za-z][A-Za-z0-9']*\$?\b", re.IGNORECASE)
@@ -67,6 +71,9 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
                 if self.should_abstain(sentence.annotation_flags):
                     continue
                 previous_sentence = block.sentences[index - 1] if index > 0 else None
+                sentence_matched_markers = matched_sentence_markers(
+                    sentence, definitional_markers
+                )
                 undefined_symbols: set[str] = set()
                 matched_markers: set[str] = set()
                 definition_signals: set[str] = set()
@@ -82,16 +89,14 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
                         symbol=symbol,
                         sentence=sentence,
                         previous_sentence=previous_sentence,
-                        definitional_markers=definitional_markers,
+                        sentence_markers=sentence_matched_markers,
                         definition_signal_sentences=definition_signal_sentences,
                     )
                     if signal is None:
                         undefined_symbols.add(symbol)
                         continue
                     definition_signals.update(signal)
-                    matched_markers.update(
-                        marker for marker in definitional_markers if marker in sentence.source_text.lower()
-                    )
+                    matched_markers.update(sentence_matched_markers)
 
                 if not undefined_symbols:
                     continue
@@ -129,15 +134,13 @@ def _definition_signal_for_symbol(
     symbol: str,
     sentence: Sentence,
     previous_sentence: Sentence | None,
-    definitional_markers: tuple[str, ...],
+    sentence_markers: tuple[str, ...],
     definition_signal_sentences: set[str],
 ) -> tuple[str, ...] | None:
     sentence_text = sentence.source_text
-    lowered = sentence_text.lower()
     signals: set[str] = set()
-    for marker in definitional_markers:
-        if marker in lowered:
-            signals.add(f"marker:{marker}")
+    for marker in sentence_markers:
+        signals.add(f"marker:{marker}")
     if MATH_LET_MARKER_RE.search(sentence_text):
         signals.add("let_binding")
 

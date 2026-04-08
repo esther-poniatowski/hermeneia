@@ -13,7 +13,7 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import iter_sentences
+from hermeneia.rules.common import iter_sentences, matched_sentence_markers
 
 
 class ClaimCalibrationRule(HeuristicSemanticRule):
@@ -48,8 +48,7 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):
                 continue
-            lowered = sentence.projection.text.lower()
-            matched_markers = tuple(marker for marker in markers if marker in lowered)
+            matched_markers = matched_sentence_markers(sentence, markers)
             if not matched_markers:
                 continue
             signals = ctx.features.support_signals_in_window(

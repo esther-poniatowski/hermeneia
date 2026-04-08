@@ -13,6 +13,7 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
+from hermeneia.rules.common import sentence_has_marker
 
 
 class SentenceRedundancyRule(HeuristicSemanticRule):
@@ -49,11 +50,10 @@ class SentenceRedundancyRule(HeuristicSemanticRule):
             if overlap < min_overlap:
                 continue
             right_sentence = doc.sentence_by_id(right_ref.id)
-            left_sentence = doc.sentence_by_id(left_ref.id)
-            if right_sentence is None or left_sentence is None:
+            if right_sentence is None:
                 continue
             if _introduces_citation_or_claim(
-                right_sentence.projection.text.lower(),
+                right_sentence,
                 support_by_sentence.get(right_ref.id),
                 strong_claim_markers,
             ):
@@ -85,15 +85,14 @@ class SentenceRedundancyRule(HeuristicSemanticRule):
 
 
 def _introduces_citation_or_claim(
-    text: str,
+    sentence,
     signal_kind: SupportSignalKind | None,
     strong_claim_markers: tuple[str, ...],
 ) -> bool:
     if signal_kind == SupportSignalKind.CITATION:
         return True
-    return any(marker in text for marker in strong_claim_markers)
+    return sentence_has_marker(sentence, strong_claim_markers)
 
 
 def register(registry) -> None:
     registry.add(SentenceRedundancyRule)
-

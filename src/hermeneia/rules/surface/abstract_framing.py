@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import Span
 from hermeneia.rules.base import (
     Layer,
@@ -16,11 +14,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import line_text_outside_excluded
-
-ABSTRACT_FRAMING_RE = re.compile(
-    r"\b(?:the\s+fact\s+that|the\s+question\s+of|the\s+issue\s+of|in\s+terms\s+of|is\s+given\s+by)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class AbstractFramingRule(SourcePatternRule):
@@ -37,12 +31,15 @@ class AbstractFramingRule(SourcePatternRule):
 
     def check_source(self, lines, doc, ctx):
         _ = doc, ctx
+        framing_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.abstract_framing_phrases)
+        )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = ABSTRACT_FRAMING_RE.search(probe)
+            match = framing_pattern.search(probe)
             if match is None:
                 continue
             phrase = match.group(0)

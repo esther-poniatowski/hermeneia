@@ -279,7 +279,11 @@ class FeatureStore:
         return tuple(sorted(groups, key=lambda group: group[0].span.start))
 
 
-def build_document_indexes(doc: Document, contrast_markers: Iterable[str]) -> DocumentIndexes:
+def build_document_indexes(
+    doc: Document,
+    contrast_markers: Iterable[str],
+    definitional_markers: Iterable[str],
+) -> DocumentIndexes:
     """Compute canonical derived indexes for a parsed document."""
 
     sentence_refs: list[SentenceRef] = []
@@ -309,7 +313,14 @@ def build_document_indexes(doc: Document, contrast_markers: Iterable[str]) -> Do
             )
             ordinal += 1
             _record_first_uses(sentence, term_first_use, symbol_first_use)
-            support_signals.extend(_detect_support_signals(sentence, block.id, contrast_markers))
+            support_signals.extend(
+                _detect_support_signals(
+                    sentence,
+                    block.id,
+                    contrast_markers,
+                    definitional_markers,
+                )
+            )
 
     support_signals.sort(key=lambda signal: signal.span.start)
     return DocumentIndexes(
@@ -383,6 +394,7 @@ def _detect_support_signals(
     sentence: Sentence,
     block_id: str,
     contrast_markers: Iterable[str],
+    definitional_markers: Iterable[str],
 ) -> list[SupportSignal]:
     text = sentence.source_text
     lower = text.lower()
@@ -413,11 +425,25 @@ def _detect_support_signals(
         results.append(
             SupportSignal(SupportSignalKind.EXAMPLE_MARKER, sentence.span, block_id, sentence.id)
         )
-    if re.search(r"\b(?:defined as|denote|means|refers to)\b", lower):
+    if _contains_any_marker(lower, definitional_markers):
         results.append(
             SupportSignal(SupportSignalKind.DEFINITION_MARKER, sentence.span, block_id, sentence.id)
         )
     return results
+
+
+def _contains_any_marker(lowered_text: str, markers: Iterable[str]) -> bool:
+    for marker in markers:
+        normalized = marker.strip().lower()
+        if not normalized:
+            continue
+        if " " in normalized:
+            if normalized in lowered_text:
+                return True
+            continue
+        if re.search(rf"\b{re.escape(normalized)}\b", lowered_text):
+            return True
+    return False
 
 
 def _lemmas(sentence: Sentence | None) -> set[str]:

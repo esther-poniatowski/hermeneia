@@ -193,7 +193,9 @@ class MarkdownDocumentParser(DocumentParser):
             path=request.path,
         )
         document.indexes = build_document_indexes(
-            document, self._language_pack.lexicons.contrast_markers
+            document,
+            self._language_pack.lexicons.contrast_markers,
+            self._language_pack.lexicons.definitional_markers,
         )
         document.source_lines = build_source_lines(source, roots)
         return document

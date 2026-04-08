@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.indexes import SupportSignalKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
@@ -15,11 +13,7 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-
-REFORMULATION_MARKER_RE = re.compile(
-    r"^\s*(?:in\s+other\s+words|that\s+is|i\.e\.|equivalently|put\s+differently|stated\s+differently)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class ReformulationInflationRule(HeuristicSemanticRule):
@@ -37,6 +31,9 @@ class ReformulationInflationRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         min_overlap = self.settings.float_option("min_overlap", 0.62)
+        marker_pattern = compile_leading_phrase_regex(
+            tuple(ctx.language_pack.lexicons.reformulation_markers)
+        )
         support_by_sentence = _support_signals_by_sentence(doc)
         violations: list[Violation] = []
         sentence_refs = doc.indexes.sentences
@@ -48,7 +45,7 @@ class ReformulationInflationRule(HeuristicSemanticRule):
             right_sentence = doc.sentence_by_id(right_ref.id)
             if right_sentence is None:
                 continue
-            marker_match = REFORMULATION_MARKER_RE.search(right_sentence.projection.text)
+            marker_match = marker_pattern.search(right_sentence.projection.text)
             if marker_match is None:
                 continue
             overlap = ctx.features.sentence_overlap(left_ref.id, right_ref.id)

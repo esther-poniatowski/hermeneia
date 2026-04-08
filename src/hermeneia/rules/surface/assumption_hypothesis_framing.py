@@ -21,9 +21,6 @@ ASSUMPTION_FRAMING_RE = re.compile(
     r"\bthe\s+([A-Za-z][A-Za-z0-9-]{2,})\s+(assumption|hypothesis)\b",
     re.IGNORECASE,
 )
-IGNORED_MODIFIERS = frozenset(
-    {"same", "above", "previous", "following", "main", "key", "central"}
-)
 
 
 class AssumptionHypothesisFramingRule(SourcePatternRule):
@@ -40,6 +37,7 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
 
     def check_source(self, lines, doc, ctx):
         _ = doc, ctx
+        ignored_modifiers = ctx.language_pack.lexicons.assumption_hypothesis_ignored_modifiers
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
@@ -50,7 +48,7 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
                 continue
             modifier = match.group(1).lower()
             target = match.group(2).lower()
-            if modifier in IGNORED_MODIFIERS:
+            if modifier in ignored_modifiers:
                 continue
             violations.append(
                 Violation(

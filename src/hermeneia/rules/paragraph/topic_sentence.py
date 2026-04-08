@@ -14,8 +14,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import iter_blocks
-
-TRANSITIONAL_OPENERS = ("however", "for example", "specifically", "in particular", "for instance")
+from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class TopicSentenceRule(HeuristicSemanticRule):
@@ -33,13 +32,21 @@ class TopicSentenceRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         threshold = self.settings.float_option("minimum_score", 0.45)
+        transitional_openers = tuple(
+            ctx.language_pack.lexicons.topic_sentence_openers
+        )
+        opener_pattern = compile_leading_phrase_regex(transitional_openers)
         violations: list[Violation] = []
         for block in iter_blocks(doc, {BlockKind.PARAGRAPH}):
             if len(block.sentences) < 2:
                 continue
-            first, second, *rest = block.sentences
-            first_score = self._score_candidate(first, block, ctx, position_bonus=0.35)
-            second_score = self._score_candidate(second, block, ctx, position_bonus=0.30)
+            first, second = block.sentences[0], block.sentences[1]
+            first_score = self._score_candidate(
+                first, block, ctx, position_bonus=0.35, opener_pattern=opener_pattern
+            )
+            second_score = self._score_candidate(
+                second, block, ctx, position_bonus=0.30, opener_pattern=opener_pattern
+            )
             best_score = max(first_score, second_score)
             if best_score >= threshold:
                 continue
@@ -68,8 +75,15 @@ class TopicSentenceRule(HeuristicSemanticRule):
             )
         return violations
 
-    def _score_candidate(self, sentence, block, ctx, position_bonus: float) -> float:
-        if sentence.source_text.strip().lower().startswith(TRANSITIONAL_OPENERS):
+    def _score_candidate(
+        self,
+        sentence,
+        block,
+        ctx,
+        position_bonus: float,
+        opener_pattern,
+    ) -> float:
+        if opener_pattern.search(sentence.source_text):
             position_bonus -= 0.15
         others = [other for other in block.sentences if other.id != sentence.id]
         overlap = (

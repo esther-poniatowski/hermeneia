@@ -16,16 +16,6 @@ from hermeneia.rules.base import (
 )
 from hermeneia.rules.common import iter_sentences
 
-DEFAULT_PATTERNS: tuple[str, ...] = (
-    "to see this",
-    "it should be noted that",
-    "it is worth noting that",
-    "in this context",
-    "in this regard",
-    "as can be seen",
-    "it can be observed that",
-)
-
 _LEADING_PUNCTUATION_RE = re.compile(r'^[\s"\'`([{]+')
 
 
@@ -44,7 +34,7 @@ class VagueRhetoricalOpenerRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         patterns = _resolve_patterns(
-            base=DEFAULT_PATTERNS,
+            base=tuple(ctx.language_pack.lexicons.vague_rhetorical_openers),
             extra=self.settings.extra_patterns,
             silenced=self.settings.silenced_patterns,
         )

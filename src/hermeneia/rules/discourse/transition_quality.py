@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import BlockKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
@@ -16,14 +14,9 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import iter_blocks
-
-LEADING_CONNECTOR_RE = re.compile(
-    r"^\s*(however|therefore|thus|hence|consequently|accordingly|in contrast|conversely|meanwhile|by contrast|instead|nevertheless)\b",
-    re.IGNORECASE,
-)
-LEADING_REFERENCE_RE = re.compile(
-    r"^\s*(this|these|that|such)\s+(result|claim|step|argument|estimate|bound|construction|observation|property)\b",
-    re.IGNORECASE,
+from hermeneia.rules.patterns import (
+    compile_leading_phrase_regex,
+    compile_prefixed_term_regex,
 )
 
 
@@ -52,6 +45,14 @@ class TransitionQualityRule(HeuristicSemanticRule):
         min_average_overlap = self.settings.float_option(
             "min_average_overlap_without_connectors", 0.35
         )
+        connector_pattern = compile_leading_phrase_regex(
+            tuple(ctx.language_pack.lexicons.transition_connectors)
+        )
+        reference_pattern = compile_prefixed_term_regex(
+            ("this", "these", "that", "such"),
+            tuple(ctx.language_pack.lexicons.transition_reference_heads),
+            anchored=True,
+        )
         violations: list[Violation] = []
         for block in iter_blocks(doc, {BlockKind.PARAGRAPH, BlockKind.BLOCK_QUOTE, BlockKind.LIST_ITEM}):
             if len(block.sentences) < 2:
@@ -63,12 +64,14 @@ class TransitionQualityRule(HeuristicSemanticRule):
                 previous = block.sentences[index - 1]
                 current = block.sentences[index]
                 current_text = current.projection.text
-                if _starts_with_connector(current_text):
+                if _starts_with_connector(current_text, connector_pattern):
                     connector_count += 1
                     continue
                 overlap = ctx.features.sentence_overlap(previous.id, current.id)
                 overlaps.append(overlap)
-                if overlap >= min_overlap or _starts_with_linking_reference(current_text):
+                if overlap >= min_overlap or _starts_with_linking_reference(
+                    current_text, reference_pattern
+                ):
                     continue
                 if shift_findings >= max_shift_findings:
                     continue
@@ -147,12 +150,12 @@ class TransitionQualityRule(HeuristicSemanticRule):
         return violations
 
 
-def _starts_with_connector(text: str) -> bool:
-    return LEADING_CONNECTOR_RE.search(text) is not None
+def _starts_with_connector(text: str, connector_pattern) -> bool:
+    return connector_pattern.search(text) is not None
 
 
-def _starts_with_linking_reference(text: str) -> bool:
-    return LEADING_REFERENCE_RE.search(text) is not None
+def _starts_with_linking_reference(text: str, reference_pattern) -> bool:
+    return reference_pattern.search(text) is not None
 
 
 def register(registry) -> None:

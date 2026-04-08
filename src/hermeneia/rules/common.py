@@ -25,6 +25,71 @@ def sentence_word_count(sentence: Sentence) -> int:
     return len(WORD_RE.findall(sentence.projection.text))
 
 
+def sentence_lemmas(sentence: Sentence) -> set[str]:
+    if sentence.tokens:
+        lemmas = {
+            token.lemma.lower()
+            for token in sentence.tokens
+            if token.lemma and token.lemma.isalpha()
+        }
+        if lemmas:
+            return lemmas
+    return {
+        match.group(0).lower()
+        for match in WORD_RE.finditer(sentence.projection.text)
+    }
+
+
+def matched_sentence_markers(
+    sentence: Sentence,
+    markers: Iterable[str],
+) -> tuple[str, ...]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for marker in markers:
+        value = marker.strip().lower()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+    if not normalized:
+        return ()
+    lower_text = sentence.projection.text.lower()
+    lemmas = sentence_lemmas(sentence)
+    matches: list[str] = []
+    seen_matches: set[str] = set()
+    for marker in normalized:
+        if " " in marker and marker in lower_text:
+            if marker not in seen_matches:
+                seen_matches.add(marker)
+                matches.append(marker)
+            continue
+        if marker in lemmas and sentence.tokens:
+            token_match = next(
+                (
+                    token.text.lower()
+                    for token in sentence.tokens
+                    if token.lemma
+                    and token.lemma.lower() == marker
+                    and token.text
+                ),
+                marker,
+            )
+            if token_match not in seen_matches:
+                seen_matches.add(token_match)
+                matches.append(token_match)
+            continue
+        if re.search(rf"\b{re.escape(marker)}\b", lower_text):
+            if marker not in seen_matches:
+                seen_matches.add(marker)
+                matches.append(marker)
+    return tuple(matches)
+
+
+def sentence_has_marker(sentence: Sentence, markers: Iterable[str]) -> bool:
+    return bool(matched_sentence_markers(sentence, markers))
+
+
 def line_text_outside_excluded(line: SourceLine) -> str:
     if not line.excluded_spans:
         return line.text

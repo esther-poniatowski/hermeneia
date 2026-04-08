@@ -16,26 +16,6 @@ from hermeneia.rules.base import (
 )
 from hermeneia.rules.common import iter_sentences, upstream_limits
 
-WEAK_FINAL_WORDS = frozenset(
-    {
-        "is",
-        "are",
-        "was",
-        "were",
-        "be",
-        "been",
-        "being",
-        "follows",
-        "follow",
-        "this",
-        "that",
-        "it",
-        "there",
-        "thing",
-        "stuff",
-        "result"
-    }
-)
 WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9-]*\b")
 
 
@@ -53,7 +33,9 @@ class StressPositionRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        _ = ctx
+        weak_final_words = ctx.language_pack.lexicons.weak_final_words
+        if not weak_final_words:
+            return []
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):
@@ -61,7 +43,7 @@ class StressPositionRule(AnnotatedRule):
             final_token = _final_content_token(sentence)
             if final_token is None:
                 continue
-            if final_token.lower() not in WEAK_FINAL_WORDS:
+            if final_token.lower() not in weak_final_words:
                 continue
             violations.append(
                 Violation(
