@@ -18,12 +18,12 @@ Examples are illustrative.
 | `surface.assumption_hypothesis_framing` | Assumption framing clarity | "the ... assumption/hypothesis" nominal framing can obscure the proposition itself. | "the compactness assumption" | "the assumption of compactness" |
 | `surface.prep_chain` | Preposition chain control | Dense prepositional stacks make relations hard to parse. | "A bound on the error in the estimate of the threshold in ..." | "The estimate for the threshold has error bound in ..." |
 | `surface.noun_cluster` | Noun cluster control | Long noun stacks compress relationships that readers must unpack. | "A high-order sparse tensor factorization method" | "A method that factorizes sparse high-order tensors" |
-| `surface.banned_transition` | Content-free transition ban | Empty scaffolding delays the claim without adding information. | "It should be noted that ..." | State the claim directly |
+| `surface.banned_transition` | Content-free transition ban | Empty lead-ins hide the operation that produced the next claim or formula. | "Therefore: ..." / "More explicitly: ..." | "Differentiating the eigenbasis expansion with respect to \(g\) yields: ..." |
 | `surface.pronoun` | Pronoun scaffolding control | Generic/first-person scaffolding can blur agency and reference. | "We now show ..." | "Section 3 shows ..." |
-| `surface.vague_phrasing` | Mechanism specificity | Vague mechanism phrases obscure causal structure. | "This plays a role in convergence." | "This term controls convergence." |
+| `surface.vague_phrasing` | Mechanism specificity | Vague mechanism phrases force readers to guess what drives the effect. | "The gain changes in several ways." | "Increasing \(g\) amplifies \(A_1(g)\), which tightens the decay bound." |
 | `surface.case_scaffolding` | Case-phrase rewrite | "the ... case" phrasing adds indirection and nominal clutter. | "In the commutative case ..." | "For commutative matrices ..." |
 | `surface.numbered_case` | Numbered-case split control | Anonymous case numbering hides the semantic distinction between branches. | "Case 1: ... Case 2: ..." | "If the matrix is diagonal ... / If the matrix is singular ..." |
-| `surface.cross_reference` | Explicit cross-reference target | Ambiguous references force readers to infer target objects. | "As discussed above" | "As shown in Proposition 2" |
+| `surface.cross_reference` | Explicit cross-reference target | Ambiguous references force readers to infer target objects and interrupt flow. | "As discussed above" | "As shown in Proposition 2 (#^prop-bound)" |
 | `surface.heading_link` | Heading-slug link ban | Heading slugs are unstable; block anchors provide explicit and durable targets. | `[Main result](#main-result)` | `[Main result](#^main-result)` |
 | `surface.see_link` | "See [link]" scaffolding control | Standalone "See" link lead-ins add indirection and weak rhetorical integration. | "See [Lemma 2](#^lemma-two)." | "Lemma 2 gives the bound [link]." |
 | `surface.raw_anchor` | Raw-anchor token ban | Raw `^anchor` tokens in prose are implementation artifacts, not reader-facing references. | "Use ^lemma-two for details." | "Use [Lemma 2](#^lemma-two) for details." |
@@ -72,15 +72,15 @@ Examples are illustrative.
 
 | Rule ID | Rule Name | Rationale | Violation | Preferred |
 | --- | --- | --- | --- | --- |
-| `math.display_math` | Display math lead-in and punctuation | Displayed equations should be introduced and punctuated coherently. | Standalone display equation with no lead-in | Add lead-in sentence |
-| `math.display_ambiguous` | Display delimiter disambiguation | Multiple `$$` delimiters on one line create ambiguous display-math structure. | "`$$ ... $$ $$`" on one line | Use one clear display block per equation |
-| `math.display_unclosed` | Display delimiter closure | Every display-math opening delimiter must be explicitly closed. | "`$$` then equation text with no closing `$$`" | Add the matching closing delimiter |
-| `math.inline_math` | Equation-like inline math control | Equation-level expressions in inline math overload sentence flow. | "We use \(a = b + c\) in the argument." | Introduce and display the equation in `$$...$$` |
+| `math.display_math` | Display math lead-in and punctuation | Readers need to know what an equation is doing before they parse symbols. | `Therefore:` then `$$ A_1(g)=\cdots , $$` | "Substituting into the lower bound yields:" then `$$ A_1(g)=\cdots $$` |
+| `math.display_ambiguous` | Display delimiter disambiguation | Multiple display delimiters on one line make equation boundaries unclear. | "`$$ A(g)=\cdots $$ $$`" | Put each equation in its own `$$...$$` block |
+| `math.display_unclosed` | Display delimiter closure | An unclosed display block breaks both readability and parser structure. | `$$` then equation lines with no closing delimiter | Add the matching closing `$$` |
+| `math.inline_math` | Equation-like inline math control | Long or equation-like inline math burdens sentence parsing and hides argumentative structure. | "We use \(A_1(g)=\frac{g}{1-g\lambda_1}\) in the argument." | "The dominant amplification factor satisfies:" then `$$ A_1(g)=\frac{g}{1-g\lambda_1} $$` |
 | `math.bare_symbol` | Bare symbol qualifier control | Qualifier/prepositional phrases should name mathematical objects. | "growth in \(P\)" with no object context | "growth in the power function \(P\)" |
-| `math.shorthand` | Shorthand-introduction restraint | New shorthand symbols should be introduced only when reuse justifies added notation. | "\(\rho := \|\mathbf{u}\|\)" for one-off usage | Keep the original expression unless repeated heavily |
+| `math.shorthand` | Shorthand-introduction restraint | New notation has cognitive cost and should pay for itself through repeated use. | Introduce `\(\rho := \|\mathbf{u}\|\)` once and never reuse it | Keep `\(\|\mathbf{u}\|\)` inline unless the shorthand is reused substantially |
 | `math.imperative_opening` | Imperative opening avoidance | Imperative proof prose can read as shorthand rather than explanation. | "Let \(x\in X\)" | "For any fixed input \(x\in X\)" |
-| `math.prose_math` | Prose relation paraphrase control | Explicit symbolic relations are clearer than verbose paraphrases. | "Since \(x\) times \(y\) equals \(1\)" | "Since \(x \times y = 1\)" |
-| `math.proof_marker` | Proof marker opener requirement | End markers should pair with an explicit proof opener. | Paragraph ends with `□` only | Open with "Proof." and close with `□` |
+| `math.prose_math` | Prose relation paraphrase control | Prose paraphrases of formal relations add words while reducing precision. | "Since \(x\) times \(y\) equals 1" / "the term is of order \(n^{-1}\)" | "Since \(xy=1\)" / "\(f(n)=\mathcal{O}(n^{-1})\)" |
+| `math.proof_marker` | Proof marker opener requirement | A closing marker without a proof opener leaves proof scope implicit. | Body text ends with `□` but no opening | Open with `*Proof.*`, then close with `□` |
 
 ## Notes
 
