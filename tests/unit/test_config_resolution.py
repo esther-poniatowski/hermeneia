@@ -211,6 +211,21 @@ def test_profile_resolution_rejects_unknown_active_rule(
         ProfileResolver(registry).resolve(config, language_pack)
 
 
+def test_profile_resolution_rejects_legacy_literary_parallelism_rule_id(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {"rules": {"active": ["paragraph.literary_parallelism"]}}
+    )
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Unknown rule ids in rules.active: paragraph.literary_parallelism"
+        ),
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
 def test_profile_resolution_rejects_unknown_override_rule(
     registry, language_pack
 ) -> None:

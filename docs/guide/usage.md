@@ -1,43 +1,76 @@
 # Usage
 
-Hermeneia is a writing diagnostic tool targeting research, pedagogical, and
-mathematical prose. The core analysis engine (linting, profiles, rule checking)
-is **not yet implemented**. The current release exposes only platform diagnostics.
-
-## Checking the Installation
-
-The `info` command prints version and platform diagnostics — useful for
-verifying that hermeneia is installed correctly and for including in bug reports:
+## Quick Check
 
 ```sh
 hermeneia info
 ```
 
-The `--version` / `-v` flag prints the version string alone:
+`hermeneia info` prints package and platform diagnostics.
+
+## Analyze One File
 
 ```sh
-hermeneia --version
+hermeneia lint notes.md --profile research
 ```
 
-## Planned Features
+## Analyze a Directory
 
-The following capabilities are planned but not yet available:
+```sh
+hermeneia lint docs/ --profile pedagogical
+```
 
-- **Document analysis** — Lint prose files against stratified rule systems at
-  five levels of textual organization (surface style, sentence structure,
-  discourse, mathematical notation, audience fit).
-- **Writing profiles** — Activate rule subsets and severity levels by genre
-  (`research`, `pedagogical`, `math`).
-- **Rule filtering** — Select or ignore specific rule groups on the command
-  line.
-- **Hard-blocker checking** — Exit with a non-zero code when mandatory
-  violations remain, suitable for CI and pre-commit hooks.
-- **Python API** — Access the same analysis programmatically.
+`lint` recursively collects `.md` and `.markdown` files.
 
-## Related Pages
+## Filter Rules
 
-- [CLI Reference](cli-reference.md) — Command registry and global options.
-- [Writing Standards](../standards/writing-standards.md) — Style rules the
-  analysis engine will enforce.
-- [Math Style Rules](../rules/math-style-hard-rules.md) — Hard blockers for
-  mathematical writing.
+```sh
+hermeneia lint notes.md \
+  --rule surface.contraction \
+  --rule discourse.subject_verb_distance
+```
+
+Disable specific rules after profile resolution:
+
+```sh
+hermeneia lint notes.md --disable-rule surface.passive_voice
+```
+
+## Use JSON Output
+
+```sh
+hermeneia lint notes.md --format json
+```
+
+## Control Exit Behavior
+
+Fail when warnings or errors are present:
+
+```sh
+hermeneia lint notes.md --fail-on warning
+```
+
+## Use Project Configuration
+
+```sh
+hermeneia lint notes.md --config hermeneia.yaml
+```
+
+See [Configuration](configuration.md) for schema and merge semantics.
+
+## Load External Rule Modules
+
+```sh
+hermeneia lint notes.md --load-rules custom_rules.math_pack
+```
+
+External modules must expose `register(registry)`.
+
+## Output Model
+
+`lint` never edits source files. It emits:
+
+- diagnostics (operational + rule execution issues)
+- rule violations with evidence/confidence/rationale
+- revision plan operations
+- scoring output (when enabled by config)

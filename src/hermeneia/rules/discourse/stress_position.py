@@ -25,12 +25,15 @@ WEAK_FINAL_WORDS = frozenset(
         "be",
         "been",
         "being",
+        "follows",
+        "follow",
         "this",
         "that",
         "it",
         "there",
         "thing",
         "stuff",
+        "result"
     }
 )
 WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9-]*\b")
@@ -96,4 +99,3 @@ def _final_content_token(sentence) -> str | None:
 
 def register(registry) -> None:
     registry.add(StressPositionRule)
-

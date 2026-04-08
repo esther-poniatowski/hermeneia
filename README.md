@@ -6,8 +6,7 @@
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![License: GPL](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
 
-Diagnoses and improves research, pedagogical, and mathematical writing through
-profile-aware, stratified rule systems.
+Checks and improves research, pedagogical, and mathematical writing with profile-aware, stratified rules.
 
 ---
 
@@ -18,12 +17,10 @@ profile-aware, stratified rule systems.
   - [Overview](#overview)
     - [Motivation](#motivation)
     - [Advantages](#advantages)
-    - [Theoretical Foundations](#theoretical-foundations)
   - [Features](#features)
-    - [Detection](#detection)
-    - [Revision Suggestions](#revision-suggestions)
-    - [Scoring and Reporting](#scoring-and-reporting)
   - [Quick Start](#quick-start)
+    - [CLI](#cli)
+    - [Application Programming Interface](#application-programming-interface)
   - [Documentation](#documentation)
   - [Contributing](#contributing)
   - [Acknowledgments](#acknowledgments)
@@ -34,85 +31,54 @@ profile-aware, stratified rule systems.
 
 ### Motivation
 
-Technical and mathematical writing requires precise control over sentence structure,
-terminology, and logical flow. Surface-level style checkers flag grammar issues but miss
-deeper structure and formulation issues that degrade readability, comprehension and engagement.
-Typical examples that pervade technical writing include nominalizations that obscure agency,
-abstract framing that buries results, and compound modifiers that compress relationships.
+Technical and mathematical writing often obscures the intended claim and line of reasoning. This
+problem appears when prose turns actions into nouns, weakens links between ideas, or targets the
+wrong audience. Generic grammar checkers usually flag local form issues, such as spelling,
+punctuation, and sentence-level grammar, but they do not assess higher-level properties of the
+exposition, such as fluidity, clarity, accessibility, and explicitness.
 
 ### Advantages
 
-- **Stratified rule system** — rules are organized into five layers (surface style,
-  local discourse, paragraph rhetoric, document structure, audience fit), each targeting
-  a distinct level of textual organization.
-- **Profile-aware analysis** — writing profiles (research, pedagogical, mathematical)
-  activate the rule subsets and severity levels appropriate to the genre.
-- **Hard blockers** — critical rules (nominalization, abstract framing, bare pronouns,
-  bare symbols) function as hard blockers that gate output.
-- **Auditable diagnostics** — each finding names the triggering rule, the justifying
-  principle, and the text span it applies to.
-- **Declarative configuration** — all rules, severities, thresholds, and suggestion
-  modes are declared in a YAML schema, adjustable without code changes.
-- **Layered revision order** — suggestions follow a dependency order (restructure, then
-  link sentences, then rewrite locally), so local polishing never masks structural
-  problems.
-
-### Theoretical Foundations
-
-The rule system draws on reader-expectation theory (Gopen & Swan), plain-language
-research (Cutts, Garner), and mathematical writing practice (Halmos, Knuth).
+- Diagnose writing across surface style, local discourse, paragraph rhetoric, document structure, audience fit, and mathematical conventions.
+- Activate profile-aware rule sets and severities for research, pedagogical, and math workflows.
+- Attach evidence, confidence, and rationale to each rule outcome so reviewers can audit decisions.
+- Order revision steps by structural dependency instead of lexicographic rule order.
+- Validate configuration strictly, apply explicit merge semantics, and fail early on unknown fields or rule ids.
 
 ---
 
 ## Features
 
-### Detection
-
-- [ ] **Surface style**: Detect sentence-length anomalies, passive voice in topic
-  position, nominalizations with weak verb support, long prepositional chains, and
-  dense noun clusters.
-- [ ] **Local discourse**: Check subject–verb distance, subordinate clause load,
-  stress-position placement, pronominal reference coherence, and topic continuity
-  between adjacent sentences.
-- [ ] **Paragraph rhetoric**: Verify topic-sentence presence and placement, mixed-topic
-  paragraphs, rhetorical move sequences, and sentence-length rhythm.
-- [ ] **Document structure**: Validate heading parallelism, orphan sections,
-  abstract-to-body alignment, cross-paragraph semantic redundancy, and section weight
-  balance.
-- [ ] **Audience fit**: Evaluate definition-before-use ordering, acronym burden,
-  hedge-word appropriateness, claim-evidence calibration, and jargon density relative
-  to the audience profile.
-
-### Revision Suggestions
-
-- [ ] **Deterministic rewrites**: Reverse nominalizations, convert passive to active
-  voice, split overloaded sentences, and reduce prepositional chains.
-- [ ] **Guided suggestions**: Propose rubric-constrained revisions for discourse-level
-  and semantic violations, each citing the specific criterion addressed.
-
-### Scoring and Reporting
-
-- [ ] **Hierarchical scoring**: Break down quality per layer (surface, discourse,
-  paragraph, document, audience) instead of a single opaque score.
-- [ ] **Diagnostic reports**: Rank violations by severity and layer with localized span
-  annotations on the input text.
-- [ ] **Revision plans**: Order revision operations to respect the structural dependency
-  between layers.
+- [x] Parse Markdown into block/inline Document IR with stable block ids, sentence ids, and source spans.
+- [x] Build and share `DocumentIndexes`, `SourceView`, and `FeatureStore` across all rule families.
+- [x] Classify rules as `SourcePatternRule`, `AnnotatedRule`, or `HeuristicSemanticRule`.
+- [x] Cover surface, discourse, paragraph, structure, audience, and math domains with first-party rules.
+- [x] Emit text and JSON reports with evidence-bearing diagnostics.
+- [x] Compute weighted hierarchical scores and let configuration control score outputs.
+- [x] Build revision plans and emit conservative deterministic rewrites when preconditions hold.
+- [x] Pin annotation behavior with snapshots and keep warm-run benchmark artifacts under version control.
+- [ ] Add first-party language packs beyond English.
+- [ ] Support scoring aggregation strategies beyond `hierarchical`.
+- [ ] Add reporting adapters, including SARIF and HTML.
+- [ ] Integrate with editors and LSP clients for in-editor diagnostics.
+- [ ] Rewrite source files in place automatically.
 
 ---
 
 ## Quick Start
 
-Analyze a document:
+### CLI
 
 ```sh
-hermeneia lint document.md --profile research
+hermeneia lint notes.md --profile research
 ```
 
-Apply the mathematical writing profile:
+### Application Programming Interface
 
-```sh
-hermeneia lint notes/ --profile math
+```python
+import hermeneia
+
+hermeneia.info()
 ```
 
 ---
@@ -121,12 +87,13 @@ hermeneia lint notes/ --profile math
 
 | Guide | Content |
 | ----- | ------- |
-| [Installation](docs/guide/installation.md) | Prerequisites, pip/conda/source setup |
-| [Usage](docs/guide/usage.md) | Workflows and detailed examples |
-| [CLI Reference](docs/guide/cli-reference.md) | Full command registry and options |
-| [Configuration](docs/guide/configuration.md) | Profiles, rule selection, severity |
-| [Writing Standards](docs/standards/writing-standards.md) | The style rules enforced by hermeneia |
-| [Math Style Rules](docs/rules/math-style-hard-rules.md) | Hard blockers for mathematical writing |
+| [Installation](docs/guide/installation.md) | Prerequisites and source setup |
+| [Usage](docs/guide/usage.md) | Common analysis workflows and rule filtering |
+| [CLI Reference](docs/guide/cli-reference.md) | Command and option reference |
+| [Configuration](docs/guide/configuration.md) | Schema, resolution layers, and merge semantics |
+| [Internals](docs/internals/index.md) | Architecture, pipeline, and extension seams |
+| [Reference](docs/reference/index.md) | Standards and historical design references |
+| [Architecture Decisions](docs/adr/index.md) | Accepted design decisions and rejected alternatives |
 
 Full API documentation and rendered guides are also available at
 [esther-poniatowski.github.io/hermeneia](https://esther-poniatowski.github.io/hermeneia/).
@@ -135,7 +102,7 @@ Full API documentation and rendered guides are also available at
 
 ## Contributing
 
-Contribution guidelines are described in [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ---
 
@@ -152,5 +119,5 @@ various formats. The [citation metadata](CITATION.cff) file is also available.
 
 ## License
 
-This project is licensed under the terms of the
+Hermeneia is licensed under the terms of the
 [GNU General Public License v3.0](LICENSE).

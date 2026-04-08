@@ -7,10 +7,7 @@ profile-aware, stratified rule systems.
 :maxdepth: 2
 :caption: User Guide
 
-guide/installation
-guide/usage
-guide/cli-reference
-guide/configuration
+guide/index
 ```
 
 ```{toctree}
@@ -21,8 +18,22 @@ api/index
 ```
 
 ```{toctree}
-:maxdepth: 1
+:maxdepth: 2
+:caption: Developer Internals
+
+internals/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+reference/index
+```
+
+```{toctree}
+:maxdepth: 2
 :caption: Architecture Decisions
 
-adr/adr-template
+adr/index
 ```

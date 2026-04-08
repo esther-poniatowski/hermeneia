@@ -18,7 +18,7 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import line_text_outside_excluded
 
 PROSE_MATH_RE = re.compile(
-    r"\b(?:times|multiplied by|of order|converges to one|given by)\b",
+    r"\b(?:times|minus|plus|divided by|equals|multiplied by|of order|converges to|given by)\b",
     re.IGNORECASE,
 )
 
@@ -75,4 +75,3 @@ def _match_span(line, start: int, end: int) -> Span:
 
 def register(registry) -> None:
     registry.add(ProseMathRule)
-

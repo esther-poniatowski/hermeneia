@@ -196,7 +196,7 @@ Qualities of a structure:
 
 - Avoid dangerous transition words:
   - they hide fluidity problems: in addition, moreover, furthermore...
-  - or they create knowledge gaps: thus, hence, therefore, it follows…, accordingly...
+  - or they create knowledge gaps: thus, hence, therefore, it follows..., accordingly...
 
 ## 3 Step Rewriting
 
@@ -244,7 +244,7 @@ approach to the study of revision.
 https://books.google.fr/books/about/The_Fluid_Text.html?id=1w4wpOdPbu4C&redir_esc=y
 
 The Writer's Diet: A Guide to Fit Prose, Helen Sword, 2016
-Helen Sword dispenses with excessive explanations and overwrought analysis. Instead, she offers an easy-to-follow set of writing principles: use active verbs whenever possible; favor concrete language over vague abstractions; avoid long strings of prepositional phrases; employ adjectives and adverbs only when they contribute something new to the meaning of a sentence; and reduce your dependence on four pernicious “waste words”: it, this, that, and there.
+Helen Sword dispenses with excessive explanations and overwrought analysis. Instead, she offers an easy-to-follow set of writing principles: use active verbs whenever possible; favor concrete language over vague abstractions; avoid long strings of prepositional phrases; employ adjectives and adverbs only when they contribute something new to the meaning of a sentence; and reduce your dependence on four pernicious "waste words": it, this, that, and there.
 https://www.helensword.com/the-writers-diet
 
 The Book of Gobbledygook

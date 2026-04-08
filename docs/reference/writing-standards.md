@@ -1,7 +1,7 @@
 # Writing Standards
 
 Prose conventions, standards, writing rules.
-The [documentation audit prompt](../audits/audit-documentation.md) enforces
+The [documentation audit prompt](audit-documentation.md) enforces
 them; individual projects must not redefine them.
 
 ---

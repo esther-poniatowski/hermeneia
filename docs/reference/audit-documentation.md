@@ -134,7 +134,7 @@ Do not generalize from one sentence into a systemic claim without evidence.
 ## Dimension Model
 
 The seven audit dimensions correspond one-to-one to the sections of
-[writing-standards.md](../standards/writing-standards.md), which is the authoritative
+[writing-standards.md](writing-standards.md), which is the authoritative
 definition of each rule. This prompt does not redefine the rules — it
 specifies how to detect violations and report findings.
 
@@ -146,7 +146,7 @@ Do not duplicate the same defect across multiple findings by re-labeling it unde
 
 ### 1. NOMINALIZATION
 
-Detect violations of [§1 Nominalization](../standards/writing-standards.md#1-nominalization).
+Detect violations of §1 Nominalization in [writing-standards.md](writing-standards.md).
 
 For each violation:
 - quote the offending text exactly
@@ -155,7 +155,7 @@ For each violation:
 
 ### 2. FRAMING
 
-Detect violations of [§2 Framing](../standards/writing-standards.md#2-framing).
+Detect violations of §2 Framing in [writing-standards.md](writing-standards.md).
 
 Search mechanically for the forbidden literal strings before output.
 
@@ -166,7 +166,7 @@ For each violation:
 
 ### 3. PRONOUN DISCIPLINE
 
-Detect violations of [§3 Pronoun Discipline](../standards/writing-standards.md#3-pronoun-discipline).
+Detect violations of §3 Pronoun Discipline in [writing-standards.md](writing-standards.md).
 
 For each violation:
 - quote the offending sentence
@@ -175,7 +175,7 @@ For each violation:
 
 ### 4. MODIFIER DISCIPLINE
 
-Detect violations of [§4 Modifier Discipline](../standards/writing-standards.md#4-modifier-discipline).
+Detect violations of §4 Modifier Discipline in [writing-standards.md](writing-standards.md).
 
 For each violation:
 - quote the offending text
@@ -184,7 +184,7 @@ For each violation:
 
 ### 5. SENTENCE ECONOMY
 
-Detect violations of [§5 Sentence Economy](../standards/writing-standards.md#5-sentence-economy).
+Detect violations of §5 Sentence Economy in [writing-standards.md](writing-standards.md).
 
 For each violation:
 - quote the offending text
@@ -193,7 +193,7 @@ For each violation:
 
 ### 6. INFORMATION ARCHITECTURE
 
-Detect violations of [§6 Information Architecture](../standards/writing-standards.md#6-information-architecture).
+Detect violations of §6 Information Architecture in [writing-standards.md](writing-standards.md).
 
 For each violation:
 - identify the file and the structural defect
@@ -202,7 +202,7 @@ For each violation:
 
 ### 7. CROSS-DOCUMENT CONSISTENCY
 
-Detect violations of [§7 Cross-Document Consistency](../standards/writing-standards.md#7-cross-document-consistency).
+Detect violations of §7 Cross-Document Consistency in [writing-standards.md](writing-standards.md).
 
 For each violation:
 - cite the two (or more) divergent locations

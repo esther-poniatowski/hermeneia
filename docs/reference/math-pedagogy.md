@@ -43,9 +43,9 @@ Do not begin a section with a definition or a display equation. Begin with a pla
 When stating a formal assumption or condition, explain its role before writing the formal statement. The motivation must answer: what mechanism does this assumption control, or what failure does it prevent?
 
 Pattern:
-- "To ensure uniqueness, assume …" — acceptable (purpose before assumption)
-- "Assume …" — forbidden (assumption before purpose)
-- "To …, impose …" — acceptable
+- "To ensure uniqueness, assume ..." — acceptable (purpose before assumption)
+- "Assume ..." — forbidden (assumption before purpose)
+- "To ..., impose ..." — acceptable
 
 ---
 
@@ -106,15 +106,15 @@ Required form:
 
 ## Mathematical typesetting
 
-**Display equations.** Use `$$ … $$` blocks for all equations and derivations. No punctuation inside the display block. A display equation must be preceded by a lead-in sentence (see above).
+**Display equations.** Use `$$ ... $$` blocks for all equations and derivations. No punctuation inside the display block. A display equation must be preceded by a lead-in sentence (see above).
 
-**Inline math.** Use `$…$` for symbols and short expressions. Avoid inline math containing `=` or spanning multiple operators, except in the following permitted contexts:
+**Inline math.** Use `$...$` for symbols and short expressions. Avoid inline math containing `=` or spanning multiple operators, except in the following permitted contexts:
 - trivial equalities and identifiers: `$\lambda=0$`, `$j=k$`, `$g^\ast=g(\Delta^\ast)$`
 - chained trivial equalities: `$\alpha_1 = \alpha_2 = 1/2$`
 - parenthetical labels: `($d = 2$)`, `(embedding dimension $d > d_0$)`
 - callout, list-item, and table-cell contexts where a display block would fragment the structure
 
-**Prose paraphrase rules.** Do not replace a mathematical relation with prose. Do not use "times" or "multiplied by" for a product; use an explicit product in math. Do not use "of order …" for asymptotics; use `$\mathcal{O}(\cdot)$`. Do not write "converges to one" when `$\to 1$` is available.
+**Prose paraphrase rules.** Do not replace a mathematical relation with prose. Do not use "times" or "multiplied by" for a product; use an explicit product in math. Do not use "of order ..." for asymptotics; use `$\mathcal{O}(\cdot)$`. Do not write "converges to one" when `$\to 1$` is available.
 
 **New notation.** Do not introduce notation for a trivial quantity unless the shorthand is used heavily and materially improves clarity.
 
@@ -146,8 +146,8 @@ The following words and phrases are forbidden in lead-in sentences and transitio
 
 - Vague transitions: `clearly`, `obviously`, `naturally`, `of course`, `straightforward`, `it can be shown`, `it is easy to see`
 - Content-free lead-ins: `more explicitly`, `equivalently`, `this gives`, `rewriting`, `therefore:`, `hence:`, `then:`, `note that`, `notice that`, `recall that`, `observe that`
-- Prose paraphrases of math: "of order …", "times", "multiplied by", "given by" (use `$=$`), "converges to one" (use `$\to 1$`)
-- Vague mechanism phrases: "in … ways", "in ways that …" — state the specific mechanism
+- Prose paraphrases of math: "of order ...", "times", "multiplied by", "given by" (use `$=$`), "converges to one" (use `$\to 1$`)
+- Vague mechanism phrases: "in ... ways", "in ways that ..." — state the specific mechanism
 
 ---
 
@@ -161,4 +161,4 @@ If a result is stated without proof, cite a specific block anchor in the source 
 
 ## TODO markers
 
-Preserve `==TODO==` markers when editing. When a question appears within `==…==` markers, propose an answer.
+Preserve `==TODO==` markers when editing. When a question appears within `==...==` markers, propose an answer.

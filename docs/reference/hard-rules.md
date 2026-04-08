@@ -47,7 +47,7 @@ All other nominalization rewrites are mandatory. Common cases:
 | "differential amplification modulates" | "the amplification factors modulate" |
 | "spectral reshaping produces" | "the spectrum is reshaped by" or rewrite with a named agent |
 
-**Subject-position trap.** Process nominalizations used as sentence subjects are not exempt (e.g., "Spectral reshaping produces …" → rewrite so the mathematical object is the subject).
+**Subject-position trap.** Process nominalizations used as sentence subjects are not exempt (e.g., "Spectral reshaping produces ..." → rewrite so the mathematical object is the subject).
 
 ### B2 — Abstract framing
 
@@ -86,9 +86,9 @@ Sentences beginning with the following words are forbidden:
 Exception: `Consider` is permitted when it introduces a scenario, specialization, or example.
 
 Rewrites:
-- "Define $X$ as …" → "The $X$ is defined as …" or introduce via `:=` in a display equation
-- "Let $X$ be …" → "The $X$ is …" or introduce via `:=`
-- "Assume that …" → "To [purpose], assume that …" or "To [purpose], impose …"
+- "Define $X$ as ..." → "The $X$ is defined as ..." or introduce via `:=` in a display equation
+- "Let $X$ be ..." → "The $X$ is ..." or introduce via `:=`
+- "Assume that ..." → "To [purpose], assume that ..." or "To [purpose], impose ..."
 
 ### B4 — Bare symbols
 
@@ -111,21 +111,21 @@ Link text that names a note, container, analysis, specialization, or derivation 
 
 | Violation | Rewrite |
 |---|---|
-| `[the normality specialization](…)` | `[normal overlaps yield independent mode contributions](…)` |
-| `[resolvent amplification note](…)` | `[amplification factors](…)` |
-| `[the five-factor decomposition note](…)` | `[the five-factor output decomposition](…)` |
-| `[the non-normal coupling analysis](…)` | `[non-normal overlaps couple eigenmodes through the Gram matrix](…)` |
+| `[the normality specialization](...)` | `[normal overlaps yield independent mode contributions](...)` |
+| `[resolvent amplification note](...)` | `[amplification factors](...)` |
+| `[the five-factor decomposition note](...)` | `[the five-factor output decomposition](...)` |
+| `[the non-normal coupling analysis](...)` | `[non-normal overlaps couple eigenmodes through the Gram matrix](...)` |
 
 This rule applies to every link in the document, including links carried over from earlier drafts.
 
 ### B6 — Bare pronoun after display
 
-A sentence beginning with `It`, `This`, `They`, or `These` immediately after a `$$…$$` display equation, without a descriptive noun phrase, is a violation.
+A sentence beginning with `It`, `This`, `They`, or `These` immediately after a `$$...$$` display equation, without a descriptive noun phrase, is a violation.
 
 | Violation | Rewrite |
 |---|---|
-| "It follows that …" (after display) | "The bound implies that …" |
-| "This gives …" (after display) | "This ratio …" or "The expression …" |
+| "It follows that ..." (after display) | "The bound implies that ..." |
+| "This gives ..." (after display) | "This ratio ..." or "The expression ..." |
 
 ### B7 — Heading-slug links
 
@@ -133,7 +133,7 @@ Cross-references using heading-slug fragments (`#heading-name`) are forbidden. U
 
 ### B8 — Punctuation inside display equations
 
-Periods, commas, and all other punctuation marks inside `$$…$$` blocks are forbidden. Place punctuation in prose after the display block when needed.
+Periods, commas, and all other punctuation marks inside `$$...$$` blocks are forbidden. Place punctuation in prose after the display block when needed.
 
 ---
 
@@ -151,7 +151,7 @@ Pattern: `[process noun] + [weak verb]` → `[corresponding verb] + [object]`
 
 When a sentence makes the note, section, or analysis the grammatical subject: stop and rewrite so that the mathematical object or result is the subject and the verb names the mathematical operation.
 
-Pattern: "this section derives the factorization of $X$" → "the ratio $X$ factorizes into …"
+Pattern: "this section derives the factorization of $X$" → "the ratio $X$ factorizes into ..."
 
 This operator applies with full force inside `[!QUOTE] Contributions` bullets and `[!TIP] Roadmap` items. Every contribution bullet must take the form: **[mathematical object] + [active verb] + [result]**. The note is never the grammatical subject of a contribution bullet.
 
@@ -181,7 +181,7 @@ Any pre-nominal compound modifier that encodes a prepositional or clausal relati
 
 ## Case-scaffolding rule
 
-"The … case" as a noun phrase, and "In the … case" as a sentence opener, are forbidden. Use the prepositional form:
+"The ... case" as a noun phrase, and "In the ... case" as a sentence opener, are forbidden. Use the prepositional form:
 
 | Violation | Rewrite |
 |---|---|

@@ -2,37 +2,46 @@
 
 ## Prerequisites
 
-- Python >= 3.12
-- conda (recommended) or pip
+- Python `3.12`
+- `conda` (recommended for this repository)
 
-## Using pip
+## Recommended Setup (From Source)
 
-The package installs directly from the GitHub repository:
-
-```sh
-pip install git+https://github.com/esther-poniatowski/hermeneia.git
-```
-
-## Using conda
-
-The package is available on the `eresthanaconda` channel:
-
-```sh
-conda install -c eresthanaconda hermeneia
-```
-
-## From Source
-
-1. Clone the repository:
+1. Clone the repository.
 
    ```sh
    git clone https://github.com/esther-poniatowski/hermeneia.git
+   cd hermeneia
    ```
 
-2. Create a dedicated environment and install:
+2. Create and activate the project environment.
 
    ```sh
-   cd hermeneia
    conda env create -f environment.yml
    conda activate hermeneia
    ```
+
+3. Install hermeneia in editable mode.
+
+   ```sh
+   pip install -e .
+   ```
+
+4. Verify the CLI is available.
+
+   ```sh
+   hermeneia info
+   ```
+
+## Optional: Semantic Extras
+
+Install optional embedding dependencies (used by optional embedding-backed heuristics):
+
+```sh
+pip install -e ".[semantic]"
+```
+
+## Notes
+
+- The environment pins spaCy model compatibility for deterministic test behavior.
+- Without editable installation, commands can still run by setting `PYTHONPATH=src`.
