@@ -6,7 +6,7 @@ Hermeneia runs a bounded document-local pipeline:
 2. Build source-line structural views (`SourceLine`).
 3. Build sentence projections with offset reconciliation.
 4. Annotate projected text (spaCy or explicit fallback).
-5. Build indexes and shared features (`FeatureStore`).
+5. Build indexes and shared features (`FeatureStore`), including language-pack-driven support signals.
 6. Run rule detection through the registry.
 7. Score violations (when enabled).
 8. Build revision plan (when enabled).

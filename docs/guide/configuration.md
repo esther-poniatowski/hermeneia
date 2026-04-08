@@ -84,6 +84,7 @@ Field semantics:
 - `runtime.experimental_rules`: enables experimental rules.
 - `runtime.debug`: propagated to rule runtime capability flags.
 - `runtime.embeddings`: configures optional embedding backend.
+- `runtime.external_rule_modules`: preloads external modules exposing `register(registry)`.
 
 ## Scoring and Suggestions
 
@@ -91,6 +92,11 @@ Field semantics:
   - If score fields are omitted, score computation is skipped.
 - `suggestions.enabled: false` disables revision plan operations entirely.
 - `suggestions.default_mode` controls fallback suggestion behavior.
+
+## Reporting
+
+- `reporting.format` is consumed by CLI output rendering (`text`/`json`).
+- `reporting.sort_by` is currently validated and parsed but not yet applied in rendering order.
 
 ## Language
 
@@ -100,6 +106,6 @@ The language pack contributes:
 
 - parser model id
 - preprocessing policy
-- lexicons
+- lexicons (connectors, rhetorical openers, claim markers, definitional markers, etc.)
 - rule defaults
 - optional supported-rule allowlist

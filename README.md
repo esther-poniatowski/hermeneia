@@ -50,7 +50,7 @@ exposition, such as fluidity, clarity, accessibility, and explicitness.
 ## Features
 
 - [x] Parse Markdown into block/inline Document IR with stable block ids, sentence ids, and source spans.
-- [x] Build and share `DocumentIndexes`, `SourceView`, and `FeatureStore` across all rule families.
+- [x] Build and share `DocumentIndexes`, `SourceLine` structural views, and `FeatureStore` across all rule families.
 - [x] Classify rules as `SourcePatternRule`, `AnnotatedRule`, or `HeuristicSemanticRule`.
 - [x] Cover surface, discourse, paragraph, structure, audience, and math domains with first-party rules.
 - [x] Emit text and JSON reports with evidence-bearing diagnostics.

@@ -214,3 +214,106 @@ def test_surface_assumption_hypothesis_framing_rule_emits(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "surface.assumption_hypothesis_framing"
+
+
+def test_math_display_ambiguous_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "$$ a $$ $$\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.display_ambiguous"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.display_ambiguous"
+
+
+def test_math_display_unclosed_rule_emits_and_closed_display_passes(
+    registry, language_pack, research_profile
+) -> None:
+    unclosed = _parse(language_pack, "$$\na+b\n")
+    context = RuleContext(research_profile, language_pack, FeatureStore(unclosed, unclosed.indexes))
+    rule = registry.instantiate(research_profile.rules["math.display_unclosed"])
+    unclosed_violations = rule.check(unclosed, context)
+    assert len(unclosed_violations) == 1
+    assert unclosed_violations[0].rule_id == "math.display_unclosed"
+
+    closed = _parse(language_pack, "$$\na+b\n$$\n")
+    closed_context = RuleContext(
+        research_profile, language_pack, FeatureStore(closed, closed.indexes)
+    )
+    assert rule.check(closed, closed_context) == []
+
+
+def test_math_inline_math_rule_emits_on_equation_like_inline(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We use $a = b + c$ in the argument.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.inline_math"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.inline_math"
+
+
+def test_math_shorthand_rule_emits_on_input_magnitude_alias(
+    registry, language_pack, research_profile
+) -> None:
+    source = "$$\n\\rho := \\|\\mathbf{u}\\|\n$$\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.shorthand"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.shorthand"
+
+
+def test_surface_heading_link_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "[Main result](#main-result)\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.heading_link"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.heading_link"
+
+
+def test_surface_see_link_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "See [Lemma 2](#^lemma-two).\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.see_link"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.see_link"
+
+
+def test_surface_raw_anchor_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "Use ^lemma-two for the cross-reference.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.raw_anchor"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.raw_anchor"
+
+
+def test_surface_generic_link_text_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "[Lemma (Boundary bound)](#^lemma-two)\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.generic_link_text"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.generic_link_text"
+
+
+def test_surface_numbered_case_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "Case 1: the residual is bounded.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.numbered_case"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.numbered_case"

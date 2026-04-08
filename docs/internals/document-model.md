@@ -11,6 +11,9 @@ Hermeneia uses a block/inline IR with stable positional ids and explicit span ma
 - `SourceLine`: raw line text with parser-derived container context and excluded spans.
 - `DocumentIndexes`: canonical derived indexes (sections, sentence refs, first-use maps, support signals).
 
+`DocumentIndexes.support_signals` is language-aware for contrast/definition detection: marker
+inventories come from the active language pack lexicons at parse/index build time.
+
 ## Identity and Ordering
 
 - `Block.id`: deterministic positional ids (`b000`, `b001`, ...).

@@ -30,8 +30,11 @@ Hermeneia follows a layered architecture aligned with Domain, Application, Infra
   - optional embedding backend
   - runtime policy (scoring/suggestions/debug)
 
+Language-sensitive rule inventories are centralized in `language/en.py` via `LanguageLexicons`.
+Rule modules consume those inventories through `RuleContext` and shared pattern builders.
+
 ## Stability Contracts
 
 - Rule ids are stable dotted identifiers.
 - Rule metadata is the canonical declaration for severity, layer, tractability, language support, and evidence contract.
-- `Document` + `DocumentIndexes` + `FeatureStore` form the shared source of truth for downstream rule logic.
+- `Document` + `SourceLine` + `DocumentIndexes` + `FeatureStore` form the shared source of truth for downstream rule logic.

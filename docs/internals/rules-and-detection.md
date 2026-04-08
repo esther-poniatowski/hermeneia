@@ -8,6 +8,10 @@ Hermeneia supports three runtime rule base classes:
 - `AnnotatedRule`: parser-local sentence/token checks
 - `HeuristicSemanticRule`: bounded semantic heuristics over shared features
 
+Language-sensitive inventories are not defined ad hoc in rule modules. They are read from
+`RuleContext.language_pack.lexicons`, and rule modules consume shared regex builders from
+`rules/patterns.py` where phrase skeletons are needed.
+
 ## Metadata Contract
 
 Each rule class declares `RuleMetadata`:
@@ -39,12 +43,11 @@ No import-time side-effect registration chain is required.
    - class-H confidence/evidence requirements
 4. Emits diagnostics for rule failures without terminating analysis.
 
-## Runtime Capabilities in RuleContext
+`RuleContext` carries:
 
-`RuleContext.capabilities` provides:
+- resolved profile
+- language pack
+- shared `FeatureStore`
+- runtime capabilities (`embeddings_available`, `debug_mode`, `experimental_rules_enabled`)
 
-- `embeddings_available`
-- `debug_mode`
-- `experimental_rules_enabled`
-
-Convenience accessors are available on `RuleContext` itself.
+`RuleContext` also exposes convenience accessors for these capability flags directly.
