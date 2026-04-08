@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import Span
 from hermeneia.rules.base import (
     Layer,
@@ -16,19 +14,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import match_allowed
-
-CONTRACTION_RE = re.compile(
-    r"\b(?:"
-    r"it's|that's|there's|here's|let's|"
-    r"can't|won't|don't|doesn't|didn't|isn't|aren't|wasn't|weren't|"
-    r"haven't|hasn't|hadn't|wouldn't|shouldn't|couldn't|"
-    r"i'm|i've|i'll|"
-    r"you're|you've|you'll|"
-    r"we're|we've|we'll|"
-    r"they're|they've|they'll"
-    r")\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class ContractionRule(SourcePatternRule):
@@ -44,11 +30,14 @@ class ContractionRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        contraction_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.contractions)
+        )
         violations: list[Violation] = []
         for line in lines:
             if "code_block" in {kind.value for kind in line.container_kinds}:
                 continue
-            match = match_allowed(line, CONTRACTION_RE)
+            match = match_allowed(line, contraction_pattern)
             if match is None:
                 continue
             span = _match_span(line, match.start(), match.end())

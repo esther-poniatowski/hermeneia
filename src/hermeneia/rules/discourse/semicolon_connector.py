@@ -18,9 +18,6 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import iter_sentences
 from hermeneia.rules.patterns import compile_leading_phrase_regex
 
-CONDITIONAL_STARTERS = ("if", "when", "where", "for")
-
-
 class SemicolonConnectorRule(HeuristicSemanticRule):
     metadata = RuleMetadata(
         rule_id="discourse.semicolon_connector",
@@ -37,6 +34,9 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         connectors = tuple(ctx.language_pack.lexicons.semicolon_connectors) + tuple(
             ctx.language_pack.lexicons.transition_connectors
         )
+        parallel_starters = frozenset(
+            token.lower() for token in ctx.language_pack.lexicons.semicolon_parallel_starters
+        )
         connector_pattern = compile_leading_phrase_regex(connectors)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -51,7 +51,7 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
                     continue
                 if connector_pattern.search(right):
                     continue
-                if _strict_parallel_pair(left, right):
+                if _strict_parallel_pair(left, right, parallel_starters):
                     continue
                 semicolon_offset = _semicolon_offset(text, index)
                 violations.append(
@@ -84,15 +84,19 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         return violations
 
 
-def _strict_parallel_pair(left: str, right: str) -> bool:
+def _strict_parallel_pair(
+    left: str, right: str, parallel_starters: frozenset[str]
+) -> bool:
     left_first = _first_token(left)
     right_first = _first_token(right)
     if left_first is None or right_first is None:
         return False
-    if left_first == right_first and left_first in CONDITIONAL_STARTERS:
+    if left_first == right_first and left_first in parallel_starters:
         return True
     left_lower = left.lower().lstrip()
     right_lower = right.lower().lstrip()
+    if "if" not in parallel_starters:
+        return False
     return left_lower.startswith("if ") and right_lower.startswith("if ")
 
 

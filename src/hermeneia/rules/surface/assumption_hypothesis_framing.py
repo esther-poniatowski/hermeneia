@@ -16,11 +16,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import line_text_outside_excluded
-
-ASSUMPTION_FRAMING_RE = re.compile(
-    r"\bthe\s+([A-Za-z][A-Za-z0-9-]{2,})\s+(assumption|hypothesis)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import normalize_phrases
 
 
 class AssumptionHypothesisFramingRule(SourcePatternRule):
@@ -36,14 +32,17 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        _ = doc, ctx
+        _ = doc
+        framing_pattern = _compile_assumption_framing_pattern(
+            tuple(ctx.language_pack.lexicons.assumption_hypothesis_terms)
+        )
         ignored_modifiers = ctx.language_pack.lexicons.assumption_hypothesis_ignored_modifiers
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = ASSUMPTION_FRAMING_RE.search(probe)
+            match = framing_pattern.search(probe)
             if match is None:
                 continue
             modifier = match.group(1).lower()
@@ -70,6 +69,17 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
                 )
             )
         return violations
+
+
+def _compile_assumption_framing_pattern(target_terms: tuple[str, ...]) -> re.Pattern[str]:
+    normalized_terms = normalize_phrases(target_terms)
+    if not normalized_terms:
+        return re.compile(r"(?!x)x")
+    term_body = "|".join(re.escape(term) for term in normalized_terms)
+    return re.compile(
+        rf"\bthe\s+([A-Za-z][A-Za-z0-9-]{{2,}})\s+({term_body})\b",
+        re.IGNORECASE,
+    )
 
 
 def _match_span(line, start: int, end: int) -> Span:

@@ -17,29 +17,6 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import iter_sentences, upstream_limits
 
 WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9-]*\b")
-JARGON_TERMS = frozenset(
-    {
-        "homomorphism",
-        "isomorphism",
-        "functor",
-        "adjunction",
-        "manifold",
-        "sigma-algebra",
-        "eigenvalue",
-        "eigenvector",
-        "bijective",
-        "surjective",
-        "injective",
-        "convexity",
-        "duality",
-        "markovian",
-        "cohomology",
-        "jacobian",
-        "hessian",
-        "asymptotic",
-        "stochastic",
-    }
-)
 AUDIENCE_THRESHOLDS = {
     "learner": 0.12,
     "interdisciplinary": 0.16,
@@ -61,6 +38,7 @@ class JargonDensityRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         threshold = self.settings.options.get("max_density")
+        jargon_terms = ctx.language_pack.lexicons.jargon_terms
         if isinstance(threshold, (int, float)) and not isinstance(threshold, bool):
             max_density = float(threshold)
         else:
@@ -70,7 +48,7 @@ class JargonDensityRule(HeuristicSemanticRule):
             words = [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
             if len(words) < 6:
                 continue
-            jargon = [word for word in words if _is_jargon(word)]
+            jargon = [word for word in words if _is_jargon(word, jargon_terms)]
             density = len(jargon) / len(words)
             if density <= max_density:
                 continue
@@ -100,8 +78,8 @@ class JargonDensityRule(HeuristicSemanticRule):
         return violations
 
 
-def _is_jargon(word: str) -> bool:
-    if word in JARGON_TERMS:
+def _is_jargon(word: str, jargon_terms: frozenset[str]) -> bool:
+    if word in jargon_terms:
         return True
     return len(word) >= 12 and word.endswith(
         ("tion", "sion", "metry", "logical", "dynamics", "ization")
@@ -110,4 +88,3 @@ def _is_jargon(word: str) -> bool:
 
 def register(registry) -> None:
     registry.add(JargonDensityRule)
-

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import BlockKind, Span
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
@@ -16,11 +14,6 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import previous_prose_block, text_has_marker
-
-MOTIVATION_VERB_RE = re.compile(
-    r"\b(?:derive|define|introduce|consider|set|write|compute|bound|estimate|obtain|let|state)\b",
-    re.IGNORECASE,
-)
 
 
 class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
@@ -39,6 +32,7 @@ class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
     def check(self, doc, ctx):
         min_chain_length = self.settings.int_option("min_chain_length", 2)
         motivation_markers = tuple(ctx.language_pack.lexicons.assumption_purpose_markers)
+        motivation_action_verbs = tuple(ctx.language_pack.lexicons.motivation_action_verbs)
         flat_blocks = list(doc.iter_blocks())
         violations: list[Violation] = []
         index = 0
@@ -59,6 +53,7 @@ class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
                 has_preceding_motivation = _has_preceding_motivation(
                     preceding,
                     motivation_markers,
+                    motivation_action_verbs,
                 )
                 if not has_preceding_motivation:
                     span = _chain_span(flat_blocks[chain_start], flat_blocks[chain_end])
@@ -105,7 +100,11 @@ def _chain_span(first_block, last_block) -> Span:
     )
 
 
-def _has_preceding_motivation(preceding, motivation_markers: tuple[str, ...]) -> bool:
+def _has_preceding_motivation(
+    preceding,
+    motivation_markers: tuple[str, ...],
+    motivation_action_verbs: tuple[str, ...],
+) -> bool:
     if preceding is None or not preceding.sentences:
         return False
     text = " ".join(sentence.projection.text for sentence in preceding.sentences).strip()
@@ -113,7 +112,7 @@ def _has_preceding_motivation(preceding, motivation_markers: tuple[str, ...]) ->
         return False
     if text_has_marker(text, motivation_markers):
         return True
-    return text.endswith(":") and MOTIVATION_VERB_RE.search(text) is not None
+    return text.endswith(":") and text_has_marker(text, motivation_action_verbs)
 
 
 def register(registry) -> None:

@@ -16,11 +16,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import line_text_outside_excluded
-
-GENERIC_LINK_TEXT_RE = re.compile(
-    r"\[(?:Lemma|Result|Proposition|Theorem|Corollary)\s*\([^\]]+\)\]\([^)]*\)",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import normalize_phrases
 
 
 class GenericLinkTextRule(SourcePatternRule):
@@ -36,13 +32,16 @@ class GenericLinkTextRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        _ = doc, ctx
+        _ = doc
+        link_text_pattern = _compile_generic_link_text_pattern(
+            tuple(ctx.language_pack.lexicons.generic_link_reference_labels)
+        )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value == "code_block" for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = GENERIC_LINK_TEXT_RE.search(probe)
+            match = link_text_pattern.search(probe)
             if match is None:
                 continue
             link_text = match.group(0)
@@ -65,6 +64,17 @@ class GenericLinkTextRule(SourcePatternRule):
         return violations
 
 
+def _compile_generic_link_text_pattern(labels: tuple[str, ...]) -> re.Pattern[str]:
+    normalized_labels = normalize_phrases(labels)
+    if not normalized_labels:
+        return re.compile(r"(?!x)x")
+    label_body = "|".join(re.escape(label) for label in normalized_labels)
+    return re.compile(
+        rf"\[(?:{label_body})\s*\([^\]]+\)\]\([^)]*\)",
+        re.IGNORECASE,
+    )
+
+
 def _match_span(line, start: int, end: int) -> Span:
     return Span(
         start=line.span.start + start,
@@ -78,4 +88,3 @@ def _match_span(line, start: int, end: int) -> Span:
 
 def register(registry) -> None:
     registry.add(GenericLinkTextRule)
-

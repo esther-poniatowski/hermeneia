@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import BlockKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
@@ -16,8 +14,6 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.patterns import compile_leading_phrase_regex
-
-DEFINITION_OPENER_RE = re.compile(r"^\s*definition\b", re.IGNORECASE)
 
 
 class SectionOpenerBlockKindRule(HeuristicSemanticRule):
@@ -88,13 +84,10 @@ def _section_opening_issue(first_content, definition_pattern) -> str | None:
     opening_text = first_content.sentences[0].source_text.strip()
     if not opening_text:
         return None
-    if DEFINITION_OPENER_RE.search(opening_text):
-        return "definition_opening"
     if definition_pattern.search(opening_text):
-        return "definitional_marker_opening"
+        return "definitional_opening"
     return None
 
 
 def register(registry) -> None:
     registry.add(SectionOpenerBlockKindRule)
-

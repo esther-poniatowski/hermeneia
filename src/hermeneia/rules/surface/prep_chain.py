@@ -16,24 +16,6 @@ from hermeneia.rules.base import (
 )
 from hermeneia.rules.common import iter_sentences, upstream_limits
 
-PREPOSITION_SET = frozenset(
-    {
-        "of",
-        "in",
-        "for",
-        "to",
-        "on",
-        "with",
-        "by",
-        "from",
-        "over",
-        "under",
-        "within",
-        "between",
-        "across",
-        "through",
-    }
-)
 WORD_RE = re.compile(r"\b[A-Za-z]+\b")
 
 
@@ -52,10 +34,11 @@ class PrepChainRule(AnnotatedRule):
 
     def check(self, doc, ctx):
         max_prepositions = self.settings.int_option("max_prepositions", 4)
+        preposition_set = ctx.language_pack.lexicons.prepositions
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             words = _words(sentence)
-            prepositions = [word for word in words if word in PREPOSITION_SET]
+            prepositions = [word for word in words if word in preposition_set]
             count = len(prepositions)
             if count <= max_prepositions:
                 continue
@@ -91,4 +74,3 @@ def _words(sentence) -> list[str]:
 
 def register(registry) -> None:
     registry.add(PrepChainRule)
-

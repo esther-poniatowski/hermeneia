@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
     Layer,
@@ -15,8 +13,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import iter_sentences, text_has_marker
-
-ASSUMPTION_RE = re.compile(r"\b(?:assume|suppose|impose)\b", re.IGNORECASE)
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class AssumptionMotivationOrderRule(HeuristicSemanticRule):
@@ -34,14 +31,17 @@ class AssumptionMotivationOrderRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         lookback = self.settings.int_option("lookback_sentences", 1)
+        assumption_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.assumption_markers)
+        )
         purpose_markers = tuple(ctx.language_pack.lexicons.assumption_purpose_markers)
         ordered_sentences = list(iter_sentences(doc))
         violations: list[Violation] = []
         for index, sentence in enumerate(ordered_sentences):
-            match = ASSUMPTION_RE.search(sentence.source_text)
+            match = assumption_pattern.search(sentence.projection.text)
             if match is None:
                 continue
-            prefix = sentence.source_text[: match.start()].strip()
+            prefix = sentence.projection.text[: match.start()].strip()
             has_prefix_purpose = text_has_marker(prefix, purpose_markers)
             if has_prefix_purpose:
                 continue

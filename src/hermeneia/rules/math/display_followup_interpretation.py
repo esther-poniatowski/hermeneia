@@ -16,6 +16,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import matched_sentence_markers, sentence_word_count
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 DISPLAY_OPERATOR_RE = re.compile(r"(?:=|\\frac|\\sum|\\int|\\to|\\Rightarrow|[+\-*/^])")
 CONTENT_FREE_FOLLOWUP_RE = re.compile(
@@ -41,13 +42,10 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
         min_display_chars = self.settings.int_option("min_display_chars", 12)
         interpretation_markers = tuple(ctx.language_pack.lexicons.formula_interpretation_markers)
         weak_transition_markers = frozenset(
-            marker.lower()
-            for marker in (
-                *ctx.language_pack.lexicons.transition_connectors,
-                "thus",
-                "therefore",
-                "hence",
-            )
+            marker.lower() for marker in ctx.language_pack.lexicons.transition_connectors
+        )
+        interpretive_noun_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.display_interpretive_nouns)
         )
         flat_blocks = list(doc.iter_blocks())
         violations: list[Violation] = []
@@ -73,6 +71,7 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
                 next_sentence,
                 interpretation_markers,
                 weak_transition_markers,
+                interpretive_noun_pattern,
             ):
                 continue
             violations.append(
@@ -140,6 +139,7 @@ def _is_interpretive_followup(
     sentence,
     interpretation_markers: tuple[str, ...],
     weak_transition_markers: frozenset[str],
+    interpretive_noun_pattern,
 ) -> bool:
     lowered = sentence.projection.text.lower().strip()
     if not lowered or CONTENT_FREE_FOLLOWUP_RE.fullmatch(lowered):
@@ -152,10 +152,7 @@ def _is_interpretive_followup(
     if all(marker in weak_transition_markers for marker in matched):
         if sentence_word_count(sentence) <= 6:
             return False
-        if not re.search(
-            r"\b(?:equation|identity|bound|estimate|term|factor|quantity|result|expression)\b",
-            lowered,
-        ):
+        if interpretive_noun_pattern.search(lowered) is None:
             return False
     return True
 

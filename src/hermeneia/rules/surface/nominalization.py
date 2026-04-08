@@ -33,7 +33,7 @@ class NominalizationRule(AnnotatedRule):
     def check(self, doc, ctx):
         suffixes = ctx.language_pack.lexicons.nominalization_suffixes
         weak_verbs = ctx.language_pack.lexicons.weak_support_verbs
-        linking_prepositions = frozenset({"of", "for", "to", "in", "with"})
+        linking_prepositions = ctx.language_pack.lexicons.nominalization_linking_prepositions
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):

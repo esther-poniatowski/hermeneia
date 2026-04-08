@@ -16,12 +16,9 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import previous_prose_block, text_has_marker
+from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 PROOF_OPENER_RE = re.compile(r"^\s*proof\.?\s*$", re.IGNORECASE)
-FORMAL_STATEMENT_RE = re.compile(
-    r"^\s*(?:theorem|lemma|proposition|corollary|condition|assume|suppose)\b",
-    re.IGNORECASE,
-)
 
 
 class ProofPlacementContextRule(HeuristicSemanticRule):
@@ -38,6 +35,9 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         interpretation_markers = tuple(ctx.language_pack.lexicons.formula_interpretation_markers)
+        formal_statement_pattern = compile_leading_phrase_regex(
+            tuple(ctx.language_pack.lexicons.proof_context_formal_openers)
+        )
         flat_blocks = list(doc.iter_blocks())
         violations: list[Violation] = []
         for index, block in enumerate(flat_blocks):
@@ -50,7 +50,7 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
             if previous is None or not previous.sentences:
                 continue
             previous_text = " ".join(sentence.source_text for sentence in previous.sentences)
-            if FORMAL_STATEMENT_RE.search(previous_text) is None:
+            if formal_statement_pattern.search(previous_text) is None:
                 continue
             if text_has_marker(previous_text, interpretation_markers):
                 continue

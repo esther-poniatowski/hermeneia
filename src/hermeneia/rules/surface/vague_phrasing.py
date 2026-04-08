@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.document.model import Span
 from hermeneia.rules.base import (
     Layer,
@@ -15,12 +13,8 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import line_text_outside_excluded
-
-VAGUE_PHRASE_RE = re.compile(
-    r"\b(?:in\s+(?:many|various)\s+ways?|in\s+ways\s+that|kind\s+of|sort\s+of|somehow)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.common import match_allowed
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class VaguePhrasingRule(SourcePatternRule):
@@ -36,13 +30,15 @@ class VaguePhrasingRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        _ = doc, ctx
+        _ = doc
+        vague_phrase_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.vague_mechanism_phrases)
+        )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
-            probe = line_text_outside_excluded(line)
-            match = VAGUE_PHRASE_RE.search(probe)
+            match = match_allowed(line, vague_phrase_pattern)
             if match is None:
                 continue
             phrase = match.group(0)
@@ -73,4 +69,3 @@ def _match_span(line, start: int, end: int) -> Span:
 
 def register(registry) -> None:
     registry.add(VaguePhrasingRule)
-

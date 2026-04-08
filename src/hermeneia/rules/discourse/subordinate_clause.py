@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 from hermeneia.rules.base import (
     AnnotatedRule,
     Layer,
@@ -15,11 +13,8 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import iter_sentences, upstream_limits
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
-SUBORDINATE_MARKER_RE = re.compile(
-    r"\b(?:although|because|while|whereas|which|that|if|when|since|unless|where)\b",
-    re.IGNORECASE,
-)
 SUBORDINATE_DEP_PREFIXES = ("advcl", "ccomp", "acl", "relcl", "mark")
 
 
@@ -39,11 +34,14 @@ class SubordinateClauseRule(AnnotatedRule):
 
     def check(self, doc, ctx):
         max_subordinates = self.settings.int_option("max_subordinate_clauses", 2)
+        marker_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.subordinate_clause_markers)
+        )
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):
                 continue
-            count, source = _subordinate_count(sentence)
+            count, source = _subordinate_count(sentence, marker_pattern)
             if count <= max_subordinates:
                 continue
             violations.append(
@@ -70,7 +68,7 @@ class SubordinateClauseRule(AnnotatedRule):
         return violations
 
 
-def _subordinate_count(sentence) -> tuple[int, str]:
+def _subordinate_count(sentence, marker_pattern) -> tuple[int, str]:
     if sentence.tokens and any(token.dep for token in sentence.tokens):
         count = sum(
             1
@@ -78,9 +76,8 @@ def _subordinate_count(sentence) -> tuple[int, str]:
             if any((token.dep or "").startswith(prefix) for prefix in SUBORDINATE_DEP_PREFIXES)
         )
         return count, "dependency"
-    return len(SUBORDINATE_MARKER_RE.findall(sentence.projection.text)), "regex"
+    return sum(1 for _ in marker_pattern.finditer(sentence.projection.text)), "regex"
 
 
 def register(registry) -> None:
     registry.add(SubordinateClauseRule)
-

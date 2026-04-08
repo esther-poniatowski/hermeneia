@@ -16,15 +16,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import line_text_outside_excluded
-
-AMBIGUOUS_REF_RE = re.compile(
-    r"\b(?:as\s+)?(?:shown|discussed|noted)?\s*(?:above|below|earlier|later)\b",
-    re.IGNORECASE,
-)
-EXPLICIT_TARGET_RE = re.compile(
-    r"\b(?:section|appendix|figure|table|equation|theorem|lemma|proposition|corollary)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_inline_phrase_regex, normalize_phrases
 
 
 class CrossReferenceRule(SourcePatternRule):
@@ -40,16 +32,23 @@ class CrossReferenceRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        _ = doc, ctx
+        _ = doc
+        ambiguous_pattern = _compile_ambiguous_reference_pattern(
+            tuple(ctx.language_pack.lexicons.ambiguous_reference_verbs),
+            tuple(ctx.language_pack.lexicons.ambiguous_reference_positions),
+        )
+        explicit_target_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.explicit_reference_targets)
+        )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = AMBIGUOUS_REF_RE.search(probe)
+            match = ambiguous_pattern.search(probe)
             if match is None:
                 continue
-            if EXPLICIT_TARGET_RE.search(probe):
+            if explicit_target_pattern.search(probe):
                 continue
             reference = match.group(0).strip()
             violations.append(
@@ -68,6 +67,23 @@ class CrossReferenceRule(SourcePatternRule):
         return violations
 
 
+def _compile_ambiguous_reference_pattern(
+    verbs: tuple[str, ...], positions: tuple[str, ...]
+) -> re.Pattern[str]:
+    normalized_positions = normalize_phrases(positions)
+    if not normalized_positions:
+        return re.compile(r"(?!x)x")
+    normalized_verbs = normalize_phrases(verbs)
+    position_body = "|".join(re.escape(item) for item in normalized_positions)
+    if normalized_verbs:
+        verb_body = "|".join(re.escape(item) for item in normalized_verbs)
+        return re.compile(
+            rf"\b(?:as\s+)?(?:{verb_body})?\s*(?:{position_body})\b",
+            re.IGNORECASE,
+        )
+    return re.compile(rf"\b(?:as\s+)?(?:{position_body})\b", re.IGNORECASE)
+
+
 def _match_span(line, start: int, end: int) -> Span:
     return Span(
         start=line.span.start + start,
@@ -81,4 +97,3 @@ def _match_span(line, start: int, end: int) -> Span:
 
 def register(registry) -> None:
     registry.add(CrossReferenceRule)
-

@@ -16,11 +16,7 @@ from hermeneia.rules.base import (
     Violation,
 )
 from hermeneia.rules.common import line_text_outside_excluded
-
-PROSE_MATH_RE = re.compile(
-    r"\b(?:times|minus|plus|divided by|equals|multiplied by|of order|converges to|given by)\b",
-    re.IGNORECASE,
-)
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class ProseMathRule(SourcePatternRule):
@@ -36,13 +32,16 @@ class ProseMathRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        _ = doc, ctx
+        _ = doc
+        prose_math_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.prose_math_phrases)
+        )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = PROSE_MATH_RE.search(probe)
+            match = prose_math_pattern.search(probe)
             if match is None:
                 continue
             phrase = match.group(0)
