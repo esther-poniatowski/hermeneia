@@ -216,6 +216,18 @@ def test_surface_assumption_hypothesis_framing_rule_emits(
     assert violations[0].rule_id == "surface.assumption_hypothesis_framing"
 
 
+def test_surface_indefinite_reference_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Everything improves somehow in the argument.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.indefinite_reference"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.indefinite_reference"
+
+
 def test_math_display_ambiguous_rule_emits(registry, language_pack, research_profile) -> None:
     source = "$$ a $$ $$\n"
     document = _parse(language_pack, source)
@@ -265,6 +277,18 @@ def test_math_shorthand_rule_emits_on_input_magnitude_alias(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "math.shorthand"
+
+
+def test_math_imperative_opening_rule_emits_on_fix(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Fix x in X.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.imperative_opening"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.imperative_opening"
 
 
 def test_surface_heading_link_rule_emits(registry, language_pack, research_profile) -> None:
@@ -317,3 +341,154 @@ def test_surface_numbered_case_rule_emits(registry, language_pack, research_prof
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "surface.numbered_case"
+
+
+def test_structure_section_opener_block_kind_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "# Setup\n\n$$\na=b\n$$\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["structure.section_opener_block_kind"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.section_opener_block_kind"
+
+
+def test_math_assumption_motivation_order_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Assume the sequence is bounded.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.assumption_motivation_order"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.assumption_motivation_order"
+
+
+def test_math_proof_placement_context_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Lemma 2. The bound holds.\n\nProof.\nThe argument is standard.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.proof_placement_context"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.proof_placement_context"
+
+
+def test_math_display_followup_interpretation_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["math.display_followup_interpretation"]
+    )
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.display_followup_interpretation"
+
+
+def test_math_consecutive_display_blocks_without_bridge_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Values are:\n\n$$\na=b\n$$\n\n$$\nc=d\n$$\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["math.consecutive_display_blocks_without_bridge"]
+    )
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.consecutive_display_blocks_without_bridge"
+
+
+def test_math_display_followup_interpretation_rule_accepts_interpretive_followup(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n"
+        "The equation shows how the correction term controls the residual.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["math.display_followup_interpretation"]
+    )
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_math_consecutive_display_blocks_without_bridge_rule_passes_with_motivation(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "We introduce two identities:\n\n$$\na=b\n$$\n\n"
+        "$$\nc=d\n$$\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["math.consecutive_display_blocks_without_bridge"]
+    )
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_discourse_semicolon_connector_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "The bound is stable; the estimate remains tight.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["discourse.semicolon_connector"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "discourse.semicolon_connector"
+
+
+def test_paragraph_inline_enumeration_overload_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "We consider (i) the linear regime, (ii) the nonlinear regime, and "
+        "(iii) the stochastic regime.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["paragraph.inline_enumeration_overload"]
+    )
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "paragraph.inline_enumeration_overload"
+
+
+def test_paragraph_inline_case_split_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "When g < 1, the series converges; when g >= 1, it diverges.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["paragraph.inline_case_split"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "paragraph.inline_case_split"
+
+
+def test_audience_qualitative_claim_without_quant_support_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "The method is robust across settings.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["audience.qualitative_claim_without_quant_support"]
+    )
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "audience.qualitative_claim_without_quant_support"

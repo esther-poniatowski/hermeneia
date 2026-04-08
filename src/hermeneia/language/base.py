@@ -19,6 +19,9 @@ class LanguageLexicons:
     weak_support_verbs: frozenset[str] = frozenset()
     nominalization_suffixes: tuple[str, ...] = ()
     strong_claim_markers: tuple[str, ...] = ()
+    pronoun_scaffolding_markers: tuple[str, ...] = ()
+    imperative_opening_verbs: tuple[str, ...] = ()
+    indefinite_reference_terms: tuple[str, ...] = ()
     weak_final_words: frozenset[str] = frozenset()
     contrast_markers: tuple[str, ...] = ()
     transition_connectors: tuple[str, ...] = ()
@@ -33,6 +36,10 @@ class LanguageLexicons:
     acronym_allowlist: frozenset[str] = frozenset()
     acronym_definition_stopwords: frozenset[str] = frozenset()
     definitional_markers: tuple[str, ...] = ()
+    assumption_purpose_markers: tuple[str, ...] = ()
+    formula_interpretation_markers: tuple[str, ...] = ()
+    semicolon_connectors: tuple[str, ...] = ()
+    qualitative_claim_markers: tuple[str, ...] = ()
     assumption_hypothesis_ignored_modifiers: frozenset[str] = frozenset()
 
 

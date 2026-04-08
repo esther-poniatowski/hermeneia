@@ -2,68 +2,104 @@
 
 from __future__ import annotations
 
-import re
-
-from hermeneia.document.model import Span
 from hermeneia.rules.base import (
+    AnnotatedRule,
     Layer,
     RuleEvidence,
     RuleKind,
     RuleMetadata,
     Severity,
-    SourcePatternRule,
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import line_text_outside_excluded
+from hermeneia.rules.common import iter_sentences, match_allowed
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
-PRONOUN_RE = re.compile(
-    r"\b(?:I|we|our|ours|us|you|your|yours|one can|one may)\b",
-    re.IGNORECASE,
-)
+SUBJECT_DEPENDENCIES = frozenset({"nsubj", "nsubjpass", "csubj"})
 
 
-class PronounRule(SourcePatternRule):
+class PronounRule(AnnotatedRule):
     metadata = RuleMetadata(
         rule_id="surface.pronoun",
         label="Avoid first-person or generic-pronoun scaffolding",
         layer=Layer.SURFACE_STYLE,
-        tractability=Tractability.CLASS_A,
+        tractability=Tractability.CLASS_B,
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
-        evidence_fields=("pronoun",),
+        evidence_fields=("pronoun", "signal"),
     )
 
-    def check_source(self, lines, doc, ctx):
-        _ = doc, ctx
+    def check(self, doc, ctx):
+        pronoun_pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.pronoun_scaffolding_markers)
+        )
         violations: list[Violation] = []
-        for line in lines:
+        seen_spans: set[tuple[int, int]] = set()
+
+        for line in doc.source_lines:
             if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
-            probe = line_text_outside_excluded(line)
-            match = PRONOUN_RE.search(probe)
+            match = match_allowed(line, pronoun_pattern)
             if match is None:
+                continue
+            span = _line_match_span(line, match.start(), match.end())
+            if _seen(seen_spans, span.start, span.end):
                 continue
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message="Prefer object-centered phrasing over first-person or generic-pronoun scaffolding.",
-                    span=_match_span(line, match.start(), match.end()),
+                    message=(
+                        "Prefer object-centered phrasing over first-person or generic-pronoun "
+                        "scaffolding."
+                    ),
+                    span=span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"pronoun": match.group(0).lower()}),
+                    evidence=RuleEvidence(
+                        features={"pronoun": match.group(0).lower(), "signal": "phrase_match"}
+                    ),
                     confidence=0.7,
                     rewrite_tactics=(
                         "Name the operation, statement, or object directly instead of using a generic actor.",
                     ),
                 )
             )
+
+        for sentence in iter_sentences(doc):
+            token = _subject_one_token(sentence.tokens)
+            if token is None:
+                continue
+            if _seen(seen_spans, token.source_span.start, token.source_span.end):
+                continue
+            violations.append(
+                Violation(
+                    rule_id=self.rule_id,
+                    message=(
+                        "Avoid generic subject 'one' in formal exposition; name the object or "
+                        "agent directly."
+                    ),
+                    span=token.source_span,
+                    severity=self.settings.severity,
+                    layer=self.metadata.layer,
+                    evidence=RuleEvidence(
+                        features={
+                            "pronoun": "one",
+                            "signal": "subject_dependency",
+                            "dependency": (token.dep or "").lower(),
+                        }
+                    ),
+                    confidence=0.8,
+                    rewrite_tactics=(
+                        "Rewrite with an explicit subject, object, or statement-centered construction.",
+                    ),
+                )
+            )
         return violations
 
 
-def _match_span(line, start: int, end: int) -> Span:
-    return Span(
+def _line_match_span(line, start: int, end: int):
+    return line.span.__class__(
         start=line.span.start + start,
         end=line.span.start + end,
         start_line=line.span.start_line,
@@ -73,6 +109,24 @@ def _match_span(line, start: int, end: int) -> Span:
     )
 
 
+def _subject_one_token(tokens):
+    for token in tokens:
+        lemma = (token.lemma or token.text).lower()
+        dependency = (token.dep or "").lower()
+        if lemma != "one":
+            continue
+        if dependency in SUBJECT_DEPENDENCIES:
+            return token
+    return None
+
+
+def _seen(seen_spans: set[tuple[int, int]], start: int, end: int) -> bool:
+    key = (start, end)
+    if key in seen_spans:
+        return True
+    seen_spans.add(key)
+    return False
+
+
 def register(registry) -> None:
     registry.add(PronounRule)
-

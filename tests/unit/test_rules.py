@@ -95,3 +95,29 @@ def test_passive_voice_rule_extracts_actor_for_by_phrase(
     evidence = violations[0].evidence
     assert evidence is not None
     assert evidence.features.get("actor") == "the authors"
+
+
+def test_pronoun_rule_emits_on_subject_one_dependency(
+    registry, language_pack, research_profile
+) -> None:
+    source = "One derives the estimate from Lemma 2.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    sentence_ref = document.indexes.sentences[0]
+    sentence = document.sentence_by_id(sentence_ref.id)
+    assert sentence is not None
+    sentence.tokens = [
+        Token("One", "one", "PRON", "nsubj", 1, sentence.span, 0, 3),
+        Token("derives", "derive", "VERB", "ROOT", None, sentence.span, 4, 11),
+        Token("the", "the", "DET", "det", 3, sentence.span, 12, 15),
+        Token("estimate", "estimate", "NOUN", "dobj", 1, sentence.span, 16, 24),
+    ]
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.pronoun"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    evidence = violations[0].evidence
+    assert evidence is not None
+    assert evidence.features.get("pronoun") == "one"
+    assert evidence.features.get("signal") == "subject_dependency"

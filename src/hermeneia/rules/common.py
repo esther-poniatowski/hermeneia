@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from hermeneia.document.model import Block, BlockKind, Document, Sentence, SourceLine, Span
 
@@ -90,6 +90,21 @@ def sentence_has_marker(sentence: Sentence, markers: Iterable[str]) -> bool:
     return bool(matched_sentence_markers(sentence, markers))
 
 
+def text_has_marker(text: str, markers: Iterable[str]) -> bool:
+    normalized = text.lower()
+    for marker in markers:
+        value = marker.strip().lower()
+        if not value:
+            continue
+        if " " in value:
+            if value in normalized:
+                return True
+            continue
+        if re.search(rf"\b{re.escape(value)}\b", normalized):
+            return True
+    return False
+
+
 def line_text_outside_excluded(line: SourceLine) -> str:
     if not line.excluded_spans:
         return line.text
@@ -112,6 +127,17 @@ def match_allowed(
 
 def block_text(block: Block) -> str:
     return " ".join(sentence.projection.text for sentence in block.sentences)
+
+
+def previous_prose_block(blocks: Sequence[Block], before_index: int) -> Block | None:
+    prose_kinds = {BlockKind.PARAGRAPH, BlockKind.BLOCK_QUOTE, BlockKind.LIST_ITEM}
+    for offset in range(before_index - 1, -1, -1):
+        candidate = blocks[offset]
+        if candidate.kind in prose_kinds:
+            return candidate
+        if candidate.kind == BlockKind.HEADING:
+            return None
+    return None
 
 
 def upstream_limits(sentence: Sentence) -> tuple[str, ...]:

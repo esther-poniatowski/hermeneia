@@ -2,6 +2,33 @@
 
 This file defines pedagogical requirements for all mathematical notes. These requirements operate at the level of sections and paragraphs, below structural requirements and above the sentence-level rules in `hard-rules.md`.
 
+## Enforcement Status in Hermeneia
+
+This reference mixes two kinds of guidance:
+
+- **Rule-enforced guidance**: implemented in the runtime rule inventory.
+- **Editorial guidance**: useful for human revision but not currently enforced by rules.
+
+Current rule-backed mappings:
+
+| Guidance area | Primary rule ids |
+| --- | --- |
+| Display equation lead-ins and punctuation | `math.display_math`, `math.display_ambiguous`, `math.display_unclosed` |
+| Post-display interpretation and equation chaining | `math.display_followup_interpretation`, `math.consecutive_display_blocks_without_bridge` |
+| Inline equation overload | `math.inline_math` |
+| Prose paraphrase of formal relations | `math.prose_math` |
+| Over-introduction of one-off shorthand | `math.shorthand` |
+| Assumption motivation and proof placement | `math.assumption_motivation_order`, `math.proof_placement_context`, `math.proof_marker` |
+| Content-free transitions and vague mechanism phrasing | `surface.banned_transition`, `surface.vague_phrasing` |
+| Semicolon articulation | `discourse.semicolon_connector` |
+| Cross-reference clarity and anchor usage | `surface.cross_reference`, `surface.heading_link`, `surface.see_link`, `surface.raw_anchor`, `surface.generic_link_text` |
+| Case scaffolding and anonymous numbered cases | `surface.case_scaffolding`, `surface.numbered_case` |
+| Inline case and enumeration overload | `paragraph.inline_case_split`, `paragraph.inline_enumeration_overload` |
+| Qualitative claim support expectations | `audience.claim_calibration`, `audience.qualitative_claim_without_quant_support` |
+| Section-opener framing | `structure.section_opener_block_kind` |
+
+The remaining sections in this document should be read as editorial standards unless they are mapped to explicit rule ids.
+
 ## Math Writing Audit Dimensions
 
 Writing-quality dimensions for post-draft verification of mathematical notes.

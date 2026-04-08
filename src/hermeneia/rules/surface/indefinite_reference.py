@@ -1,4 +1,4 @@
-"""Imperative-opening bans for mathematical prose."""
+"""Indefinite-pronoun/adverb checks."""
 
 from __future__ import annotations
 
@@ -13,45 +13,48 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import line_text_outside_excluded
-from hermeneia.rules.patterns import compile_structured_leading_term_regex
+from hermeneia.rules.common import match_allowed
+from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
-class ImperativeOpeningRule(SourcePatternRule):
+class IndefiniteReferenceRule(SourcePatternRule):
     metadata = RuleMetadata(
-        rule_id="math.imperative_opening",
-        label="Avoid imperative mathematical openings",
+        rule_id="surface.indefinite_reference",
+        label="Avoid broad indefinite references in technical claims",
         layer=Layer.SURFACE_STYLE,
         tractability=Tractability.CLASS_A,
-        kind=RuleKind.HARD_CONSTRAINT,
-        default_severity=Severity.ERROR,
+        kind=RuleKind.SOFT_HEURISTIC,
+        default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
-        evidence_fields=("verb",),
+        evidence_fields=("term",),
     )
 
     def check_source(self, lines, doc, ctx):
-        pattern = compile_structured_leading_term_regex(
-            tuple(ctx.language_pack.lexicons.imperative_opening_verbs)
+        _ = doc
+        pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.indefinite_reference_terms)
         )
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
-            probe = line_text_outside_excluded(line)
-            match = pattern.search(probe)
+            match = match_allowed(line, pattern)
             if match is None:
                 continue
-            verb = match.group("term")
+            term = match.group(0).lower()
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message=f"Avoid imperative opening '{verb} ...'; name the object or purpose declaratively.",
-                    span=_match_span(line, match.start("term"), match.end("term")),
+                    message=(
+                        f"Replace indefinite reference '{term}' with a precise object, set, "
+                        "scope, or mechanism."
+                    ),
+                    span=_match_span(line, match.start(), match.end()),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"verb": verb.lower()}),
+                    evidence=RuleEvidence(features={"term": term}),
                     rewrite_tactics=(
-                        "State the purpose first, then introduce the object or assumption declaratively.",
+                        "Name exactly which object, region, condition, or operation you mean.",
                     ),
                 )
             )
@@ -70,4 +73,4 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    registry.add(ImperativeOpeningRule)
+    registry.add(IndefiniteReferenceRule)

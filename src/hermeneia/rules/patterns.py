@@ -40,6 +40,18 @@ def compile_inline_phrase_regex(phrases: tuple[str, ...]) -> re.Pattern[str]:
 
 
 @lru_cache(maxsize=256)
+def compile_structured_leading_term_regex(terms: tuple[str, ...]) -> re.Pattern[str]:
+    normalized = normalize_phrases(terms)
+    if not normalized:
+        return _EMPTY_REGEX
+    body = "|".join(re.escape(term) for term in normalized)
+    return re.compile(
+        rf"^\s*(?:>\s*)*(?:(?:[-*+])\s+|\d+\.\s+)?(?P<term>{body})\b",
+        re.IGNORECASE,
+    )
+
+
+@lru_cache(maxsize=256)
 def compile_prefixed_term_regex(
     prefixes: tuple[str, ...],
     terms: tuple[str, ...],
