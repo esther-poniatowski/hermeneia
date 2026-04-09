@@ -39,7 +39,7 @@ class ParagraphParallelismRule(AnnotatedRule):
             items = [child for child in list_block.children if child.kind == BlockKind.LIST_ITEM]
             if len(items) < 3:
                 continue
-            frames = {item.id: _frame(item) for item in items}
+            frames = {item.id: _frame(_item_text(item)) for item in items}
             majority = _majority(tuple(frames.values()))
             if majority is None:
                 continue
@@ -71,8 +71,19 @@ class ParagraphParallelismRule(AnnotatedRule):
         return violations
 
 
-def _frame(block) -> str:
-    text = " ".join(sentence.projection.text for sentence in block.sentences).strip().lower()
+def _item_text(block) -> str:
+    own = " ".join(sentence.projection.text for sentence in block.sentences).strip()
+    if own:
+        return own
+    fragments: list[str] = []
+    for child in block.children:
+        for sentence in child.sentences:
+            fragments.append(sentence.projection.text)
+    return " ".join(fragments).strip()
+
+
+def _frame(text: str) -> str:
+    text = text.strip().lower()
     words = WORD_RE.findall(text)
     if not words:
         return "fragment"
@@ -102,4 +113,3 @@ def _majority(values: tuple[str, ...]) -> str | None:
 
 def register(registry) -> None:
     registry.add(ParagraphParallelismRule)
-

@@ -113,6 +113,18 @@ ENGLISH_PACK = LanguagePack(
             "clearly",
             "obviously",
         ),
+        negative_markers=(
+            "not",
+            "no",
+            "none",
+            "never",
+            "nobody",
+            "nothing",
+            "nowhere",
+            "without",
+            "neither",
+            "nor",
+        ),
         imperative_opening_verbs=(
             "define",
             "assume",
@@ -640,6 +652,71 @@ ENGLISH_PACK = LanguagePack(
         assumption_hypothesis_ignored_modifiers=frozenset(
             {"same", "above", "previous", "following", "main", "key", "central"}
         ),
+        opening_purpose_markers=(
+            "provides",
+            "explains",
+            "describes",
+            "defines",
+            "checks",
+            "lints",
+            "audits",
+            "detects",
+            "reports",
+            "analyzes",
+            "guides",
+            "implements",
+            "enforces",
+            "offers",
+            "helps",
+        ),
+        boilerplate_openers=(
+            "recently",
+            "there has been an increasing interest in",
+            "an investigation of",
+            "a new approach",
+        ),
+        imprecise_quantifier_terms=(
+            "several",
+            "others",
+        ),
+        purpose_heading_markers=(
+            "introduction",
+            "overview",
+            "motivation",
+            "context",
+            "purpose",
+            "goals",
+            "scope",
+        ),
+        installation_heading_markers=(
+            "installation",
+            "setup",
+            "requirements",
+            "prerequisites",
+            "getting started",
+        ),
+        usage_heading_markers=(
+            "usage",
+            "quickstart",
+            "quick start",
+            "how to use",
+            "tutorial",
+            "examples",
+        ),
+        configuration_heading_markers=(
+            "configuration",
+            "settings",
+            "options",
+            "profiles",
+        ),
+        advanced_heading_markers=(
+            "internals",
+            "architecture",
+            "api",
+            "reference",
+            "advanced",
+            "developer",
+        ),
     ),
     rule_defaults={
         "surface.sentence_length": {"options": {"max_words": 28}},
@@ -647,6 +724,13 @@ ENGLISH_PACK = LanguagePack(
         "surface.noun_cluster": {"options": {"max_cluster_tokens": 4}},
         "discourse.subject_verb_distance": {"options": {"max_distance": 8}},
         "discourse.subordinate_clause": {"options": {"max_subordinate_clauses": 2}},
+        "discourse.embedding_depth": {
+            "options": {
+                "max_dependency_depth": 5,
+                "max_embedding_markers": 4,
+                "min_sentence_words": 14,
+            }
+        },
         "discourse.transition_quality": {
             "options": {
                 "min_overlap_without_connector": 0.18,
@@ -667,5 +751,13 @@ ENGLISH_PACK = LanguagePack(
         },
         "paragraph.topic_sentence": {"options": {"minimum_score": 0.45}},
         "structure.section_balance": {"options": {"max_ratio": 3.5}},
+        "structure.opening_message_focus": {
+            "options": {
+                "min_enumeration_items": 4,
+                "min_opening_words": 8,
+            }
+        },
+        "structure.orphan_section": {"options": {"min_parent_words": 24}},
+        "audience.imprecise_quantifier_without_citation": {"options": {"lookback_sentences": 0}},
     },
 )

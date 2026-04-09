@@ -15,7 +15,6 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.rules.common import line_text_outside_excluded
 
 BARE_SYMBOL_RE = re.compile(
     r"\b(?:for all|for each|for every|at fixed|at constant|over all|increases with|decreases with|"
@@ -53,7 +52,7 @@ class BareSymbolRule(SourcePatternRule):
         for line in lines:
             if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
-            probe = line_text_outside_excluded(line)
+            probe = line.text
             for pattern in patterns:
                 match = pattern.search(probe)
                 if match is None:

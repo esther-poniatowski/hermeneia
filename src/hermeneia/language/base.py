@@ -24,6 +24,7 @@ class LanguageLexicons:
     bare_pronoun_openers: tuple[str, ...] = ()
     bare_pronoun_predicate_starters: tuple[str, ...] = ()
     strong_claim_markers: tuple[str, ...] = ()
+    negative_markers: tuple[str, ...] = ()
     imperative_opening_verbs: tuple[str, ...] = ()
     indefinite_reference_terms: tuple[str, ...] = ()
     contractions: tuple[str, ...] = ()
@@ -71,6 +72,14 @@ class LanguageLexicons:
     semicolon_connectors: tuple[str, ...] = ()
     qualitative_claim_markers: tuple[str, ...] = ()
     assumption_hypothesis_ignored_modifiers: frozenset[str] = frozenset()
+    opening_purpose_markers: tuple[str, ...] = ()
+    boilerplate_openers: tuple[str, ...] = ()
+    imprecise_quantifier_terms: tuple[str, ...] = ()
+    purpose_heading_markers: tuple[str, ...] = ()
+    installation_heading_markers: tuple[str, ...] = ()
+    usage_heading_markers: tuple[str, ...] = ()
+    configuration_heading_markers: tuple[str, ...] = ()
+    advanced_heading_markers: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

@@ -30,6 +30,8 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "surface.long_inline_enumeration" in registry.rule_ids()
     assert "surface.stacked_nominalization_chain" in registry.rule_ids()
     assert "surface.indefinite_reference" in registry.rule_ids()
+    assert "surface.double_negative" in registry.rule_ids()
+    assert "surface.boilerplate_opener" in registry.rule_ids()
     assert "math.display_math" in registry.rule_ids()
     assert "math.display_ambiguous" in registry.rule_ids()
     assert "math.display_unclosed" in registry.rule_ids()
@@ -49,6 +51,7 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "paragraph.reformulation_inflation" in registry.rule_ids()
     assert "discourse.transition_quality" in registry.rule_ids()
     assert "discourse.semicolon_connector" in registry.rule_ids()
+    assert "discourse.embedding_depth" in registry.rule_ids()
     assert "surface.numbered_case" in registry.rule_ids()
     assert "surface.heading_link" in registry.rule_ids()
     assert "surface.see_link" in registry.rule_ids()
@@ -58,10 +61,14 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "structure.heading_level_skip" in registry.rule_ids()
     assert "structure.section_opener_block_kind" in registry.rule_ids()
     assert "structure.opening_sentence_presence" in registry.rule_ids()
+    assert "structure.opening_message_focus" in registry.rule_ids()
+    assert "structure.section_order_sequence" in registry.rule_ids()
+    assert "structure.orphan_section" in registry.rule_ids()
     assert "structure.prose_outside_heading" in registry.rule_ids()
     assert "audience.definition_before_use" in registry.rule_ids()
     assert "audience.jargon_density" in registry.rule_ids()
     assert "audience.qualitative_claim_without_quant_support" in registry.rule_ids()
+    assert "audience.imprecise_quantifier_without_citation" in registry.rule_ids()
 
 
 def test_load_external_rules_uses_same_register_protocol(tmp_path, registry) -> None:

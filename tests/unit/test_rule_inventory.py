@@ -35,6 +35,48 @@ def test_passive_voice_rule_emits(registry, language_pack, research_profile) -> 
     assert violations[0].rule_id == "surface.passive_voice"
 
 
+def test_stress_position_rule_emits_on_weak_terminal_token(
+    registry, language_pack, research_profile
+) -> None:
+    source = "The residual bound is this.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["discourse.stress_position"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "discourse.stress_position"
+
+
+def test_subordinate_clause_rule_emits_on_clause_stacking(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "Although the estimator is stable because the data are bounded, "
+        "while the update remains small, the residual converges.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["discourse.subordinate_clause"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "discourse.subordinate_clause"
+
+
+def test_embedding_depth_rule_emits_on_highly_embedded_sentence(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "Although the estimator, which we introduced when the benchmark that the paper "
+        "defines was released, improves accuracy, the variance remains unstable.\n"
+    )
+    document = _annotate(language_pack, research_profile, _parse(language_pack, source))
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["discourse.embedding_depth"])
+    violations = rule.check(document, context)
+    assert len(violations) >= 1
+    assert violations[0].rule_id == "discourse.embedding_depth"
+
+
 def test_transition_quality_rule_emits_on_unmarked_shift(
     registry, language_pack, research_profile
 ) -> None:
@@ -192,6 +234,36 @@ def test_surface_abstract_framing_rule_emits(registry, language_pack, research_p
     assert violations[0].rule_id == "surface.abstract_framing"
 
 
+def test_surface_vague_phrasing_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "The update affects convergence in many ways.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.vague_phrasing"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.vague_phrasing"
+
+
+def test_surface_noun_cluster_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "High-order sparse tensor factorization pipeline design improves robustness.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.noun_cluster"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.noun_cluster"
+
+
+def test_surface_cross_reference_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "As discussed above, the estimate remains stable.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.cross_reference"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.cross_reference"
+
+
 def test_surface_abstract_compound_modifier_rule_emits(
     registry, language_pack, research_profile
 ) -> None:
@@ -242,6 +314,26 @@ def test_surface_indefinite_reference_rule_emits(
     assert violations[0].rule_id == "surface.indefinite_reference"
 
 
+def test_surface_double_negative_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "The estimate is not without error.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.double_negative"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.double_negative"
+
+
+def test_surface_boilerplate_opener_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "Recently, there has been an increasing interest in this model.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.boilerplate_opener"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.boilerplate_opener"
+
+
 def test_math_display_ambiguous_rule_emits(registry, language_pack, research_profile) -> None:
     source = "$$ a $$ $$\n"
     document = _parse(language_pack, source)
@@ -279,6 +371,16 @@ def test_math_inline_math_rule_emits_on_equation_like_inline(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "math.inline_math"
+
+
+def test_math_bare_symbol_rule_emits(registry, language_pack, research_profile) -> None:
+    source = "We study a function on $\\Theta$ under perturbations.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.bare_symbol"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.bare_symbol"
 
 
 def test_math_shorthand_rule_emits_on_input_magnitude_alias(
@@ -420,6 +522,72 @@ def test_structure_section_opener_block_kind_rule_emits(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "structure.section_opener_block_kind"
+
+
+def test_structure_section_balance_rule_emits(registry, language_pack, research_profile) -> None:
+    source = (
+        "# Long section\n\n"
+        "This section introduces the central assumptions, then expands each premise with detailed "
+        "motivations, examples, and implications for each stage of the argument progression.\n\n"
+        "# Short section\n\n"
+        "Brief note.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["structure.section_balance"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.section_balance"
+
+
+def test_structure_section_order_sequence_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "# Installation\n\n"
+        "Run the setup command.\n\n"
+        "# Overview\n\n"
+        "This page explains the purpose.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["structure.section_order_sequence"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.section_order_sequence"
+
+
+def test_structure_opening_message_focus_rule_emits_on_enumeration_dominance(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "Clear, concise, convincing, fluid, organized, interesting, and useful prose matters.\n\n"
+        "# Setup\n\n"
+        "Details.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["structure.opening_message_focus"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.opening_message_focus"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["issue"] == "enumeration_dominant_opening"
+
+
+def test_structure_orphan_section_rule_emits(registry, language_pack, research_profile) -> None:
+    source = (
+        "# Methods\n\n"
+        "Short intro.\n\n"
+        "## Algorithm\n\n"
+        "The algorithm section contains details.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["structure.orphan_section"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.orphan_section"
 
 
 def test_math_assumption_motivation_order_rule_emits(
@@ -618,6 +786,20 @@ def test_paragraph_inline_case_split_rule_emits(
     assert violations[0].rule_id == "paragraph.inline_case_split"
 
 
+def test_paragraph_parallelism_rule_emits(registry, language_pack, research_profile) -> None:
+    source = (
+        "- Computing the residual map.\n"
+        "- Bounding the correction term.\n"
+        "- The final convergence statement.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["paragraph.parallelism"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "paragraph.parallelism"
+
+
 def test_audience_qualitative_claim_without_quant_support_rule_emits(
     registry, language_pack, research_profile
 ) -> None:
@@ -630,3 +812,17 @@ def test_audience_qualitative_claim_without_quant_support_rule_emits(
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "audience.qualitative_claim_without_quant_support"
+
+
+def test_audience_imprecise_quantifier_without_citation_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Several methods improve the estimate, while others fail near the boundary.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["audience.imprecise_quantifier_without_citation"]
+    )
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "audience.imprecise_quantifier_without_citation"
