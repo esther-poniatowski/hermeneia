@@ -87,6 +87,22 @@ The following constraints are normative but are not fully enforceable by rule pa
 3. **Dependency-order review**
    Section and paragraph sequencing must preserve dependency order (prerequisites before consequences), even when local sentence-level rules pass.
 
+4. **Cross-document canonical conventions**
+   The following conventions are normative and must be checked across files/projects:
+   - Installation sections use the same header names, intro patterns, and ordering.
+   - README section ordering follows the keystone template.
+   - ADR files keep consistent voice, tense, and structure.
+   - Guide prose stays impersonal (no mixed direct-address voice).
+
+5. **Standards governance**
+   This audit prompt is the canonical prose standard for this repository.
+   Project-specific documents must not redefine competing prose standards.
+
+6. **Reader-first document ordering**
+   At the document level, purpose must precede procedure.
+   In practice, documents establish scope and intent before installation or
+   execution details; usage precedes advanced configuration details.
+
 ---
 
 ## Audit Method
@@ -153,10 +169,8 @@ Do not generalize from one sentence into a systemic claim without evidence.
 
 ## Dimension Model
 
-The seven audit dimensions correspond one-to-one to the sections of
-[writing-standards.md](writing-standards.md), which is the authoritative
-definition of each rule. This prompt does not redefine the rules — it
-specifies how to detect violations and report findings.
+The seven audit dimensions below are the authoritative definitions for audit
+findings. This prompt defines both the rule intent and the reporting contract.
 
 Each finding must be assigned:
 - exactly one **primary dimension**
@@ -166,7 +180,7 @@ Do not duplicate the same defect across multiple findings by re-labeling it unde
 
 ### 1. NOMINALIZATION
 
-Detect violations of §1 Nominalization in [writing-standards.md](writing-standards.md).
+Detect nominalization patterns where verb-first rewrites are shorter or clearer.
 
 For each violation:
 - quote the offending text exactly
@@ -175,7 +189,8 @@ For each violation:
 
 ### 2. FRAMING
 
-Detect violations of §2 Framing in [writing-standards.md](writing-standards.md).
+Detect framing patterns that describe the act of proving/establishing instead
+of stating the operative result directly.
 
 Search mechanically for the forbidden literal strings before output.
 
@@ -186,7 +201,8 @@ For each violation:
 
 ### 3. PRONOUN DISCIPLINE
 
-Detect violations of §3 Pronoun Discipline in [writing-standards.md](writing-standards.md).
+Detect bare-pronoun and subjective-pronoun patterns that obscure reference or
+voice discipline.
 
 For each violation:
 - quote the offending sentence
@@ -195,7 +211,8 @@ For each violation:
 
 ### 4. MODIFIER DISCIPLINE
 
-Detect violations of §4 Modifier Discipline in [writing-standards.md](writing-standards.md).
+Detect compound-modifier and case-scaffolding patterns that hide explicit
+relations.
 
 For each violation:
 - quote the offending text
@@ -204,7 +221,8 @@ For each violation:
 
 ### 5. SENTENCE ECONOMY
 
-Detect violations of §5 Sentence Economy in [writing-standards.md](writing-standards.md).
+Detect verbose preambles, redundant lead-ins, long inline enumerations, stacked
+nominalizations, and double-framing patterns.
 
 For each violation:
 - quote the offending text
@@ -213,7 +231,8 @@ For each violation:
 
 ### 6. INFORMATION ARCHITECTURE
 
-Detect violations of §6 Information Architecture in [writing-standards.md](writing-standards.md).
+Detect structural issues in first-sentence purpose signaling, section ordering,
+heading continuity, and prose placement under headings.
 
 For each violation:
 - identify the file and the structural defect
@@ -222,7 +241,8 @@ For each violation:
 
 ### 7. CROSS-DOCUMENT CONSISTENCY
 
-Detect violations of §7 Cross-Document Consistency in [writing-standards.md](writing-standards.md).
+Detect deviations from the cross-document canonical conventions listed in
+Non-Encodable Normative Policy.
 
 For each violation:
 - cite the two (or more) divergent locations

@@ -5,7 +5,6 @@ Historical and standards reference material used to design and evaluate hermenei
 ```{toctree}
 :maxdepth: 1
 
-writing-standards
 audit-documentation
 initial-proposal
 ```
