@@ -133,7 +133,9 @@ Cross-references using heading-slug fragments (`#heading-name`) are forbidden. U
 
 ### B8 — Punctuation inside display equations
 
-Periods, commas, and all other punctuation marks inside `$$...$$` blocks are forbidden. Place punctuation in prose after the display block when needed.
+Do not place punctuation at the end of display-math lines, and do not place punctuation immediately before LaTeX line breaks (`\\`) in aligned-style displays.
+
+Punctuation that appears inside an expression and not at a line boundary is allowed.
 
 ---
 

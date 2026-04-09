@@ -42,3 +42,14 @@ def test_nominalization_rule_emits_on_abstract_noun_phrase(
     assert violation.rule_id == "surface.nominalization"
     assert violation.evidence is not None
     assert violation.evidence.features["signal_type"] == "abstract_noun_phrase"
+
+
+def test_nominalization_rule_allows_configured_technical_exceptions(
+    registry, language_pack, research_profile
+) -> None:
+    source = "Uniqueness holds under compactness.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.nominalization"])
+    violations = rule.check(document, context)
+    assert violations == []

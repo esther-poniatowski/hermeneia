@@ -29,6 +29,7 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "math.assumption_motivation_order" in registry.rule_ids()
     assert "math.proof_placement_context" in registry.rule_ids()
     assert "math.display_followup_interpretation" in registry.rule_ids()
+    assert "math.bare_pronoun_after_display" in registry.rule_ids()
     assert "math.consecutive_display_blocks_without_bridge" in registry.rule_ids()
     assert "math.proof_marker" in registry.rule_ids()
     assert "paragraph.topic_sentence" in registry.rule_ids()

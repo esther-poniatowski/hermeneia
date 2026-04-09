@@ -24,8 +24,8 @@ class BannedTransitionRule(SourcePatternRule):
         label="Avoid content-free transition scaffolding",
         layer=Layer.SURFACE_STYLE,
         tractability=Tractability.CLASS_A,
-        kind=RuleKind.SOFT_HEURISTIC,
-        default_severity=Severity.WARNING,
+        kind=RuleKind.HARD_CONSTRAINT,
+        default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
         evidence_fields=("transition",),
     )

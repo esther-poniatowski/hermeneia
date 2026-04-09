@@ -72,6 +72,7 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "math.assumption_motivation_order",
             "math.proof_placement_context",
             "math.display_followup_interpretation",
+            "math.bare_pronoun_after_display",
             "math.consecutive_display_blocks_without_bridge",
             "math.inline_math",
             "math.display_math",
@@ -142,6 +143,7 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "math.assumption_motivation_order",
             "math.proof_placement_context",
             "math.display_followup_interpretation",
+            "math.bare_pronoun_after_display",
             "math.consecutive_display_blocks_without_bridge",
             "math.inline_math",
             "math.display_math",
@@ -221,6 +223,7 @@ PROFILE_PRESETS: dict[str, ProfilePreset] = {
             "math.assumption_motivation_order",
             "math.proof_placement_context",
             "math.display_followup_interpretation",
+            "math.bare_pronoun_after_display",
             "math.consecutive_display_blocks_without_bridge",
         ),
         rule_overrides={

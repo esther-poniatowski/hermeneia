@@ -42,6 +42,10 @@ rules:
         - as a consequence
       silenced_patterns:
         - note that
+    surface.generic_link_text:
+      options:
+        reference_labels: [lemma, theorem, corollary]
+        procedural_terms: [note, analysis, specialization, derivation]
 
 scoring:
   aggregation: hierarchical
@@ -77,6 +81,7 @@ Field semantics:
 - Unknown rule ids in `active`, `disabled`, `overrides`, language defaults, or profile defaults are errors.
 - Unknown override fields are errors.
 - Options model validation errors are surfaced with rule id context.
+- `surface.generic_link_text` options accept only `reference_labels` and `procedural_terms`.
 - Language-pack `supported_rules` (when declared) is enforced as a rule allowlist.
 
 ## Runtime Flags

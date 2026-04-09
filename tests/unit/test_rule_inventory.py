@@ -204,6 +204,20 @@ def test_surface_abstract_compound_modifier_rule_emits(
     assert violations[0].rule_id == "surface.abstract_compound_modifier"
 
 
+def test_surface_abstract_compound_modifier_rule_emits_on_spaced_suffix_form(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We use a context dependent strategy for calibration.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.abstract_compound_modifier"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.abstract_compound_modifier"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["signal"] == "spaced_suffix"
+
+
 def test_surface_assumption_hypothesis_framing_rule_emits(
     registry, language_pack, research_profile
 ) -> None:
@@ -333,6 +347,47 @@ def test_surface_generic_link_text_rule_emits(
     assert violations[0].rule_id == "surface.generic_link_text"
 
 
+def test_surface_generic_link_text_rule_emits_on_procedural_term(
+    registry, language_pack, research_profile
+) -> None:
+    source = "[normality specialization](#^note-specialization)\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.generic_link_text"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.generic_link_text"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["signal"] == "procedural_term"
+
+
+def test_surface_generic_link_text_rule_uses_configurable_reference_labels(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {
+            "rules": {
+                "active": ["surface.generic_link_text"],
+                "overrides": {
+                    "surface.generic_link_text": {
+                        "options": {"reference_labels": ["fact"]},
+                    }
+                },
+            }
+        }
+    )
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    source = "[Fact 2](#^fact-two)\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(profile.rules["surface.generic_link_text"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.generic_link_text"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["signal"] == "citation_label"
+
+
 def test_surface_numbered_case_rule_emits(registry, language_pack, research_profile) -> None:
     source = "Case 1: the residual is bounded.\n"
     document = _parse(language_pack, source)
@@ -341,6 +396,18 @@ def test_surface_numbered_case_rule_emits(registry, language_pack, research_prof
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "surface.numbered_case"
+
+
+def test_surface_case_scaffolding_rule_emits_on_plural_case_form(
+    registry, language_pack, research_profile
+) -> None:
+    source = "In the non-normal cases, the residual term grows.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.case_scaffolding"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.case_scaffolding"
 
 
 def test_structure_section_opener_block_kind_rule_emits(
@@ -382,7 +449,10 @@ def test_math_proof_placement_context_rule_emits(
 def test_math_display_followup_interpretation_rule_emits(
     registry, language_pack, research_profile
 ) -> None:
-    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
+    source = (
+        "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n"
+        "The claim is immediate.\n"
+    )
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(
@@ -419,6 +489,77 @@ def test_math_display_followup_interpretation_rule_accepts_interpretive_followup
     rule = registry.instantiate(
         research_profile.rules["math.display_followup_interpretation"]
     )
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_math_display_followup_interpretation_rule_skips_bare_pronoun_followup(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(
+        research_profile.rules["math.display_followup_interpretation"]
+    )
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_math_bare_pronoun_after_display_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.bare_pronoun_after_display"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.bare_pronoun_after_display"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["pronoun"] == "it"
+
+
+def test_math_bare_pronoun_after_display_rule_accepts_named_object_followup(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n"
+        "This expression implies stability.\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.bare_pronoun_after_display"])
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_math_display_math_rule_emits_on_punctuation_before_linebreak(
+    registry, language_pack, research_profile
+) -> None:
+    source = (
+        "We compute the decomposition:\n\n$$\n\\begin{aligned}\n"
+        "a &= b, \\\\\n"
+        "c &= d\n"
+        "\\end{aligned}\n$$\n"
+    )
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.display_math"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "math.display_math"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["check"] == "punctuation_before_linebreak"
+
+
+def test_math_display_math_rule_allows_internal_nonterminal_punctuation(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We define the map:\n\n$$\nf(a,b)=a+b\n$$\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["math.display_math"])
     violations = rule.check(document, context)
     assert violations == []
 

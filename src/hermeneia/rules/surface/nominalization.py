@@ -1,4 +1,4 @@
-"""Nominalization diagnostics with explicit abstraction signals."""
+"""Nominalization diagnostics with hard-blocker process-noun signals."""
 
 from __future__ import annotations
 
@@ -16,6 +16,11 @@ from hermeneia.rules.base import (
 )
 from hermeneia.rules.common import iter_sentences, upstream_limits
 
+SUBJECT_OBJECT_DEPENDENCIES = frozenset(
+    {"nsubj", "nsubjpass", "csubj", "obj", "dobj", "pobj", "attr"}
+)
+HIGH_NOISE_SUFFIXES = frozenset({"al", "ing"})
+
 
 class NominalizationRule(AnnotatedRule):
     metadata = RuleMetadata(
@@ -23,76 +28,62 @@ class NominalizationRule(AnnotatedRule):
         label="Nominalization obscures direct action",
         layer=Layer.SURFACE_STYLE,
         tractability=Tractability.CLASS_B,
-        kind=RuleKind.SOFT_HEURISTIC,
-        default_severity=Severity.WARNING,
+        kind=RuleKind.HARD_CONSTRAINT,
+        default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
         abstain_when_flags=frozenset({"heavy_math_masking", "symbol_dense_sentence"}),
         evidence_fields=("nominalization", "support_verb", "signal_type"),
     )
 
     def check(self, doc, ctx):
-        suffixes = ctx.language_pack.lexicons.nominalization_suffixes
+        suffixes = tuple(
+            suffix.lower() for suffix in ctx.language_pack.lexicons.nominalization_suffixes
+        )
+        allowlist = frozenset(
+            term.lower() for term in ctx.language_pack.lexicons.nominalization_allowlist
+        )
         weak_verbs = ctx.language_pack.lexicons.weak_support_verbs
         linking_prepositions = ctx.language_pack.lexicons.nominalization_linking_prepositions
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):
                 continue
-            words = [token.lemma.lower() for token in sentence.tokens] or [
-                word.lower() for word in re.findall(r"\b\w+\b", sentence.projection.text)
-            ]
-            candidate_indexes = [
-                index
-                for index, word in enumerate(words)
-                if len(word) >= 6 and any(word.endswith(suffix) for suffix in suffixes)
-            ]
-            if not candidate_indexes:
+            nominalization, signal_type, support_verb = _detect_nominalization(
+                sentence,
+                suffixes=suffixes,
+                allowlist=allowlist,
+                weak_verbs=weak_verbs,
+                linking_prepositions=linking_prepositions,
+            )
+            if nominalization is None or signal_type is None:
                 continue
-
-            selected_index: int | None = None
-            support_verb: str | None = None
-            signal_type: str | None = None
-
-            for index in candidate_indexes:
-                neighbors = words[max(0, index - 2) : min(len(words), index + 3)]
-                support = next(
-                    (neighbor for neighbor in neighbors if neighbor in weak_verbs), None
-                )
-                if support is None:
-                    continue
-                selected_index = index
-                support_verb = support
-                signal_type = "weak_support_verb"
-                break
-
-            if selected_index is None:
-                for index in candidate_indexes:
-                    if index + 1 >= len(words):
-                        continue
-                    if words[index + 1] in linking_prepositions:
-                        selected_index = index
-                        signal_type = "abstract_noun_phrase"
-                        break
-
-            if selected_index is None and len(candidate_indexes) >= 2:
-                selected_index = candidate_indexes[0]
-                signal_type = "stacked_nominalizations"
-
-            if selected_index is None or signal_type is None:
-                continue
-            nominalization = words[selected_index]
             message = (
                 f"'{nominalization}' is carried by the weak support verb '{support_verb}'; "
                 "prefer a direct verb construction."
                 if signal_type == "weak_support_verb"
-                else f"'{nominalization}' appears in an abstract noun phrase; prefer a direct verb construction."
+                else (
+                    f"'{nominalization}' appears in an abstract noun phrase; "
+                    "prefer a direct verb construction."
+                    if signal_type == "abstract_noun_phrase"
+                    else (
+                        f"'{nominalization}' is a process noun in a core argument position; "
+                        "prefer an explicit verb form."
+                        if signal_type == "core_argument_nominalization"
+                        else (
+                            f"'{nominalization}' functions as a process noun; "
+                            "prefer an explicit verb form."
+                        )
+                    )
+                )
             )
             confidence = (
-                0.78
+                0.9
                 if signal_type == "weak_support_verb"
-                else 0.72
+                else 0.86
                 if signal_type == "abstract_noun_phrase"
-                else 0.64
+                else 0.82
+                if signal_type == "core_argument_nominalization"
+                else 0.76
             )
             violations.append(
                 Violation(
@@ -120,3 +111,171 @@ class NominalizationRule(AnnotatedRule):
 
 def register(registry) -> None:
     registry.add(NominalizationRule)
+
+
+def _detect_nominalization(
+    sentence,
+    *,
+    suffixes: tuple[str, ...],
+    allowlist: frozenset[str],
+    weak_verbs: frozenset[str],
+    linking_prepositions: frozenset[str],
+) -> tuple[str | None, str | None, str | None]:
+    if sentence.tokens:
+        return _detect_from_tokens(
+            sentence.tokens,
+            suffixes=suffixes,
+            allowlist=allowlist,
+            weak_verbs=weak_verbs,
+            linking_prepositions=linking_prepositions,
+        )
+    return _detect_from_text(
+        sentence.projection.text,
+        suffixes=suffixes,
+        allowlist=allowlist,
+        weak_verbs=weak_verbs,
+        linking_prepositions=linking_prepositions,
+    )
+
+
+def _detect_from_tokens(
+    tokens,
+    *,
+    suffixes: tuple[str, ...],
+    allowlist: frozenset[str],
+    weak_verbs: frozenset[str],
+    linking_prepositions: frozenset[str],
+) -> tuple[str | None, str | None, str | None]:
+    words = [_lemma(token) for token in tokens]
+    candidate_indexes = [
+        index
+        for index, word in enumerate(words)
+        if _token_is_candidate(
+            token=tokens[index],
+            lemma=word,
+            next_word=words[index + 1] if index + 1 < len(words) else None,
+            suffixes=suffixes,
+            allowlist=allowlist,
+            linking_prepositions=linking_prepositions,
+        )
+    ]
+    if not candidate_indexes:
+        return None, None, None
+
+    for index in candidate_indexes:
+        neighbors = words[max(0, index - 2) : min(len(words), index + 3)]
+        support = next((neighbor for neighbor in neighbors if neighbor in weak_verbs), None)
+        if support is not None:
+            return words[index], "weak_support_verb", support
+
+    for index in candidate_indexes:
+        next_word = words[index + 1] if index + 1 < len(words) else None
+        if next_word in linking_prepositions:
+            return words[index], "abstract_noun_phrase", None
+
+    for index in candidate_indexes:
+        dependency = (tokens[index].dep or "").lower()
+        if dependency in SUBJECT_OBJECT_DEPENDENCIES:
+            return words[index], "core_argument_nominalization", None
+
+    if len(candidate_indexes) >= 2:
+        return words[candidate_indexes[0]], "stacked_nominalizations", None
+
+    return None, None, None
+
+
+def _detect_from_text(
+    text: str,
+    *,
+    suffixes: tuple[str, ...],
+    allowlist: frozenset[str],
+    weak_verbs: frozenset[str],
+    linking_prepositions: frozenset[str],
+) -> tuple[str | None, str | None, str | None]:
+    words = [word.lower() for word in re.findall(r"\b\w+\b", text)]
+    candidate_indexes: list[int] = []
+    for index, word in enumerate(words):
+        next_word = words[index + 1] if index + 1 < len(words) else None
+        if _text_word_is_candidate(
+            word=word,
+            next_word=next_word,
+            suffixes=suffixes,
+            allowlist=allowlist,
+            linking_prepositions=linking_prepositions,
+        ):
+            candidate_indexes.append(index)
+    if not candidate_indexes:
+        return None, None, None
+
+    for index in candidate_indexes:
+        neighbors = words[max(0, index - 2) : min(len(words), index + 3)]
+        support = next((neighbor for neighbor in neighbors if neighbor in weak_verbs), None)
+        if support is not None:
+            return words[index], "weak_support_verb", support
+
+    for index in candidate_indexes:
+        next_word = words[index + 1] if index + 1 < len(words) else None
+        if next_word in linking_prepositions:
+            return words[index], "abstract_noun_phrase", None
+
+    if len(candidate_indexes) >= 2:
+        return words[candidate_indexes[0]], "stacked_nominalizations", None
+
+    return None, None, None
+
+
+def _token_is_candidate(
+    *,
+    token,
+    lemma: str,
+    next_word: str | None,
+    suffixes: tuple[str, ...],
+    allowlist: frozenset[str],
+    linking_prepositions: frozenset[str],
+) -> bool:
+    if not _is_suffix_candidate(lemma, suffixes, allowlist):
+        return False
+    suffix = _matching_suffix(lemma, suffixes)
+    if suffix in HIGH_NOISE_SUFFIXES:
+        pos = (token.pos or "").upper()
+        dependency = (token.dep or "").lower()
+        if pos not in {"NOUN", "PROPN"} and dependency not in SUBJECT_OBJECT_DEPENDENCIES:
+            return False
+        if next_word not in linking_prepositions and dependency not in SUBJECT_OBJECT_DEPENDENCIES:
+            return False
+    return True
+
+
+def _text_word_is_candidate(
+    *,
+    word: str,
+    next_word: str | None,
+    suffixes: tuple[str, ...],
+    allowlist: frozenset[str],
+    linking_prepositions: frozenset[str],
+) -> bool:
+    if not _is_suffix_candidate(word, suffixes, allowlist):
+        return False
+    suffix = _matching_suffix(word, suffixes)
+    if suffix in HIGH_NOISE_SUFFIXES and next_word not in linking_prepositions:
+        return False
+    return True
+
+
+def _is_suffix_candidate(word: str, suffixes: tuple[str, ...], allowlist: frozenset[str]) -> bool:
+    if len(word) < 6:
+        return False
+    if word in allowlist:
+        return False
+    return any(word.endswith(suffix) for suffix in suffixes)
+
+
+def _matching_suffix(word: str, suffixes: tuple[str, ...]) -> str | None:
+    for suffix in suffixes:
+        if word.endswith(suffix):
+            return suffix
+    return None
+
+
+def _lemma(token) -> str:
+    return (token.lemma or token.text).lower()

@@ -24,41 +24,44 @@ class AbstractFramingRule(SourcePatternRule):
         layer=Layer.SURFACE_STYLE,
         tractability=Tractability.CLASS_A,
         kind=RuleKind.HARD_CONSTRAINT,
-        default_severity=Severity.WARNING,
+        default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
         evidence_fields=("phrase",),
     )
 
     def check_source(self, lines, doc, ctx):
         _ = doc, ctx
-        framing_pattern = compile_inline_phrase_regex(
-            tuple(ctx.language_pack.lexicons.abstract_framing_phrases)
+        patterns = list(ctx.language_pack.lexicons.abstract_framing_phrases) + list(
+            self.settings.extra_patterns
         )
+        silenced = {pattern.lower() for pattern in self.settings.silenced_patterns}
+        filtered_patterns = tuple(
+            pattern for pattern in patterns if pattern.strip().lower() not in silenced
+        )
+        framing_pattern = compile_inline_phrase_regex(filtered_patterns)
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
-            match = framing_pattern.search(probe)
-            if match is None:
-                continue
-            phrase = match.group(0)
-            violations.append(
-                Violation(
-                    rule_id=self.rule_id,
-                    message=(
-                        f"Replace abstract framing '{phrase}' with a direct statement "
-                        "of the mechanism, relation, or claim."
-                    ),
-                    span=_match_span(line, match.start(), match.end()),
-                    severity=self.settings.severity,
-                    layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"phrase": phrase.lower()}),
-                    rewrite_tactics=(
-                        "State what acts on what, or what follows from what, without meta-framing.",
-                    ),
+            for match in framing_pattern.finditer(probe):
+                phrase = match.group(0)
+                violations.append(
+                    Violation(
+                        rule_id=self.rule_id,
+                        message=(
+                            f"Replace abstract framing '{phrase}' with a direct statement "
+                            "of the mechanism, relation, or claim."
+                        ),
+                        span=_match_span(line, match.start(), match.end()),
+                        severity=self.settings.severity,
+                        layer=self.metadata.layer,
+                        evidence=RuleEvidence(features={"phrase": phrase.lower()}),
+                        rewrite_tactics=(
+                            "State what acts on what, or what follows from what, without meta-framing.",
+                        ),
+                    )
                 )
-            )
         return violations
 
 

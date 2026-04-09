@@ -18,6 +18,7 @@ class PreprocessingPolicy:
 class LanguageLexicons:
     weak_support_verbs: frozenset[str] = frozenset()
     nominalization_suffixes: tuple[str, ...] = ()
+    nominalization_allowlist: frozenset[str] = frozenset()
     strong_claim_markers: tuple[str, ...] = ()
     pronoun_scaffolding_markers: tuple[str, ...] = ()
     imperative_opening_verbs: tuple[str, ...] = ()
@@ -34,6 +35,7 @@ class LanguageLexicons:
     ambiguous_reference_positions: tuple[str, ...] = ()
     explicit_reference_targets: tuple[str, ...] = ()
     generic_link_reference_labels: tuple[str, ...] = ()
+    procedural_link_terms: tuple[str, ...] = ()
     prose_math_phrases: tuple[str, ...] = ()
     assumption_hypothesis_terms: tuple[str, ...] = ()
     nominalization_linking_prepositions: frozenset[str] = frozenset()

@@ -23,6 +23,14 @@ CONTENT_FREE_FOLLOWUP_RE = re.compile(
     r"^\s*(?:it|this|that)?\s*(?:follows|holds)\.?\s*$",
     re.IGNORECASE,
 )
+DEMONSTRATIVE_PREDICATE_RE = re.compile(
+    r"^\s*(?:this|these)\s+"
+    r"(?:is|are|was|were|can|could|may|might|must|should|would|will|"
+    r"follows|follow|gives|give|shows|show|implies|imply|yields|yield|"
+    r"means|mean|holds|hold|states|state|demonstrates|demonstrate|proves|prove)\b",
+    re.IGNORECASE,
+)
+IT_THEY_OPENING_RE = re.compile(r"^\s*(?:it|they)\b", re.IGNORECASE)
 
 
 class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
@@ -73,6 +81,9 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
                 weak_transition_markers,
                 interpretive_noun_pattern,
             ):
+                continue
+            if _is_bare_pronoun_followup(next_sentence):
+                # hard blocker math.bare_pronoun_after_display handles this case explicitly.
                 continue
             violations.append(
                 _build_violation(
@@ -155,6 +166,14 @@ def _is_interpretive_followup(
         if interpretive_noun_pattern.search(lowered) is None:
             return False
     return True
+
+
+def _is_bare_pronoun_followup(sentence) -> bool:
+    lowered = sentence.projection.text.lower().strip()
+    return bool(
+        lowered
+        and (IT_THEY_OPENING_RE.match(lowered) or DEMONSTRATIVE_PREDICATE_RE.match(lowered))
+    )
 
 
 def register(registry) -> None:

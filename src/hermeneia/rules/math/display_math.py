@@ -20,12 +20,14 @@ CONTENT_FREE_LEADIN_RE = re.compile(
     r"^(?:therefore|hence|then|this gives|more explicitly|equivalently|rewriting)\s*:?\s*$",
     re.IGNORECASE,
 )
+TRAILING_PUNCTUATION_RE = re.compile(r"[.,;:!?]\s*$")
+PUNCTUATION_BEFORE_LINEBREAK_RE = re.compile(r"[.,;:!?]\s*\\\\\s*$")
 
 
 class DisplayMathRule(SourcePatternRule):
     metadata = RuleMetadata(
         rule_id="math.display_math",
-        label="Display math must have a meaningful lead-in and no internal punctuation",
+        label="Display math must have a meaningful lead-in and no line-break punctuation",
         layer=Layer.SURFACE_STYLE,
         tractability=Tractability.CLASS_A,
         kind=RuleKind.HARD_CONSTRAINT,
@@ -48,15 +50,19 @@ class DisplayMathRule(SourcePatternRule):
                 for line in block_lines
                 if line.text.strip() and line.text.strip() != "$$"
             ]
-            if any(re.search(r"[.,;:]\s*$", line) for line in inner_lines):
+            punctuation_issue = _display_punctuation_issue(inner_lines)
+            if punctuation_issue is not None:
                 violations.append(
                     Violation(
                         rule_id=self.rule_id,
-                        message="Remove punctuation from inside the display-math block.",
+                        message=(
+                            "Move punctuation out of display math when it appears at line ends "
+                            "or directly before LaTeX line breaks."
+                        ),
                         span=block.span,
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(features={"check": "internal_punctuation"}),
+                        evidence=RuleEvidence(features={"check": punctuation_issue}),
                         rewrite_tactics=(
                             "Move punctuation into the surrounding prose rather than leaving it inside the $$...$$ block.",
                         ),
@@ -88,6 +94,15 @@ def _previous_nonempty_line(lines, before_line_number: int):
     for index in range(before_line_number - 1, -1, -1):
         if lines[index].text.strip():
             return lines[index]
+    return None
+
+
+def _display_punctuation_issue(inner_lines: list[str]) -> str | None:
+    for line in inner_lines:
+        if PUNCTUATION_BEFORE_LINEBREAK_RE.search(line):
+            return "punctuation_before_linebreak"
+        if TRAILING_PUNCTUATION_RE.search(line):
+            return "trailing_line_punctuation"
     return None
 
 
