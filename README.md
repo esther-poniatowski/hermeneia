@@ -1,4 +1,4 @@
-# hermeneia
+# Hermeneia
 
 [![Conda](https://img.shields.io/badge/conda-eresthanaconda--channel-blue)](docs/guide/installation.md)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026)]()
@@ -12,7 +12,7 @@ Checks and improves research, pedagogical, and mathematical writing with profile
 
 ## Table of Contents
 
-- [hermeneia](#hermeneia)
+- [Hermeneia](#hermeneia)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
     - [Motivation](#motivation)

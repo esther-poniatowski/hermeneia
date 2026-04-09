@@ -51,6 +51,14 @@ rules:
       options:
         reference_labels: [lemma, theorem, corollary]
         procedural_terms: [note, analysis, specialization, derivation]
+    structure.opening_sentence_presence:
+      options:
+        min_opening_words: 10
+        forbidden_block_kinds: [list, table, code_block, display_math]
+    structure.section_opener_block_kind:
+      options:
+        blocked_block_kinds: [list, table, code_block, display_math]
+        apply_heading_levels: [2, 3]
 
 scoring:
   aggregation: hierarchical
@@ -91,6 +99,8 @@ These checks prevent silent policy drift and keep rule behavior auditable across
 - Unknown override fields are errors.
 - Options model validation errors are surfaced with rule id context.
 - `surface.generic_link_text` options accept only `reference_labels` and `procedural_terms`.
+- `structure.opening_sentence_presence` options accept `min_opening_words` and `forbidden_block_kinds`.
+- `structure.section_opener_block_kind` options accept `blocked_block_kinds` and `apply_heading_levels`.
 - Language-pack `supported_rules` (when declared) is enforced as a rule allowlist.
 
 ## Runtime Flags

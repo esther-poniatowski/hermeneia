@@ -524,6 +524,103 @@ def test_structure_section_opener_block_kind_rule_emits(
     assert violations[0].rule_id == "structure.section_opener_block_kind"
 
 
+def test_structure_section_opener_block_kind_rule_emits_on_list_opening(
+    registry, language_pack, research_profile
+) -> None:
+    source = "# Setup\n\n- item\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["structure.section_opener_block_kind"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.section_opener_block_kind"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["first_block_kind"] == "list"
+
+
+def test_structure_section_opener_block_kind_rule_respects_heading_level_scope(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {
+            "profile": {"name": "research"},
+            "rules": {
+                "overrides": {
+                    "structure.section_opener_block_kind": {
+                        "options": {"apply_heading_levels": [2]},
+                    }
+                }
+            },
+        }
+    )
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    source = "# Top\n\n- top item\n\n## Details\n\n- detail item\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(profile.rules["structure.section_opener_block_kind"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.section_opener_block_kind"
+    assert violations[0].span.start_line == 7
+
+
+def test_structure_section_opener_block_kind_rule_respects_block_kind_filter(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {
+            "profile": {"name": "research"},
+            "rules": {
+                "overrides": {
+                    "structure.section_opener_block_kind": {
+                        "options": {"blocked_block_kinds": ["display_math", "code_block"]},
+                    }
+                }
+            },
+        }
+    )
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    source = "# Setup\n\n- item\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(profile.rules["structure.section_opener_block_kind"])
+    assert rule.check(document, context) == []
+
+
+def test_structure_opening_sentence_presence_rule_respects_block_kind_filter(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {
+            "profile": {"name": "research"},
+            "rules": {
+                "overrides": {
+                    "structure.opening_sentence_presence": {
+                        "options": {"forbidden_block_kinds": ["table"]},
+                    }
+                }
+            },
+        }
+    )
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    list_opening = _parse(language_pack, "- item\n")
+    list_context = RuleContext(
+        profile, language_pack, FeatureStore(list_opening, list_opening.indexes)
+    )
+    rule = registry.instantiate(profile.rules["structure.opening_sentence_presence"])
+    assert rule.check(list_opening, list_context) == []
+
+    table_opening = _parse(language_pack, "| A |\n| - |\n| x |\n")
+    table_context = RuleContext(
+        profile, language_pack, FeatureStore(table_opening, table_opening.indexes)
+    )
+    violations = rule.check(table_opening, table_context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "structure.opening_sentence_presence"
+    assert violations[0].evidence is not None
+    assert violations[0].evidence.features["first_structured_kind"] == "table"
+
+
 def test_structure_section_balance_rule_emits(registry, language_pack, research_profile) -> None:
     source = (
         "# Long section\n\n"

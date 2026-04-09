@@ -465,6 +465,54 @@ def test_profile_resolution_rejects_options_model_without_model_dump(
         ProfileResolver(registry).resolve(config, language_pack)
 
 
+def test_profile_resolution_rejects_unknown_opening_sentence_presence_block_kind_option(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {
+            "rules": {
+                "overrides": {
+                    "structure.opening_sentence_presence": {
+                        "options": {"forbidden_block_kinds": ["unknown_kind"]},
+                    }
+                }
+            }
+        }
+    )
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Invalid options for rule 'structure.opening_sentence_presence': "
+            "forbidden_block_kinds includes unknown block kind 'unknown_kind'"
+        ),
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
+def test_profile_resolution_rejects_invalid_section_opener_heading_levels_option(
+    registry, language_pack
+) -> None:
+    config = parse_project_config(
+        {
+            "rules": {
+                "overrides": {
+                    "structure.section_opener_block_kind": {
+                        "options": {"apply_heading_levels": [2, 0]},
+                    }
+                }
+            }
+        }
+    )
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Invalid options for rule 'structure.section_opener_block_kind': "
+            "apply_heading_levels must contain levels >= 1"
+        ),
+    ):
+        ProfileResolver(registry).resolve(config, language_pack)
+
+
 def test_profile_resolution_rejects_legacy_language_default_shape(
     registry, language_pack
 ) -> None:
