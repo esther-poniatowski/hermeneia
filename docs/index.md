@@ -1,4 +1,4 @@
-# hermeneia
+# Hermeneia
 
 Diagnoses and improves research, pedagogical, and mathematical writing through
 profile-aware, stratified rule systems.

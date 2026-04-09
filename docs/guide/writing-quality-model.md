@@ -1,8 +1,8 @@
 # Writing Quality Model
 
-This page defines the conceptual quality model used by hermeneia.
-Accordingly, the model maps each rule family to a specific reader-comprehension constraint.
-Therefore, read the page as a dependency chain: problem -> quality priorities -> reader expectations -> measurable signals -> operational use.
+This guide defines the conceptual quality model used by hermeneia.
+
+The model maps each rule family to a specific constraint for reader comprehension.
 
 ## Problem Framing
 

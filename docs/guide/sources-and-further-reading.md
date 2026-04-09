@@ -1,7 +1,7 @@
 # Sources and Further Reading
 
 External references and tools that ground hermeneia rule rationale and audit criteria.
-Accordingly, use this page as supporting context for [Writing Quality Model](writing-quality-model.md) and [Prose Audit Protocol](prose-audit-protocol.md).
+Accordingly, this guide provides supporting context for [Writing Quality Model](writing-quality-model.md) and [Prose Audit Protocol](prose-audit-protocol.md).
 
 ## Normative References
 

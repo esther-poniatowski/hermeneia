@@ -1,13 +1,11 @@
 # Configuration
 
-Hermeneia configuration is strict YAML validated by Pydantic models.
+Configuration defines how hermeneia activates rules, resolves overrides, and shapes output.
 
-Unknown fields, unknown rule ids, and type mismatches fail early.
+The configuration file is strict YAML validated by Pydantic models.
+Accordingly, unknown fields, unknown rule ids, and type mismatches fail early.
 
-Profiles and options let teams calibrate diagnostics to audience and document genre while keeping
-one shared rule engine.
-
-Use this page after [Usage](usage.md): first run default lint, then tune policy with explicit overrides.
+Read this guide after [Usage](usage.md): run default lint once, then tune profiles and explicit overrides.
 
 ## Example
 

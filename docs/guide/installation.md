@@ -1,7 +1,6 @@
 # Installation
 
-Use this page to set up a reproducible environment.
-Accordingly, continue to [Usage](usage.md) to run the first lint pass.
+This guide indicates how to set up a reproducible environment where `hermeneia` can run deterministically.
 
 ## Prerequisites
 

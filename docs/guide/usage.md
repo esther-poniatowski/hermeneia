@@ -1,28 +1,29 @@
 # Usage
 
-Hermeneia reports writing issues as reader-impact diagnostics.
-Accordingly, it does not auto-rewrite source files by default.
-Therefore, this page shows the operational flow from first run to policy tuning.
+This guide presents the operational flow from first run to policy tuning.
 
-## Quick Check
+> [!NOTE]
+> Hermeneia reports findings as diagnostics linked to likely reader-comprehension cost and does not auto-rewrite source files by default.
 
-Use this command to verify package and platform diagnostics:
+## Run Lint
+
+### Quick Check
+
+Start by verifying package and platform diagnostics:
 
 ```sh
 hermeneia info
 ```
 
-Then run `lint` on one file before scaling to directories.
+### Analyze One File
 
-## Analyze One File
-
-Start with one file to validate profile behavior:
+Start to lint one file to validate profile behavior:
 
 ```sh
 hermeneia lint notes.md --profile research
 ```
 
-## Analyze a Directory
+### Analyze a Directory
 
 After the single-file check, run the same profile on a directory:
 
@@ -32,7 +33,10 @@ hermeneia lint docs/ --profile pedagogical
 
 `lint` recursively collects `.md` and `.markdown` files and then supports rule-scope refinement with the filters below.
 
-## Filter Rules
+## Configure Rule Scope
+
+### Filter Rules
+To diagnose one writing dimension at a time, several filtering options are available.
 
 Use explicit allowlists to isolate one writing dimension:
 
@@ -48,25 +52,7 @@ Disable specific rules after profile resolution:
 hermeneia lint notes.md --disable-rule surface.passive_voice
 ```
 
-Use these switches when diagnosing one writing dimension at a time.
-
-## Use JSON Output
-
-Use JSON when diagnostics feed scripts or continuous integration:
-
-```sh
-hermeneia lint notes.md --format json
-```
-
-## Control Exit Behavior
-
-Use `--fail-on` to enforce thresholds in automated checks:
-
-```sh
-hermeneia lint notes.md --fail-on warning
-```
-
-## Use Project Configuration
+### Use Project Configuration
 
 Load project policy from YAML:
 
@@ -76,7 +62,7 @@ hermeneia lint notes.md --config hermeneia.yaml
 
 See [Configuration](configuration.md) for schema and merge semantics.
 
-## Load External Rule Modules
+### Load External Rule Modules
 
 Load external rule packs through explicit module registration:
 
@@ -88,7 +74,29 @@ External modules must expose `register(registry)`.
 
 This extension point keeps custom rules inside the same scoring and reporting pipeline.
 
-## Output Model
+## Control Output and Exit Behavior
+
+### Use JSON Output
+
+To feed diagnostics to scripts or in continuous integration pipelines, use JSON output:
+
+```sh
+hermeneia lint notes.md --format json
+```
+
+### Control Exit Behavior
+
+To enforce thresholds in automated checks, use `--fail-on` to specify the minimum severity that should cause a non-zero exit code:
+
+```sh
+hermeneia lint notes.md --fail-on warning
+```
+
+## Interpret Results
+
+### Output Model
+
+The linter emits several outputs:
 
 - diagnostics (operational + rule execution issues)
 - rule violations with evidence/confidence/rationale
@@ -97,7 +105,7 @@ This extension point keeps custom rules inside the same scoring and reporting pi
 
 Interpret these outputs before editing text so revisions follow severity and structure.
 
-## Interpreting Diagnostics
+### Interpreting Diagnostics
 
 Treat diagnostics in this order:
 
@@ -109,7 +117,7 @@ Evidence fields identify the detected pattern, confidence and rationale indicate
 
 This interpretation order aligns with the audit contract in [Prose Audit Protocol](prose-audit-protocol.md).
 
-## Readability Signals
+### Readability Signals
 
 Hermeneia can report readability-oriented supporting signals such as:
 

@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![License: GPL](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
 
-Checks and improves research, pedagogical, and mathematical writing with profile-aware, stratified rules.
+Audits technical prose for clarity.
 
 ---
 
@@ -31,22 +31,19 @@ Checks and improves research, pedagogical, and mathematical writing with profile
 
 ### Motivation
 
-Technical and mathematical writing often obscures the intended claim and line of reasoning. This
-problem appears when prose turns actions into nouns, weakens links between ideas, or targets the
-wrong audience. Generic grammar checkers usually flag local form issues, such as spelling,
-punctuation, and sentence-level grammar, but they do not assess higher-level properties of the
-exposition, such as fluidity, clarity, accessibility, and explicitness.
+Technical and mathematical writing fails when readers cannot identify the main claim and its
+support quickly. Hermeneia helps writers diagnose clarity defects and prioritize revisions across
+drafting, review, and teaching workflows.
 
-Hermeneia addresses this gap with a layered quality model: surface directness, discourse linkage,
-paragraph progression, document structure, audience calibration, and math exposition discipline.
-It combines rule-based diagnostics with supporting signals (for example, sentence length, passive
-rate, and readability indices) so users can prioritize edits by reader impact instead of by
-cosmetic style preferences.
+By contrast, generic grammar checkers mainly flag spelling, punctuation, and local grammar.
+They usually do not evaluate cross-sentence links, section progression, or equation-to-prose
+explanation. Hermeneia audits those higher-level signals and reports evidence, confidence, and
+rationale for each finding.
 
 ### Advantages
 
-- Diagnose writing across surface style, local discourse, paragraph rhetoric, document structure, audience fit, and mathematical conventions.
-- Activate profile-aware rule sets and severities for research, pedagogical, and math workflows.
+- Diagnose clarity issues from sentence wording to document organization.
+- Apply profile-specific policies for research, pedagogical, and mathematical writing.
 - Attach evidence, confidence, and rationale to each rule outcome so reviewers can audit decisions.
 - Order revision steps by structural dependency instead of lexicographic rule order.
 - Validate configuration strictly, apply explicit merge semantics, and fail early on unknown fields or rule ids.
@@ -55,7 +52,9 @@ cosmetic style preferences.
 
 ## Features
 
-- [x] Parse Markdown into block/inline Document IR with stable block ids, sentence ids, and source spans.
+Current input support is Markdown (`.md`, `.markdown`).
+
+- [x] Parse Markdown (`.md`, `.markdown`) into block/inline Document IR with stable block ids, sentence ids, and source spans.
 - [x] Build and share `DocumentIndexes`, `SourceLine` structural views, and `FeatureStore` across all rule families.
 - [x] Classify rules as `SourcePatternRule`, `AnnotatedRule`, or `HeuristicSemanticRule`.
 - [x] Cover surface, discourse, paragraph, structure, audience, and math domains with first-party rules.
@@ -67,19 +66,26 @@ cosmetic style preferences.
 - [ ] Support scoring aggregation strategies beyond `hierarchical`.
 - [ ] Add reporting adapters, including SARIF and HTML.
 - [ ] Integrate with editors and LSP clients for in-editor diagnostics.
+- [ ] Parse native LaTeX (`.tex`) sources directly.
 - [ ] Rewrite source files in place automatically.
 
 ---
 
 ## Quick Start
 
+Quick Start provides one command-line run and one import check.
+
 ### CLI
+
+Run the linter on a Markdown file:
 
 ```sh
 hermeneia lint notes.md --profile research
 ```
 
 ### Application Programming Interface
+
+Check that the package is importable in the active environment:
 
 ```python
 import hermeneia
@@ -91,8 +97,14 @@ hermeneia.info()
 
 ## Documentation
 
-Read the documentation in this order when onboarding a project:
-quality model -> rule inventory -> usage workflow -> configuration controls -> CLI details -> audit protocol.
+Recommended reading order:
+
+1. Writing Quality Model
+2. Rule Registry
+3. Usage
+4. Configuration
+5. CLI Reference
+6. Prose Audit Protocol
 
 | Guide | Content |
 | ----- | ------- |

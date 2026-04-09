@@ -1,9 +1,11 @@
 # CLI Reference
 
-This page is the command grammar companion to [Usage](usage.md).
-Accordingly, use it for exact flags and exit contracts after learning the workflow.
+This reference is the command grammar companion to [Usage](usage.md).
+Accordingly, it provides exact flags and exit contracts after the workflow overview.
 
 ## Global Command
+
+Use this root form to invoke subcommands and global flags.
 
 ```text
 hermeneia [OPTIONS] COMMAND [ARGS]...
@@ -16,21 +18,21 @@ hermeneia [OPTIONS] COMMAND [ARGS]...
 
 ## `info`
 
+Use `info` to print version and platform diagnostics.
+Therefore, run this command first when environment behavior is uncertain.
+
 ```text
 hermeneia info
 ```
 
-Displays version/platform diagnostics.
-Therefore, use this command first when environment behavior is uncertain.
-
 ## `lint`
+
+Use `lint` to analyze one Markdown file or a directory tree.
+Accordingly, pair these options with [Configuration](configuration.md) when policy must be reproducible across runs.
 
 ```text
 hermeneia lint [OPTIONS] TARGET
 ```
-
-Lint a markdown file or directory.
-Accordingly, pair these options with [Configuration](configuration.md) when policy must be reproducible across runs.
 
 ### Argument
 
