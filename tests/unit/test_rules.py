@@ -97,7 +97,7 @@ def test_passive_voice_rule_extracts_actor_for_by_phrase(
     assert evidence.features.get("actor") == "the authors"
 
 
-def test_pronoun_rule_emits_on_subject_one_dependency(
+def test_generic_one_rule_emits_on_subject_one_dependency(
     registry, language_pack, research_profile
 ) -> None:
     source = "One derives the estimate from Lemma 2.\n"
@@ -114,10 +114,24 @@ def test_pronoun_rule_emits_on_subject_one_dependency(
         Token("estimate", "estimate", "NOUN", "dobj", 1, sentence.span, 16, 24),
     ]
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.pronoun"])
+    rule = registry.instantiate(research_profile.rules["surface.generic_one"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     evidence = violations[0].evidence
     assert evidence is not None
-    assert evidence.features.get("pronoun") == "one"
+    assert evidence.features.get("phrase") == "one"
     assert evidence.features.get("signal") == "subject_dependency"
+
+
+def test_personal_pronoun_rule_emits_on_we_subject(
+    registry, language_pack, research_profile
+) -> None:
+    source = "We now derive the estimate.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["surface.personal_pronoun"])
+    violations = rule.check(document, context)
+    assert len(violations) == 1
+    assert violations[0].rule_id == "surface.personal_pronoun"

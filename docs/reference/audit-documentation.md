@@ -69,6 +69,26 @@ Exception: mention out-of-scope content only when it provides evidence of a syst
 
 ---
 
+## Non-Encodable Normative Policy
+
+The following constraints are normative but are not fully enforceable by rule pattern matching alone.
+
+1. **Pre-output audit gate**
+   Do not publish or return final prose before lint and audit passes complete.
+
+2. **Conflict precedence**
+   When rewrite options conflict, preserve this order:
+   1. mathematical and technical correctness
+   2. hard-blocker rule compliance
+   3. note modularity and document structure
+   4. pedagogical clarity
+   5. local elegance
+
+3. **Dependency-order review**
+   Section and paragraph sequencing must preserve dependency order (prerequisites before consequences), even when local sentence-level rules pass.
+
+---
+
 ## Audit Method
 
 ### Sentence-level pass

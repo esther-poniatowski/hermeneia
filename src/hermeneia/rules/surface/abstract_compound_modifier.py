@@ -33,32 +33,45 @@ class AbstractCompoundModifierRule(SourcePatternRule):
         kind=RuleKind.HARD_CONSTRAINT,
         default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
+        default_options={
+            "allow_lexicalized_exception": True,
+            "extra_lexicalized_adjectives": (),
+        },
         evidence_fields=("compound", "signal"),
     )
 
     def check_source(self, lines, doc, ctx):
         _ = doc, ctx
         suffixes = tuple(ctx.language_pack.lexicons.abstract_compound_suffixes)
+        lexicalized = _resolve_lexicalized_set(
+            base=tuple(ctx.language_pack.lexicons.lexicalized_compound_adjectives),
+            extra=self.settings.options.get("extra_lexicalized_adjectives"),
+            enabled=self.settings.bool_option("allow_lexicalized_exception", True),
+        )
         hyphen_suffix_pattern = compile_hyphen_suffix_regex(suffixes)
         spaced_suffix_pattern = _compile_spaced_suffix_pattern(suffixes)
+        stacked_spaced_pattern = _compile_stacked_spaced_pattern(suffixes)
         patterns = (
             ("hyphen_suffix", hyphen_suffix_pattern),
             ("spaced_suffix", spaced_suffix_pattern),
             ("stacked_compound_chain", STACKED_COMPOUND_RE),
+            ("stacked_spaced_suffix_chain", stacked_spaced_pattern),
         )
         violations: list[Violation] = []
-        seen: set[tuple[int, int]] = set()
+        seen: set[tuple[int, int, int]] = set()
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             for signal, pattern in patterns:
                 for match in pattern.finditer(probe):
-                    key = (match.start(), match.end())
+                    key = (line.span.start_line, match.start(), match.end())
                     if key in seen:
                         continue
-                    seen.add(key)
                     compound = match.group(0)
+                    if _is_lexicalized(compound, lexicalized):
+                        continue
+                    seen.add(key)
                     violations.append(
                         Violation(
                             rule_id=self.rule_id,
@@ -92,6 +105,56 @@ def _compile_spaced_suffix_pattern(suffixes: tuple[str, ...]) -> re.Pattern[str]
         rf"\b[A-Za-z][A-Za-z0-9-]*\s+(?:{suffix_body})\s+[A-Za-z][A-Za-z0-9-]*\b",
         re.IGNORECASE,
     )
+
+
+def _compile_stacked_spaced_pattern(suffixes: tuple[str, ...]) -> re.Pattern[str]:
+    normalized_suffixes = tuple(
+        suffix.strip().lower() for suffix in suffixes if suffix and suffix.strip()
+    )
+    if not normalized_suffixes:
+        return re.compile(r"(?!x)x")
+    suffix_body = "|".join(re.escape(suffix) for suffix in normalized_suffixes)
+    return re.compile(
+        rf"\b(?:[A-Za-z][A-Za-z0-9-]*\s+(?:{suffix_body})\s+){{2,}}[A-Za-z][A-Za-z0-9-]*\b",
+        re.IGNORECASE,
+    )
+
+
+def _resolve_lexicalized_set(
+    *,
+    base: tuple[str, ...],
+    extra: object,
+    enabled: bool,
+) -> frozenset[str]:
+    if not enabled:
+        return frozenset()
+    values = {item.strip().lower() for item in base if item.strip()}
+    values.update(_normalize_extra_terms(extra))
+    return frozenset(values)
+
+
+def _normalize_extra_terms(raw: object) -> set[str]:
+    if raw is None:
+        return set()
+    if isinstance(raw, str):
+        value = raw.strip().lower()
+        return {value} if value else set()
+    if not isinstance(raw, (list, tuple, set, frozenset)):
+        return set()
+    normalized: set[str] = set()
+    for item in raw:
+        value = str(item).strip().lower()
+        if value:
+            normalized.add(value)
+    return normalized
+
+
+def _is_lexicalized(compound: str, lexicalized: frozenset[str]) -> bool:
+    normalized = compound.strip().lower()
+    if normalized in lexicalized:
+        return True
+    head = normalized.split()[0]
+    return head in lexicalized
 
 
 def _match_span(line, start: int, end: int) -> Span:

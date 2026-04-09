@@ -506,30 +506,27 @@ def test_math_display_followup_interpretation_rule_skips_bare_pronoun_followup(
     assert violations == []
 
 
-def test_math_bare_pronoun_after_display_rule_emits(
+def test_surface_bare_pronoun_opening_rule_emits(
     registry, language_pack, research_profile
 ) -> None:
-    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
+    source = "It follows that the estimate converges.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["math.bare_pronoun_after_display"])
+    rule = registry.instantiate(research_profile.rules["surface.bare_pronoun_opening"])
     violations = rule.check(document, context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "math.bare_pronoun_after_display"
+    assert violations[0].rule_id == "surface.bare_pronoun_opening"
     assert violations[0].evidence is not None
     assert violations[0].evidence.features["pronoun"] == "it"
 
 
-def test_math_bare_pronoun_after_display_rule_accepts_named_object_followup(
+def test_surface_bare_pronoun_opening_rule_accepts_named_subject(
     registry, language_pack, research_profile
 ) -> None:
-    source = (
-        "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n"
-        "This expression implies stability.\n"
-    )
+    source = "This expression implies stability.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["math.bare_pronoun_after_display"])
+    rule = registry.instantiate(research_profile.rules["surface.bare_pronoun_opening"])
     violations = rule.check(document, context)
     assert violations == []
 

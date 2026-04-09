@@ -108,6 +108,18 @@ class ResolvedRuleSettings:
             raise ValueError(f"Rule option '{key}' must be convertible to float")
         return float(value)
 
+    def bool_option(self, key: str, default: bool) -> bool:
+        value = self.options.get(key, default)
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            lowered = value.strip().lower()
+            if lowered in {"true", "1", "yes", "on"}:
+                return True
+            if lowered in {"false", "0", "no", "off"}:
+                return False
+        raise ValueError(f"Rule option '{key}' must be convertible to bool")
+
 
 @dataclass(frozen=True)
 class ResolvedProfile:

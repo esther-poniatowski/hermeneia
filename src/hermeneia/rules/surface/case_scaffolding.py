@@ -26,13 +26,18 @@ THE_CASE_NP_RE = re.compile(
     re.IGNORECASE,
 )
 CASE_OF_RE = re.compile(
-    r"\bcase\s+of\s+[A-Za-z0-9-]+\b",
+    r"\bcases?\s+of\s+(?:[A-Za-z0-9-]+\s+){0,4}[A-Za-z0-9-]+\b",
+    re.IGNORECASE,
+)
+THIS_CASE_RE = re.compile(
+    r"\bthis\s+(?:[A-Za-z0-9-]+\s+){0,4}cases?\b",
     re.IGNORECASE,
 )
 CASE_PATTERNS: tuple[re.Pattern[str], ...] = (
     IN_THE_CASE_RE,
     THE_CASE_NP_RE,
     CASE_OF_RE,
+    THIS_CASE_RE,
 )
 
 

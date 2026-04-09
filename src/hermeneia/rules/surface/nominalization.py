@@ -20,6 +20,7 @@ SUBJECT_OBJECT_DEPENDENCIES = frozenset(
     {"nsubj", "nsubjpass", "csubj", "obj", "dobj", "pobj", "attr"}
 )
 HIGH_NOISE_SUFFIXES = frozenset({"al", "ing"})
+ADJECTIVE_POSITION_DEPENDENCIES = frozenset({"amod", "compound"})
 
 
 class NominalizationRule(AnnotatedRule):
@@ -31,16 +32,34 @@ class NominalizationRule(AnnotatedRule):
         kind=RuleKind.HARD_CONSTRAINT,
         default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
+        default_options={
+            "allow_adjective_position_exception": True,
+            "allow_lexicalized_noun_exception": True,
+            "extra_lexicalized_nouns": (),
+        },
         abstain_when_flags=frozenset({"heavy_math_masking", "symbol_dense_sentence"}),
         evidence_fields=("nominalization", "support_verb", "signal_type"),
     )
 
     def check(self, doc, ctx):
+        allow_adjective_position_exception = self.settings.bool_option(
+            "allow_adjective_position_exception",
+            True,
+        )
+        allow_lexicalized_noun_exception = self.settings.bool_option(
+            "allow_lexicalized_noun_exception",
+            True,
+        )
         suffixes = tuple(
             suffix.lower() for suffix in ctx.language_pack.lexicons.nominalization_suffixes
         )
-        allowlist = frozenset(
-            term.lower() for term in ctx.language_pack.lexicons.nominalization_allowlist
+        allowlist = (
+            frozenset(term.lower() for term in ctx.language_pack.lexicons.nominalization_allowlist)
+            if allow_lexicalized_noun_exception
+            else frozenset()
+        )
+        allowlist = allowlist | _extra_lexicalized_terms(
+            self.settings.options.get("extra_lexicalized_nouns")
         )
         weak_verbs = ctx.language_pack.lexicons.weak_support_verbs
         linking_prepositions = ctx.language_pack.lexicons.nominalization_linking_prepositions
@@ -54,6 +73,7 @@ class NominalizationRule(AnnotatedRule):
                 allowlist=allowlist,
                 weak_verbs=weak_verbs,
                 linking_prepositions=linking_prepositions,
+                allow_adjective_position_exception=allow_adjective_position_exception,
             )
             if nominalization is None or signal_type is None:
                 continue
@@ -120,6 +140,7 @@ def _detect_nominalization(
     allowlist: frozenset[str],
     weak_verbs: frozenset[str],
     linking_prepositions: frozenset[str],
+    allow_adjective_position_exception: bool,
 ) -> tuple[str | None, str | None, str | None]:
     if sentence.tokens:
         return _detect_from_tokens(
@@ -128,6 +149,7 @@ def _detect_nominalization(
             allowlist=allowlist,
             weak_verbs=weak_verbs,
             linking_prepositions=linking_prepositions,
+            allow_adjective_position_exception=allow_adjective_position_exception,
         )
     return _detect_from_text(
         sentence.projection.text,
@@ -145,6 +167,7 @@ def _detect_from_tokens(
     allowlist: frozenset[str],
     weak_verbs: frozenset[str],
     linking_prepositions: frozenset[str],
+    allow_adjective_position_exception: bool,
 ) -> tuple[str | None, str | None, str | None]:
     words = [_lemma(token) for token in tokens]
     candidate_indexes = [
@@ -154,9 +177,11 @@ def _detect_from_tokens(
             token=tokens[index],
             lemma=word,
             next_word=words[index + 1] if index + 1 < len(words) else None,
+            next_token=tokens[index + 1] if index + 1 < len(tokens) else None,
             suffixes=suffixes,
             allowlist=allowlist,
             linking_prepositions=linking_prepositions,
+            allow_adjective_position_exception=allow_adjective_position_exception,
         )
     ]
     if not candidate_indexes:
@@ -177,6 +202,12 @@ def _detect_from_tokens(
         dependency = (tokens[index].dep or "").lower()
         if dependency in SUBJECT_OBJECT_DEPENDENCIES:
             return words[index], "core_argument_nominalization", None
+
+    if not allow_adjective_position_exception:
+        for index in candidate_indexes:
+            next_token = tokens[index + 1] if index + 1 < len(tokens) else None
+            if _is_adjective_position(tokens[index], next_token):
+                return words[index], "adjective_position_nominalization", None
 
     if len(candidate_indexes) >= 2:
         return words[candidate_indexes[0]], "stacked_nominalizations", None
@@ -229,11 +260,15 @@ def _token_is_candidate(
     token,
     lemma: str,
     next_word: str | None,
+    next_token,
     suffixes: tuple[str, ...],
     allowlist: frozenset[str],
     linking_prepositions: frozenset[str],
+    allow_adjective_position_exception: bool,
 ) -> bool:
     if not _is_suffix_candidate(lemma, suffixes, allowlist):
+        return False
+    if allow_adjective_position_exception and _is_adjective_position(token, next_token):
         return False
     suffix = _matching_suffix(lemma, suffixes)
     if suffix in HIGH_NOISE_SUFFIXES:
@@ -260,6 +295,33 @@ def _text_word_is_candidate(
     if suffix in HIGH_NOISE_SUFFIXES and next_word not in linking_prepositions:
         return False
     return True
+
+
+def _extra_lexicalized_terms(raw: object) -> frozenset[str]:
+    if raw is None:
+        return frozenset()
+    if isinstance(raw, str):
+        value = raw.strip().lower()
+        return frozenset({value}) if value else frozenset()
+    if not isinstance(raw, (list, tuple, set, frozenset)):
+        return frozenset()
+    values: set[str] = set()
+    for item in raw:
+        value = str(item).strip().lower()
+        if value:
+            values.add(value)
+    return frozenset(values)
+
+
+def _is_adjective_position(token, next_token) -> bool:
+    dependency = (token.dep or "").lower()
+    if dependency in ADJECTIVE_POSITION_DEPENDENCIES:
+        return True
+    if next_token is None:
+        return False
+    token_pos = (token.pos or "").upper()
+    next_pos = (next_token.pos or "").upper()
+    return token_pos in {"NOUN", "PROPN"} and next_pos in {"NOUN", "PROPN"} and dependency == "compound"
 
 
 def _is_suffix_candidate(word: str, suffixes: tuple[str, ...], allowlist: frozenset[str]) -> bool:

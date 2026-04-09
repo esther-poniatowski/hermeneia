@@ -7,6 +7,5 @@ Historical and standards reference material used to design and evaluate hermenei
 
 writing-standards
 audit-documentation
-hard-rules
 initial-proposal
 ```

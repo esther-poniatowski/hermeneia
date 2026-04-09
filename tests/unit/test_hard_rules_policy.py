@@ -15,7 +15,7 @@ from hermeneia.rules.base import RuleKind, Severity
         "surface.abstract_compound_modifier",
         "surface.case_scaffolding",
         "math.display_math",
-        "math.bare_pronoun_after_display",
+        "surface.bare_pronoun_opening",
     ],
 )
 def test_hard_rule_policy_defaults_to_error_blockers(registry, rule_id: str) -> None:
