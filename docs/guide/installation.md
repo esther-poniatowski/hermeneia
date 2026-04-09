@@ -1,5 +1,8 @@
 # Installation
 
+Use this page to set up a reproducible environment.
+Accordingly, continue to [Usage](usage.md) to run the first lint pass.
+
 ## Prerequisites
 
 - Python `3.12`
@@ -45,3 +48,5 @@ pip install -e ".[semantic]"
 
 - The environment pins spaCy model compatibility for deterministic test behavior.
 - Without editable installation, commands can still run by setting `PYTHONPATH=src`.
+
+After installation, go to [Usage](usage.md) for command workflow and to [Configuration](configuration.md) for policy tuning.

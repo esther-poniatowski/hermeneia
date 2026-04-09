@@ -1,6 +1,7 @@
-# Bibliography
+# Sources and Further Reading
 
 External references and tools that ground hermeneia rule rationale and audit criteria.
+Accordingly, use this page as supporting context for [Writing Quality Model](writing-quality-model.md) and [Prose Audit Protocol](prose-audit-protocol.md).
 
 ## Normative References
 
@@ -32,4 +33,3 @@ External references and tools that ground hermeneia rule rationale and audit cri
 | `stanford-writing-sciences` | Scientific-writing training material | Stanford Online, *Writing in the Sciences* | <https://online.stanford.edu/courses/som-y0010-writing-sciences> |
 | `swan-writing-assistant` | Scientific-writing assistant focused on content guidance | SWAN - Scientific Writing AssistaNt | <https://cs.joensuu.fi/swan/> |
 | `tagcrowd-wordcloud` | Word-frequency visualization | TagCrowd | <https://tagcrowd.com/> |
-

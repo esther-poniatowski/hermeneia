@@ -4,6 +4,11 @@ Hermeneia configuration is strict YAML validated by Pydantic models.
 
 Unknown fields, unknown rule ids, and type mismatches fail early.
 
+Profiles and options let teams calibrate diagnostics to audience and document genre while keeping
+one shared rule engine.
+
+Use this page after [Usage](usage.md): first run default lint, then tune policy with explicit overrides.
+
 ## Example
 
 ```yaml
@@ -62,6 +67,8 @@ reporting:
 
 ## Merge and Resolution Semantics
 
+This section explains how the engine combines configuration layers into one effective rule policy.
+
 Rule settings are resolved in this order:
 
 1. Rule metadata defaults
@@ -78,6 +85,8 @@ Field semantics:
 
 ## Strict Validation Rules
 
+These checks prevent silent policy drift and keep rule behavior auditable across teams.
+
 - Unknown rule ids in `active`, `disabled`, `overrides`, language defaults, or profile defaults are errors.
 - Unknown override fields are errors.
 - Options model validation errors are surfaced with rule id context.
@@ -86,22 +95,45 @@ Field semantics:
 
 ## Runtime Flags
 
+Runtime flags control optional capabilities without changing core rule definitions.
+
 - `runtime.experimental_rules`: enables experimental rules.
 - `runtime.debug`: propagated to rule runtime capability flags.
 - `runtime.embeddings`: configures optional embedding backend.
 - `runtime.external_rule_modules`: preloads external modules exposing `register(registry)`.
 
+## Why Profiles Matter
+
+Profile presets encode quality priorities for different writing contexts:
+
+- `research`: emphasizes formal argument precision and evidence calibration
+- `pedagogical`: tightens accessibility and jargon constraints
+- `math`: strengthens notation, equation-context, and proof-flow checks
+
+Starting from a profile avoids ad hoc per-rule toggling and keeps policy consistent across files.
+
 ## Scoring and Suggestions
+
+These options control output behavior after rules execute.
 
 - `scoring.output` controls emitted score payload fields.
   - If score fields are omitted, score computation is skipped.
 - `suggestions.enabled: false` disables revision plan operations entirely.
 - `suggestions.default_mode` controls fallback suggestion behavior.
 
+## Statistics and Heuristics
+
+Some checks are deterministic pattern constraints.
+Conversely, other checks are heuristic diagnostics that expose potential reader-friction signals.
+Accordingly, use weights, severities, and profile overrides to tune false-positive tolerance without disabling
+entire quality dimensions.
+
 ## Reporting
 
 - `reporting.format` is consumed by CLI output rendering (`text`/`json`).
 - `reporting.sort_by` is currently validated and parsed but not yet applied in rendering order.
+
+For the command-level switches that select config files and output mode, see [CLI Reference](cli-reference.md).
 
 ## Language
 

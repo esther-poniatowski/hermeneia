@@ -37,6 +37,12 @@ wrong audience. Generic grammar checkers usually flag local form issues, such as
 punctuation, and sentence-level grammar, but they do not assess higher-level properties of the
 exposition, such as fluidity, clarity, accessibility, and explicitness.
 
+Hermeneia addresses this gap with a layered quality model: surface directness, discourse linkage,
+paragraph progression, document structure, audience calibration, and math exposition discipline.
+It combines rule-based diagnostics with supporting signals (for example, sentence length, passive
+rate, and readability indices) so users can prioritize edits by reader impact instead of by
+cosmetic style preferences.
+
 ### Advantages
 
 - Diagnose writing across surface style, local discourse, paragraph rhetoric, document structure, audience fit, and mathematical conventions.
@@ -85,14 +91,19 @@ hermeneia.info()
 
 ## Documentation
 
+Read the documentation in this order when onboarding a project:
+quality model -> rule inventory -> usage workflow -> configuration controls -> CLI details -> audit protocol.
+
 | Guide | Content |
 | ----- | ------- |
 | [Installation](docs/guide/installation.md) | Prerequisites and source setup |
 | [Usage](docs/guide/usage.md) | Common analysis workflows and rule filtering |
 | [CLI Reference](docs/guide/cli-reference.md) | Command and option reference |
 | [Configuration](docs/guide/configuration.md) | Schema, resolution layers, and merge semantics |
+| [Prose Audit Protocol](docs/guide/prose-audit-protocol.md) | Manual audit workflow, severity model, and verdict contract |
+| [Writing Quality Model](docs/guide/writing-quality-model.md) | Conceptual quality rationale and readability baseline |
+| [Sources and Further Reading](docs/guide/sources-and-further-reading.md) | External sources and supporting tools |
 | [Internals](docs/internals/index.md) | Architecture, pipeline, and extension seams |
-| [Reference](docs/reference/index.md) | Standards and historical design references |
 | [Architecture Decisions](docs/adr/index.md) | Accepted design decisions and rejected alternatives |
 
 Full API documentation and rendered guides are also available at

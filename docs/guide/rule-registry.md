@@ -1,9 +1,6 @@
 # Rule Registry
 
-This registry lists all built-in rules shipped with hermeneia v1.
-
-Rules are grouped by functional purpose rather than by module path.
-Examples are illustrative.
+This registry lists all built-in rules shipped with hermeneia v1, groups them by functional purpose rather than module path, and uses illustrative examples only; pair it with [Configuration](configuration.md) for activation and override semantics.
 
 ## Surface Clarity and Precision
 
