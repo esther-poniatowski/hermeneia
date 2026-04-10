@@ -49,19 +49,19 @@ class RevisionPlanner:
         )
 
     def _candidate_for(self, violation: Violation) -> RewriteCandidate:
-        if violation.rule_id == "surface.contraction":
+        if violation.rule_id == "vocabulary.contraction":
             contraction = _evidence_str(violation, "contraction")
             return rewrite_for_contraction(contraction)
         if violation.rule_id == "math.proof_marker":
             return rewrite_for_proof_marker()
-        if violation.rule_id == "surface.passive_voice":
+        if violation.rule_id == "syntax.passive_voice":
             candidate = rewrite_for_passive_voice(
                 actor=_evidence_str(violation, "actor"),
                 participle=_evidence_str(violation, "participle"),
             )
             if candidate is not None:
                 return candidate
-        if violation.rule_id == "surface.nominalization":
+        if violation.rule_id == "vocabulary.nominalization":
             candidate = rewrite_for_nominalization(
                 nominalization=_evidence_str(violation, "nominalization"),
                 support_verb=_evidence_str(violation, "support_verb"),

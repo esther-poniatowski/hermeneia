@@ -72,7 +72,7 @@ class AssumptionMotivationOrderRule(HeuristicSemanticRule):
                     confidence=0.74,
                     rationale=(
                         "Assumption-order checks use bounded lexical purpose markers and can "
-                        "miss implicit motivation in broader discourse."
+                        "miss implicit motivation in broader sentence."
                     ),
                     rewrite_tactics=(
                         "State the goal first (for example, stability or uniqueness), then introduce the assumption.",

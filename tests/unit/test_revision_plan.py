@@ -10,7 +10,7 @@ def test_revision_plan_orders_by_logical_phase_before_local_rewrites() -> None:
     plan = RevisionPlanner().build(
         [
             Violation(
-                "surface.contraction",
+                "vocabulary.contraction",
                 "surface",
                 span,
                 Severity.ERROR,
@@ -38,14 +38,14 @@ def test_revision_plan_orders_by_logical_phase_before_local_rewrites() -> None:
                 Layer.PARAGRAPH_RHETORIC,
             ),
             Violation(
-                "discourse.subject_verb_distance",
+                "syntax.subject_verb_distance",
                 "discourse",
                 span,
                 Severity.WARNING,
                 Layer.LOCAL_DISCOURSE,
             ),
             Violation(
-                "audience.definition_before_use",
+                "terminology.definition_before_use",
                 "audience",
                 span,
                 Severity.ERROR,
@@ -57,9 +57,9 @@ def test_revision_plan_orders_by_logical_phase_before_local_rewrites() -> None:
         "structure.heading_parallelism",
         "paragraph.mixed_topic",
         "paragraph.topic_sentence",
-        "discourse.subject_verb_distance",
-        "audience.definition_before_use",
-        "surface.contraction",
+        "syntax.subject_verb_distance",
+        "terminology.definition_before_use",
+        "vocabulary.contraction",
     )
 
 
@@ -67,21 +67,21 @@ def test_revision_plan_uses_position_and_rule_id_for_stable_ties() -> None:
     plan = RevisionPlanner().build(
         [
             Violation(
-                "discourse.b",
+                "sentence.b",
                 "late",
                 Span(30, 35, 3, 1, 3, 6),
                 Severity.WARNING,
                 Layer.LOCAL_DISCOURSE,
             ),
             Violation(
-                "discourse.c",
+                "sentence.c",
                 "same-span-c",
                 Span(10, 15, 1, 1, 1, 6),
                 Severity.WARNING,
                 Layer.LOCAL_DISCOURSE,
             ),
             Violation(
-                "discourse.a",
+                "sentence.a",
                 "same-span-a",
                 Span(10, 15, 1, 1, 1, 6),
                 Severity.WARNING,
@@ -90,9 +90,9 @@ def test_revision_plan_uses_position_and_rule_id_for_stable_ties() -> None:
         ]
     )
     assert tuple(operation.rule_id for operation in plan.operations) == (
-        "discourse.a",
-        "discourse.c",
-        "discourse.b",
+        "sentence.a",
+        "sentence.c",
+        "sentence.b",
     )
 
 
@@ -101,7 +101,7 @@ def test_revision_plan_contraction_emits_guarded_template_candidate() -> None:
     plan = RevisionPlanner().build(
         [
             Violation(
-                "surface.contraction",
+                "vocabulary.contraction",
                 "Expand contraction",
                 span,
                 Severity.WARNING,
@@ -120,7 +120,7 @@ def test_revision_plan_nominalization_template_requires_stable_mapping() -> None
     plan = RevisionPlanner().build(
         [
             Violation(
-                "surface.nominalization",
+                "vocabulary.nominalization",
                 "nominalization",
                 span,
                 Severity.WARNING,
@@ -131,7 +131,7 @@ def test_revision_plan_nominalization_template_requires_stable_mapping() -> None
                 rewrite_tactics=("Prefer a direct verb construction.",),
             ),
             Violation(
-                "surface.nominalization",
+                "vocabulary.nominalization",
                 "nominalization",
                 span,
                 Severity.WARNING,
@@ -172,7 +172,7 @@ def test_revision_plan_passive_voice_template_requires_identifiable_actor() -> N
     plan = RevisionPlanner().build(
         [
             Violation(
-                "surface.passive_voice",
+                "syntax.passive_voice",
                 "passive voice",
                 span,
                 Severity.WARNING,
@@ -181,7 +181,7 @@ def test_revision_plan_passive_voice_template_requires_identifiable_actor() -> N
                 rewrite_tactics=("Rewrite the clause in active voice.",),
             ),
             Violation(
-                "surface.passive_voice",
+                "syntax.passive_voice",
                 "passive voice",
                 span,
                 Severity.WARNING,

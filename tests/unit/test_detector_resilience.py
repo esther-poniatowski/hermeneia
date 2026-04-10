@@ -91,7 +91,7 @@ class ContextFlagsRule(SourcePatternRule):
 
 def test_rule_detector_contains_rule_exceptions(registry, language_pack) -> None:
     registry.add(BrokenRule)
-    config = parse_project_config({"rules": {"active": ["surface.contraction", "test.broken"]}})
+    config = parse_project_config({"rules": {"active": ["vocabulary.contraction", "test.broken"]}})
     profile = ProfileResolver(registry).resolve(config, language_pack)
     document = MarkdownDocumentParser(language_pack).parse(
         ParseRequest(source="It's fine.\n", path=Path("demo.md"))
@@ -102,7 +102,7 @@ def test_rule_detector_contains_rule_exceptions(registry, language_pack) -> None
         language_pack,
         FeatureStore(document, document.indexes),
     )
-    assert any(violation.rule_id == "surface.contraction" for violation in detection.violations)
+    assert any(violation.rule_id == "vocabulary.contraction" for violation in detection.violations)
     assert any(
         diagnostic.rule_id == "test.broken" and diagnostic.code == "rule_execution_error"
         for diagnostic in detection.diagnostics
@@ -112,7 +112,7 @@ def test_rule_detector_contains_rule_exceptions(registry, language_pack) -> None
 def test_rule_detector_enforces_violation_contract(registry, language_pack) -> None:
     registry.add(ContractBrokenRule)
     config = parse_project_config(
-        {"rules": {"active": ["surface.contraction", "test.contract_broken"]}}
+        {"rules": {"active": ["vocabulary.contraction", "test.contract_broken"]}}
     )
     profile = ProfileResolver(registry).resolve(config, language_pack)
     document = MarkdownDocumentParser(language_pack).parse(
@@ -124,7 +124,7 @@ def test_rule_detector_enforces_violation_contract(registry, language_pack) -> N
         language_pack,
         FeatureStore(document, document.indexes),
     )
-    assert any(violation.rule_id == "surface.contraction" for violation in detection.violations)
+    assert any(violation.rule_id == "vocabulary.contraction" for violation in detection.violations)
     assert all(violation.rule_id != "test.contract_broken" for violation in detection.violations)
     assert any(
         diagnostic.rule_id == "test.contract_broken" and diagnostic.code == "rule_contract_error"

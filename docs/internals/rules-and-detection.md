@@ -1,5 +1,25 @@
 # Rules and Detection
 
+## Grouping Axes
+
+Hermeneia uses three distinct axes for rules. These axes are intentionally independent.
+
+1. Namespace (in `rule_id`): topical ownership and discoverability.
+   - Examples: `vocabulary.*`, `syntax.*`, `linkage.*`, `reference.*`, `paragraph.*`, `structure.*`, `terminology.*`, `evidence.*`, `math.*`
+2. Layer (`RuleMetadata.layer`): reader-impact dimension used by scoring and reporting.
+   - `surface_style`, `local_discourse`, `paragraph_rhetoric`, `document_structure`, `audience_fit`
+3. Runtime class (base type): execution strategy.
+   - `SourcePatternRule`, `AnnotatedRule`, `HeuristicSemanticRule`
+
+Because these axes serve different purposes, they do not always align one-to-one.
+For example, `math.*` rules are math-scoped by namespace, but can map to different layers:
+`math.display_math` -> `surface_style`, `math.display_followup_interpretation` -> `local_discourse`,
+`math.proof_placement_context` -> `document_structure`, and
+`math.assumption_motivation_order` -> `audience_fit`.
+
+Accordingly, rule placement is **not** based on textual unit alone (sentence/paragraph/section).
+A sentence-level check may belong to different namespaces depending on the phenomenon it diagnoses.
+
 ## Rule Taxonomy
 
 Hermeneia supports three runtime rule base classes:
@@ -23,6 +43,11 @@ Each rule class declares `RuleMetadata`:
 - required evidence fields
 - suggestion mode
 - experimental status
+
+`layer` is not cosmetic metadata:
+
+- violation contracts enforce `Violation.layer == RuleMetadata.layer`
+- hierarchical scoring aggregates penalties by `Layer`
 
 ## Registration and Loading
 

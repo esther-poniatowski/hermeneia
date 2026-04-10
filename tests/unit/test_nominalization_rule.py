@@ -20,11 +20,11 @@ def test_nominalization_rule_emits_on_weak_support_verb(
     source = "The construction is a stable mechanism for approximation.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.nominalization"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.nominalization"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     violation = violations[0]
-    assert violation.rule_id == "surface.nominalization"
+    assert violation.rule_id == "vocabulary.nominalization"
     assert violation.evidence is not None
     assert violation.evidence.features["signal_type"] == "weak_support_verb"
 
@@ -35,11 +35,11 @@ def test_nominalization_rule_emits_on_abstract_noun_phrase(
     source = "The composition of f with g yields a contraction.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.nominalization"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.nominalization"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     violation = violations[0]
-    assert violation.rule_id == "surface.nominalization"
+    assert violation.rule_id == "vocabulary.nominalization"
     assert violation.evidence is not None
     assert violation.evidence.features["signal_type"] == "abstract_noun_phrase"
 
@@ -50,6 +50,6 @@ def test_nominalization_rule_allows_configured_technical_exceptions(
     source = "Uniqueness holds under compactness.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.nominalization"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.nominalization"])
     violations = rule.check(document, context)
     assert violations == []

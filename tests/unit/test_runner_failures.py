@@ -31,7 +31,7 @@ class PassthroughAnnotator:
 
 
 def test_analysis_runner_continues_after_parse_failure(registry, language_pack) -> None:
-    config = parse_project_config({"rules": {"active": ["surface.contraction"]}})
+    config = parse_project_config({"rules": {"active": ["vocabulary.contraction"]}})
     profile = ProfileResolver(registry).resolve(config, language_pack)
     runner = AnalysisRunner(
         parser=FlakyParser(language_pack),
@@ -50,7 +50,7 @@ def test_analysis_runner_continues_after_parse_failure(registry, language_pack) 
     assert len(batch.results) == 1
     result = batch.results[0]
     assert result.report.path == Path("good.md")
-    assert any(violation.rule_id == "surface.contraction" for violation in result.violations)
+    assert any(violation.rule_id == "vocabulary.contraction" for violation in result.violations)
     assert any(
         diagnostic.code == "parse_failure" and diagnostic.path == Path("bad.md")
         for diagnostic in batch.diagnostics
@@ -60,7 +60,7 @@ def test_analysis_runner_continues_after_parse_failure(registry, language_pack) 
 def test_analysis_runner_skips_scoring_and_revision_plan_when_disabled(
     registry, language_pack
 ) -> None:
-    config = parse_project_config({"rules": {"active": ["surface.contraction"]}})
+    config = parse_project_config({"rules": {"active": ["vocabulary.contraction"]}})
     profile = ProfileResolver(registry).resolve(config, language_pack)
     runner = AnalysisRunner(
         parser=MarkdownDocumentParser(language_pack),

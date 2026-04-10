@@ -29,20 +29,20 @@ def test_nominalization_rule_can_disable_lexicalized_exception(registry, languag
     source = "The documentation is clear.\n"
     document = _parse(language_pack, source)
 
-    default_config = parse_project_config({"rules": {"active": ["surface.nominalization"]}})
+    default_config = parse_project_config({"rules": {"active": ["vocabulary.nominalization"]}})
     default_profile = ProfileResolver(registry).resolve(default_config, language_pack)
     default_context = RuleContext(
         default_profile, language_pack, FeatureStore(document, document.indexes)
     )
-    default_rule = registry.instantiate(default_profile.rules["surface.nominalization"])
+    default_rule = registry.instantiate(default_profile.rules["vocabulary.nominalization"])
     assert default_rule.check(document, default_context) == []
 
     strict_config = parse_project_config(
         {
             "rules": {
-                "active": ["surface.nominalization"],
+                "active": ["vocabulary.nominalization"],
                 "overrides": {
-                    "surface.nominalization": {
+                    "vocabulary.nominalization": {
                         "options": {"allow_lexicalized_noun_exception": False}
                     }
                 },
@@ -53,30 +53,30 @@ def test_nominalization_rule_can_disable_lexicalized_exception(registry, languag
     strict_context = RuleContext(
         strict_profile, language_pack, FeatureStore(document, document.indexes)
     )
-    strict_rule = registry.instantiate(strict_profile.rules["surface.nominalization"])
+    strict_rule = registry.instantiate(strict_profile.rules["vocabulary.nominalization"])
     violations = strict_rule.check(document, strict_context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "surface.nominalization"
+    assert violations[0].rule_id == "vocabulary.nominalization"
 
 
 def test_nominalization_rule_can_disable_adjective_position_exception(registry, language_pack) -> None:
     source = "Configuration file stores values.\n"
 
-    default_config = parse_project_config({"rules": {"active": ["surface.nominalization"]}})
+    default_config = parse_project_config({"rules": {"active": ["vocabulary.nominalization"]}})
     default_profile = ProfileResolver(registry).resolve(default_config, language_pack)
     default_document = _annotate(language_pack, default_profile, _parse(language_pack, source))
     default_context = RuleContext(
         default_profile, language_pack, FeatureStore(default_document, default_document.indexes)
     )
-    default_rule = registry.instantiate(default_profile.rules["surface.nominalization"])
+    default_rule = registry.instantiate(default_profile.rules["vocabulary.nominalization"])
     assert default_rule.check(default_document, default_context) == []
 
     strict_config = parse_project_config(
         {
             "rules": {
-                "active": ["surface.nominalization"],
+                "active": ["vocabulary.nominalization"],
                 "overrides": {
-                    "surface.nominalization": {
+                    "vocabulary.nominalization": {
                         "options": {
                             "allow_adjective_position_exception": False,
                             "allow_lexicalized_noun_exception": False,
@@ -91,17 +91,17 @@ def test_nominalization_rule_can_disable_adjective_position_exception(registry, 
     strict_context = RuleContext(
         strict_profile, language_pack, FeatureStore(strict_document, strict_document.indexes)
     )
-    strict_rule = registry.instantiate(strict_profile.rules["surface.nominalization"])
+    strict_rule = registry.instantiate(strict_profile.rules["vocabulary.nominalization"])
     violations = strict_rule.check(strict_document, strict_context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "surface.nominalization"
+    assert violations[0].rule_id == "vocabulary.nominalization"
 
 
 def test_vague_procedural_nominalization_rule_emits(registry, language_pack, research_profile) -> None:
     source = "The comparison remains inconclusive.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.vague_procedural_nominalization"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.vague_procedural_nominalization"])
     violations = rule.check(document, context)
     assert len(violations) == 1
 
@@ -112,7 +112,7 @@ def test_abstract_framing_rule_covers_forbidden_literal_strings(
     source = "The operator is responsible for the contraction.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.abstract_framing"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.abstract_framing"])
     violations = rule.check(document, context)
     assert len(violations) == 1
 
@@ -123,7 +123,7 @@ def test_vague_procedural_nominalization_rule_accepts_explicit_arguments(
     source = "The comparison between X and Y remains inconclusive.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.vague_procedural_nominalization"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.vague_procedural_nominalization"])
     assert rule.check(document, context) == []
 
 
@@ -131,10 +131,10 @@ def test_concrete_subject_rule_emits(registry, language_pack, research_profile) 
     source = "This section derives the factorization.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.concrete_subject"])
+    rule = registry.instantiate(research_profile.rules["vocabulary.concrete_subject"])
     violations = rule.check(document, context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "surface.concrete_subject"
+    assert violations[0].rule_id == "vocabulary.concrete_subject"
 
 
 def test_lexicalized_compound_exception_is_configurable(registry, language_pack) -> None:
@@ -142,21 +142,21 @@ def test_lexicalized_compound_exception_is_configurable(registry, language_pack)
     document = _parse(language_pack, source)
 
     default_config = parse_project_config(
-        {"rules": {"active": ["surface.abstract_compound_modifier"]}}
+        {"rules": {"active": ["vocabulary.abstract_compound_modifier"]}}
     )
     default_profile = ProfileResolver(registry).resolve(default_config, language_pack)
     default_context = RuleContext(
         default_profile, language_pack, FeatureStore(document, document.indexes)
     )
-    default_rule = registry.instantiate(default_profile.rules["surface.abstract_compound_modifier"])
+    default_rule = registry.instantiate(default_profile.rules["vocabulary.abstract_compound_modifier"])
     assert default_rule.check(document, default_context) == []
 
     strict_config = parse_project_config(
         {
             "rules": {
-                "active": ["surface.abstract_compound_modifier"],
+                "active": ["vocabulary.abstract_compound_modifier"],
                 "overrides": {
-                    "surface.abstract_compound_modifier": {
+                    "vocabulary.abstract_compound_modifier": {
                         "options": {"allow_lexicalized_exception": False}
                     }
                 },
@@ -167,7 +167,7 @@ def test_lexicalized_compound_exception_is_configurable(registry, language_pack)
     strict_context = RuleContext(
         strict_profile, language_pack, FeatureStore(document, document.indexes)
     )
-    strict_rule = registry.instantiate(strict_profile.rules["surface.abstract_compound_modifier"])
+    strict_rule = registry.instantiate(strict_profile.rules["vocabulary.abstract_compound_modifier"])
     violations = strict_rule.check(document, strict_context)
     assert len(violations) == 1
 
@@ -184,10 +184,10 @@ def test_sentence_economy_rules_emit(registry, language_pack, research_profile) 
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
 
-    verbose = registry.instantiate(research_profile.rules["surface.verbose_preamble"])
-    redundant = registry.instantiate(research_profile.rules["surface.redundant_leadin"])
-    long_enum = registry.instantiate(research_profile.rules["surface.long_inline_enumeration"])
-    stacked = registry.instantiate(research_profile.rules["surface.stacked_nominalization_chain"])
+    verbose = registry.instantiate(research_profile.rules["vocabulary.verbose_preamble"])
+    redundant = registry.instantiate(research_profile.rules["vocabulary.redundant_leadin"])
+    long_enum = registry.instantiate(research_profile.rules["syntax.long_inline_enumeration"])
+    stacked = registry.instantiate(research_profile.rules["vocabulary.stacked_nominalization_chain"])
 
     assert len(verbose.check(document, context)) == 1
     assert len(redundant.check(document, context)) == 1

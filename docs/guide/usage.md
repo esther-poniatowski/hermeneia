@@ -51,14 +51,14 @@ Use explicit allowlists to isolate one writing dimension:
 
 ```sh
 hermeneia lint notes.md \
-  --rule surface.contraction \
-  --rule discourse.subject_verb_distance
+  --rule vocabulary.contraction \
+  --rule syntax.subject_verb_distance
 ```
 
 Disable specific rules after profile resolution:
 
 ```sh
-hermeneia lint notes.md --disable-rule surface.passive_voice
+hermeneia lint notes.md --disable-rule syntax.passive_voice
 ```
 
 ### Load Project Configuration

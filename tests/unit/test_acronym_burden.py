@@ -20,10 +20,10 @@ def test_acronym_burden_emits_for_undefined_acronym(
     source = "The PDE is solved numerically.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.acronym_burden"])
+    rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     violations = rule.check(document, context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "audience.acronym_burden"
+    assert violations[0].rule_id == "terminology.acronym_burden"
     assert violations[0].evidence is not None
     assert violations[0].evidence.features["issue"] == "undefined_acronym"
 
@@ -37,7 +37,7 @@ def test_acronym_burden_skips_when_definition_precedes_use(
     )
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.acronym_burden"])
+    rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     assert rule.check(document, context) == []
 
 
@@ -53,10 +53,10 @@ def test_acronym_burden_emits_for_acronym_overuse_against_full_form(
     )
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.acronym_burden"])
+    rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     violation = violations[0]
-    assert violation.rule_id == "audience.acronym_burden"
+    assert violation.rule_id == "terminology.acronym_burden"
     assert violation.evidence is not None
     assert violation.evidence.features["issue"] == "acronym_overuse"

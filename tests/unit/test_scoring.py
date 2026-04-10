@@ -12,7 +12,7 @@ def test_hierarchical_scorer_applies_rule_weights_by_layer() -> None:
     scorecard = HierarchicalScorer().score(
         [
             Violation(
-                "surface.contraction", "x", span, Severity.WARNING, Layer.SURFACE_STYLE
+                "vocabulary.contraction", "x", span, Severity.WARNING, Layer.SURFACE_STYLE
             ),
             Violation(
                 "math.display_math", "y", span, Severity.ERROR, Layer.SURFACE_STYLE
@@ -26,7 +26,7 @@ def test_hierarchical_scorer_applies_rule_weights_by_layer() -> None:
             ),
         ],
         rule_weights={
-            "surface.contraction": 1.0,
+            "vocabulary.contraction": 1.0,
             "math.display_math": 0.25,
             "paragraph.topic_sentence": 2.0,
         },
@@ -48,12 +48,12 @@ def test_hierarchical_scorer_applies_rule_weights_by_layer() -> None:
 def test_hierarchical_scorer_rejects_missing_rule_weight() -> None:
     span = Span(0, 5, 1, 1, 1, 6)
     with pytest.raises(
-        ValueError, match="Missing rule weight for rule id 'surface.contraction'"
+        ValueError, match="Missing rule weight for rule id 'vocabulary.contraction'"
     ):
         HierarchicalScorer().score(
             [
                 Violation(
-                    "surface.contraction",
+                    "vocabulary.contraction",
                     "x",
                     span,
                     Severity.WARNING,
@@ -68,17 +68,17 @@ def test_hierarchical_scorer_rejects_negative_rule_weight() -> None:
     span = Span(0, 5, 1, 1, 1, 6)
     with pytest.raises(
         ValueError,
-        match="Rule weight for rule id 'surface.contraction' must be non-negative",
+        match="Rule weight for rule id 'vocabulary.contraction' must be non-negative",
     ):
         HierarchicalScorer().score(
             [
                 Violation(
-                    "surface.contraction",
+                    "vocabulary.contraction",
                     "x",
                     span,
                     Severity.WARNING,
                     Layer.SURFACE_STYLE,
                 )
             ],
-            rule_weights={"surface.contraction": -1.0},
+            rule_weights={"vocabulary.contraction": -1.0},
         )

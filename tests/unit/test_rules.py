@@ -26,7 +26,7 @@ def test_contraction_rule_triggers_through_detector(
     detector = RuleDetector(registry)
     features = FeatureStore(document, document.indexes)
     detection = detector.detect(document, research_profile, language_pack, features)
-    assert any(violation.rule_id == "surface.contraction" for violation in detection.violations)
+    assert any(violation.rule_id == "vocabulary.contraction" for violation in detection.violations)
     assert detection.diagnostics == ()
 
 
@@ -45,7 +45,7 @@ def test_subject_verb_distance_rule_abstains_without_dependencies(
         Token("central", "central", None, None, None, actual_sentence.span, 4, 11),
         Token("claim", "claim", None, None, None, actual_sentence.span, 12, 17),
     ]
-    rule = registry.instantiate(research_profile.rules["discourse.subject_verb_distance"])
+    rule = registry.instantiate(research_profile.rules["syntax.subject_verb_distance"])
     ctx = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     assert rule.check(document, ctx) == []
 
@@ -58,10 +58,10 @@ def test_claim_calibration_rule_emits_without_support(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.claim_calibration"])
+    rule = registry.instantiate(research_profile.rules["evidence.claim_calibration"])
     violations = rule.check(document, context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "audience.claim_calibration"
+    assert violations[0].rule_id == "evidence.claim_calibration"
 
 
 def test_claim_calibration_rule_abstains_on_heavy_math_masking(
@@ -72,7 +72,7 @@ def test_claim_calibration_rule_abstains_on_heavy_math_masking(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.claim_calibration"])
+    rule = registry.instantiate(research_profile.rules["evidence.claim_calibration"])
     assert rule.check(document, context) == []
 
 
@@ -89,7 +89,7 @@ def test_passive_voice_rule_extracts_actor_for_by_phrase(
         .document
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.passive_voice"])
+    rule = registry.instantiate(research_profile.rules["syntax.passive_voice"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     evidence = violations[0].evidence
@@ -114,7 +114,7 @@ def test_generic_one_rule_emits_on_subject_one_dependency(
         Token("estimate", "estimate", "NOUN", "dobj", 1, sentence.span, 16, 24),
     ]
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.generic_one"])
+    rule = registry.instantiate(research_profile.rules["reference.generic_one"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     evidence = violations[0].evidence
@@ -131,7 +131,7 @@ def test_personal_pronoun_rule_emits_on_we_subject(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["surface.personal_pronoun"])
+    rule = registry.instantiate(research_profile.rules["reference.personal_pronoun"])
     violations = rule.check(document, context)
     assert len(violations) == 1
-    assert violations[0].rule_id == "surface.personal_pronoun"
+    assert violations[0].rule_id == "reference.personal_pronoun"

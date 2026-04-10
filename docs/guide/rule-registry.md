@@ -7,51 +7,73 @@ Read it after [Writing Quality Model](writing-quality-model.md) to connect conce
 The table order follows the same progression as diagnosis and revision planning:
 surface wording, discourse linkage, paragraph coherence, document structure, audience fit, and mathematical exposition.
 
+Grouping taxonomies:
+
+- Rule IDs use topical namespaces (`vocabulary.*`, `syntax.*`, `linkage.*`, `reference.*`, `paragraph.*`, `structure.*`, `terminology.*`, `evidence.*`, `math.*`) for discoverability and policy control.
+- Scoring/reporting use rule metadata `layer` (surface, discourse, paragraph, structure, audience).
+- Therefore, sentence-level rules can appear across multiple namespaces when they target different phenomena.
+
+Namespace purpose map:
+
+| Namespace | Scope |
+| --- | --- |
+| `vocabulary.*` | Lexical choice and phrasing precision |
+| `syntax.*` | Sentence complexity and grammatical load |
+| `linkage.*` | Local rhetorical connection and emphasis |
+| `reference.*` | Pronoun reference and cross-reference clarity |
+| `paragraph.*` | Paragraph progression and redundancy |
+| `structure.*` | Section/document information architecture |
+| `terminology.*` | Definitions, acronyms, jargon burden |
+| `evidence.*` | Claim support and calibration |
+| `math.*` | Mathematical notation and proof exposition |
+
+Each rule belongs to exactly one namespace. The sections below are ordered by revision workflow rather than by namespace alone.
+
 ## Surface Clarity and Precision
 
 | Rule ID | Rule Name | Rationale | Violation example | Preferred |
 | --- | --- | --- | --- | --- |
-| `surface.sentence_length` | Sentence length target | Long sentences hide the main action and overload working memory. | One 45-word sentence | Split into two shorter statements |
-| `surface.passive_voice` | Active opening preference | Passive openings often hide who acts and weaken sentence force. | "It was shown that \(f\) converges." | "Lemma 2 shows that \(f\) converges." |
-| `surface.contraction` | Contraction avoidance | Formal technical prose should keep full forms for tone and precision. | "It doesn't satisfy" | "It does not satisfy" |
-| `surface.nominalization` | Nominalization clarity | Flags process nouns used as weak-support constructions, abstract noun phrases, or core argument placeholders. | "The composition of \(f\) with \(g\) yields ..." / "The derivation is ..." | "Composing \(f\) with \(g\) yields ..." / direct verb framing |
-| `surface.stacked_nominalization_chain` | Nominalization chain control | Long nominalization stacks compress several actions into one noun phrase and obscure dependencies. | "Optimization regularization stabilization calibration pipeline ..." | "Optimizing and regularizing ... stabilizes calibration ..." |
-| `surface.abstract_framing` | Abstract framing avoidance | Meta-framing can delay the operative statement and hide the mechanism. | "The role of commutativity is ..." / "It can be shown that ..." | "Commutativity determines ..." / direct claim statement |
-| `surface.vague_procedural_nominalization` | Procedural-argument specificity | Procedural nouns should name arguments explicitly rather than float as abstract placeholders. | "The comparison remains inconclusive." | "The comparison between X and Y remains inconclusive." |
-| `surface.concrete_subject` | Concrete-subject enforcement | Document/tool subjects often hide the real mathematical actor. | "This section derives the factorization." | "The ratio factorizes as ..." |
-| `surface.abstract_compound_modifier` | Compound abstraction control | Hyphenated or stacked pre-nominal abstractions often hide the concrete dependency. | "a context-dependent data-driven strategy" | "a strategy that depends on context and is driven by data" |
-| `surface.assumption_hypothesis_framing` | Assumption framing clarity | "the ... assumption/hypothesis" nominal framing can obscure the proposition itself. | "the compactness assumption" | "the assumption of compactness" |
-| `surface.prep_chain` | Preposition chain control | Dense prepositional stacks make relations hard to parse. | "A bound on the error in the estimate of the threshold in ..." | "The estimate for the threshold has error bound in ..." |
-| `surface.noun_cluster` | Noun cluster control | Long noun stacks compress relationships that readers must unpack. | "A high-order sparse tensor factorization method" | "A method that factorizes sparse high-order tensors" |
-| `surface.banned_transition` | Content-free transition ban | Content-free transition openers are blocked when they replace an explicit argumentative action. | "Therefore: ..." / "More explicitly: ..." | "Differentiating the eigenbasis expansion with respect to \(g\) yields: ..." |
-| `surface.personal_pronoun` | First/second-person pronoun control | Direct writer/reader address weakens impersonal technical style. | "We now show ..." / "You can verify ..." | "The next step shows ..." |
-| `surface.generic_one` | Generic actor "one" control | Generic actor phrasing hides who or what performs the action. | "One can derive ..." | "The argument derives ..." |
-| `surface.bare_pronoun_opening` | Bare-pronoun opening ban | Pronoun-opened sentences without explicit noun heads obscure references. | "It follows that ..." / "This is necessary." | "The bound implies ..." / "This constraint is necessary." |
-| `surface.verbose_preamble` | Verbose preamble control | Long prefatory setup delays the main proposition. | "It provides the following benefits: ..." | "The method improves stability and speed." |
-| `surface.redundant_leadin` | Redundant lead-in ban | Formulaic lead-ins add words without information gain. | "In order to prove convergence, ..." | "To prove convergence, ..." |
-| `surface.long_inline_enumeration` | Long inline-enumeration control | Inlined sequences with too many items reduce scanability. | "alpha, beta, gamma, delta, epsilon, and zeta" | Lead-in sentence + bullet list |
-| `surface.vague_phrasing` | Mechanism specificity | Vague mechanism phrases force readers to guess what drives the effect. | "The gain changes in several ways." | "Increasing \(g\) amplifies \(A_1(g)\), which tightens the decay bound." |
-| `surface.double_negative` | Double-negative clarity | Double negatives can obscure polarity and force re-reading. | "The estimate is not without error." | "The estimate has error." |
-| `surface.boilerplate_opener` | Boilerplate-opener control | Boilerplate openers delay the concrete claim. | "Recently, there has been an increasing interest in ..." | Start with the direct claim and supporting mechanism |
-| `surface.indefinite_reference` | Indefinite reference specificity | Broad indefinite pronouns/adverbs blur object scope and mechanism. | "Everything improves somehow." | "The boundary estimate improves on the noisy subset because ..." |
-| `surface.case_scaffolding` | Case-phrase rewrite | "the ... case" scaffolding (including plural and opener forms) adds indirection and nominal clutter. | "In the commutative cases ..." | "For commutative matrices ..." |
-| `surface.numbered_case` | Numbered-case split control | Anonymous case numbering hides the semantic distinction between branches. | "Case 1: ... Case 2: ..." | "If the matrix is diagonal ... / If the matrix is singular ..." |
-| `surface.cross_reference` | Explicit cross-reference target | Ambiguous references force readers to infer target objects and interrupt flow. | "As discussed above" | "As shown in Proposition 2 (#^prop-bound)" |
-| `surface.heading_link` | Heading-slug link ban | Heading slugs are unstable; block anchors provide explicit and durable targets. | `[Main result](#main-result)` | `[Main result](#^main-result)` |
-| `surface.see_link` | "See [link]" scaffolding control | Standalone "See" link lead-ins add indirection and weak rhetorical integration. | "See [Lemma 2](#^lemma-two)." | "Lemma 2 gives the bound [link]." |
-| `surface.raw_anchor` | Raw-anchor token ban | Raw `^anchor` tokens in prose are implementation artifacts, not reader-facing references. | "Use ^lemma-two for details." | "Use [Lemma 2](#^lemma-two) for details." |
-| `surface.generic_link_text` | Generic/procedural link text control | Label-only links and procedural/container labels hide what the link contributes. | `[Lemma (Bound)](#^lemma-two)` / `[normality specialization](...)` | `[Boundary bound in Lemma 2](#^lemma-two)` / `[normal overlaps yield independent mode contributions](...)` |
+| `syntax.sentence_length` | Sentence length target | Long sentences hide the main action and overload working memory. | One 45-word sentence | Split into two shorter statements |
+| `syntax.passive_voice` | Active opening preference | Passive openings often hide who acts and weaken sentence force. | "It was shown that \(f\) converges." | "Lemma 2 shows that \(f\) converges." |
+| `vocabulary.contraction` | Contraction avoidance | Formal technical prose should keep full forms for tone and precision. | "It doesn't satisfy" | "It does not satisfy" |
+| `vocabulary.nominalization` | Nominalization clarity | Flags process nouns used as weak-support constructions, abstract noun phrases, or core argument placeholders. | "The composition of \(f\) with \(g\) yields ..." / "The derivation is ..." | "Composing \(f\) with \(g\) yields ..." / direct verb framing |
+| `vocabulary.stacked_nominalization_chain` | Nominalization chain control | Long nominalization stacks compress several actions into one noun phrase and obscure dependencies. | "Optimization regularization stabilization calibration pipeline ..." | "Optimizing and regularizing ... stabilizes calibration ..." |
+| `vocabulary.abstract_framing` | Abstract framing avoidance | Meta-framing can delay the operative statement and hide the mechanism. | "The role of commutativity is ..." / "It can be shown that ..." | "Commutativity determines ..." / direct claim statement |
+| `vocabulary.vague_procedural_nominalization` | Procedural-argument specificity | Procedural nouns should name arguments explicitly rather than float as abstract placeholders. | "The comparison remains inconclusive." | "The comparison between X and Y remains inconclusive." |
+| `vocabulary.concrete_subject` | Concrete-subject enforcement | Document/tool subjects often hide the real mathematical actor. | "This section derives the factorization." | "The ratio factorizes as ..." |
+| `vocabulary.abstract_compound_modifier` | Compound abstraction control | Hyphenated or stacked pre-nominal abstractions often hide the concrete dependency. | "a context-dependent data-driven strategy" | "a strategy that depends on context and is driven by data" |
+| `vocabulary.assumption_hypothesis_framing` | Assumption framing clarity | "the ... assumption/hypothesis" nominal framing can obscure the proposition itself. | "the compactness assumption" | "the assumption of compactness" |
+| `vocabulary.prep_chain` | Preposition chain control | Dense prepositional stacks make relations hard to parse. | "A bound on the error in the estimate of the threshold in ..." | "The estimate for the threshold has error bound in ..." |
+| `vocabulary.noun_cluster` | Noun cluster control | Long noun stacks compress relationships that readers must unpack. | "A high-order sparse tensor factorization method" | "A method that factorizes sparse high-order tensors" |
+| `linkage.banned_transition` | Content-free transition ban | Content-free transition openers are blocked when they replace an explicit argumentative action. | "Therefore: ..." / "More explicitly: ..." | "Differentiating the eigenbasis expansion with respect to \(g\) yields: ..." |
+| `reference.personal_pronoun` | First/second-person pronoun control | Direct writer/reader address weakens impersonal technical style. | "We now show ..." / "You can verify ..." | "The next step shows ..." |
+| `reference.generic_one` | Generic actor "one" control | Generic actor phrasing hides who or what performs the action. | "One can derive ..." | "The argument derives ..." |
+| `reference.bare_pronoun_opening` | Bare-pronoun opening ban | Pronoun-opened sentences without explicit noun heads obscure references. | "It follows that ..." / "This is necessary." | "The bound implies ..." / "This constraint is necessary." |
+| `vocabulary.verbose_preamble` | Verbose preamble control | Long prefatory setup delays the main proposition. | "It provides the following benefits: ..." | "The method improves stability and speed." |
+| `vocabulary.redundant_leadin` | Redundant lead-in ban | Formulaic lead-ins add words without information gain. | "In order to prove convergence, ..." | "To prove convergence, ..." |
+| `syntax.long_inline_enumeration` | Long inline-enumeration control | Inlined sequences with too many items reduce scanability. | "alpha, beta, gamma, delta, epsilon, and zeta" | Lead-in sentence + bullet list |
+| `vocabulary.vague_phrasing` | Mechanism specificity | Vague mechanism phrases force readers to guess what drives the effect. | "The gain changes in several ways." | "Increasing \(g\) amplifies \(A_1(g)\), which tightens the decay bound." |
+| `vocabulary.double_negative` | Double-negative clarity | Double negatives can obscure polarity and force re-reading. | "The estimate is not without error." | "The estimate has error." |
+| `vocabulary.boilerplate_opener` | Boilerplate-opener control | Boilerplate openers delay the concrete claim. | "Recently, there has been an increasing interest in ..." | Start with the direct claim and supporting mechanism |
+| `vocabulary.indefinite_reference` | Indefinite reference specificity | Broad indefinite pronouns/adverbs blur object scope and mechanism. | "Everything improves somehow." | "The boundary estimate improves on the noisy subset because ..." |
+| `linkage.case_scaffolding` | Case-phrase rewrite | "the ... case" scaffolding (including plural and opener forms) adds indirection and nominal clutter. | "In the commutative cases ..." | "For commutative matrices ..." |
+| `linkage.numbered_case` | Numbered-case split control | Anonymous case numbering hides the semantic distinction between branches. | "Case 1: ... Case 2: ..." | "If the matrix is diagonal ... / If the matrix is singular ..." |
+| `reference.cross_reference` | Explicit cross-reference target | Ambiguous references force readers to infer target objects and interrupt flow. | "As discussed above" | "As shown in Proposition 2 (#^prop-bound)" |
+| `reference.heading_link` | Heading-slug link ban | Heading slugs are unstable; block anchors provide explicit and durable targets. | `[Main result](#main-result)` | `[Main result](#^main-result)` |
+| `reference.see_link` | "See [link]" scaffolding control | Standalone "See" link lead-ins add indirection and weak rhetorical integration. | "See [Lemma 2](#^lemma-two)." | "Lemma 2 gives the bound [link]." |
+| `reference.raw_anchor` | Raw-anchor token ban | Raw `^anchor` tokens in prose are implementation artifacts, not reader-facing references. | "Use ^lemma-two for details." | "Use [Lemma 2](#^lemma-two) for details." |
+| `reference.generic_link_text` | Generic/procedural link text control | Label-only links and procedural/container labels hide what the link contributes. | `[Lemma (Bound)](#^lemma-two)` / `[normality specialization](...)` | `[Boundary bound in Lemma 2](#^lemma-two)` / `[normal overlaps yield independent mode contributions](...)` |
 
 ## Discourse Linkage and Emphasis
 
 | Rule ID | Rule Name | Rationale | Violation | Preferred |
 | --- | --- | --- | --- | --- |
-| `discourse.subject_verb_distance` | Subject-verb distance | Long gaps weaken sentence core and increase parse effort. | "The theorem, after two technical lemmas, holds." | "After two technical lemmas, the theorem holds." |
-| `discourse.subordinate_clause` | Clause load control | Too many subordinate clauses bury the main proposition. | "Although ... because ... if ..." in one sentence | Split into two sentences |
-| `discourse.embedding_depth` | Embedding-depth control | Deeply embedded sentence structure increases parse cost and often needs multiple reads. | "Although ..., which ..., when ..., ..." | Split into shorter sentences with one main action each |
-| `discourse.stress_position` | Stress-position quality | Weak sentence endings reduce emphasis and retention. | "From lemma 2, spectral convergence follows." | "The key implication of Lemma 2 is spectral convergence." |
-| `discourse.transition_quality` | Transition articulation | Flags weakly linked adjacent shifts and paragraph chains with low continuity and no explicit connectors/reference anchors. | "Sentence A. Sentence B about a new step." | "Sentence A. Therefore, this step extends A by ..." |
-| `discourse.semicolon_connector` | Semicolon connector articulation | Semicolon-linked clauses need explicit connective framing unless strictly parallel. | "The bound tightens; the variance shrinks." | "The bound tightens; therefore, the variance shrinks." |
+| `syntax.subject_verb_distance` | Subject-verb distance | Long gaps weaken sentence core and increase parse effort. | "The theorem, after two technical lemmas, holds." | "After two technical lemmas, the theorem holds." |
+| `syntax.subordinate_clause` | Clause load control | Too many subordinate clauses bury the main proposition. | "Although ... because ... if ..." in one sentence | Split into two sentences |
+| `syntax.embedding_depth` | Embedding-depth control | Deeply embedded sentence structure increases parse cost and often needs multiple reads. | "Although ..., which ..., when ..., ..." | Split into shorter sentences with one main action each |
+| `linkage.stress_position` | Stress-position quality | Weak sentence endings reduce emphasis and retention. | "From lemma 2, spectral convergence follows." | "The key implication of Lemma 2 is spectral convergence." |
+| `linkage.transition_quality` | Transition articulation | Flags weakly linked adjacent shifts and paragraph chains with low continuity and no explicit connectors/reference anchors. | "Sentence A. Sentence B about a new step." | "Sentence A. Therefore, this step extends A by ..." |
+| `linkage.semicolon_connector` | Semicolon connector articulation | Semicolon-linked clauses need explicit connective framing unless strictly parallel. | "The bound tightens; the variance shrinks." | "The bound tightens; therefore, the variance shrinks." |
 
 ## Paragraph Coherence and Redundancy
 
@@ -88,12 +110,12 @@ surface wording, discourse linkage, paragraph coherence, document structure, aud
 
 | Rule ID | Rule Name | Rationale | Violation | Preferred |
 | --- | --- | --- | --- | --- |
-| `audience.definition_before_use` | Define before first use | Checks first symbol use against local definition signals (markers, assignment/copula patterns, symbol-binding frames). | "Substitute in \(T(x)\) ..." with no local definition | Define \(T\) at first mention |
-| `audience.acronym_burden` | Acronym definition and dominance | Flags acronyms used before local definition and acronyms that over-dominate their full forms in running prose. | "The PDE ..." with no prior expansion, or repeated "PDE" after one expansion | Expand first, then keep full form primary in prose |
-| `audience.jargon_density` | Jargon density by audience | Dense specialist jargon can exclude target readers. | Jargon-heavy sentence in learner profile | Replace or define terms |
-| `audience.claim_calibration` | Claim-evidence calibration | Strong claims should carry nearby support cues. | "This clearly proves ..." with no support signal | Add citation, equation, or result reference |
-| `audience.qualitative_claim_without_quant_support` | Qualitative claim support | Qualitative performance/stability claims should include nearby quantitative support cues. | "The method is robust across settings." | Add bound, estimate, theorem/equation reference, or citation |
-| `audience.imprecise_quantifier_without_citation` | Imprecise-quantifier citation support | Quantifiers like "several" or "others" should be evidence-backed. | "Several methods succeed while others fail." | Add citation or replace with specific sourced claims |
+| `terminology.definition_before_use` | Define before first use | Checks first symbol use against local definition signals (markers, assignment/copula patterns, symbol-binding frames). | "Substitute in \(T(x)\) ..." with no local definition | Define \(T\) at first mention |
+| `terminology.acronym_burden` | Acronym definition and dominance | Flags acronyms used before local definition and acronyms that over-dominate their full forms in running prose. | "The PDE ..." with no prior expansion, or repeated "PDE" after one expansion | Expand first, then keep full form primary in prose |
+| `terminology.jargon_density` | Jargon density by audience | Dense specialist jargon can exclude target readers. | Jargon-heavy sentence in learner profile | Replace or define terms |
+| `evidence.claim_calibration` | Claim-evidence calibration | Strong claims should carry nearby support cues. | "This clearly proves ..." with no support signal | Add citation, equation, or result reference |
+| `evidence.qualitative_claim_without_quant_support` | Qualitative claim support | Qualitative performance/stability claims should include nearby quantitative support cues. | "The method is robust across settings." | Add bound, estimate, theorem/equation reference, or citation |
+| `evidence.imprecise_quantifier_without_citation` | Imprecise-quantifier citation support | Quantifiers like "several" or "others" should be evidence-backed. | "Several methods succeed while others fail." | Add citation or replace with specific sourced claims |
 
 ## Mathematical Exposition
 

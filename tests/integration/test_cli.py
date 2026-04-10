@@ -22,7 +22,7 @@ def test_cli_lint_json_output(tmp_path) -> None:
         app, ["lint", str(path), "--format", "json", "--fail-on", "warning"]
     )
     assert result.exit_code == 1
-    assert '"surface.contraction"' in result.stdout
+    assert '"vocabulary.contraction"' in result.stdout
 
 
 def test_cli_lint_surfaces_rule_runtime_diagnostic(tmp_path) -> None:
@@ -61,7 +61,7 @@ def test_cli_lint_surfaces_rule_runtime_diagnostic(tmp_path) -> None:
                 "--format",
                 "json",
                 "--rule",
-                "surface.contraction",
+                "vocabulary.contraction",
                 "--rule",
                 "test.broken",
                 "--load-rules",
@@ -150,13 +150,13 @@ def test_cli_lint_text_output_includes_evidence_confidence_rationale(tmp_path) -
             "lint",
             str(path),
             "--rule",
-            "audience.claim_calibration",
+            "evidence.claim_calibration",
             "--fail-on",
             "info",
         ],
     )
     assert result.exit_code == 1
-    assert "audience.claim_calibration" in result.stdout
+    assert "evidence.claim_calibration" in result.stdout
     assert "evidence.score=0.000" in result.stdout
     assert "evidence.threshold=1.000" in result.stdout
     assert "evidence.features=" in result.stdout
@@ -176,7 +176,7 @@ def test_cli_lint_respects_scoring_output_config_in_json_report(tmp_path) -> Non
             [
                 "rules:",
                 "  active:",
-                "    - surface.contraction",
+                "    - vocabulary.contraction",
                 "scoring:",
                 "  output:",
                 "    - violation_list",
@@ -198,7 +198,7 @@ def test_cli_lint_respects_scoring_output_config_in_json_report(tmp_path) -> Non
         ],
     )
     assert result.exit_code == 1
-    assert '"surface.contraction"' in result.stdout
+    assert '"vocabulary.contraction"' in result.stdout
     assert '"scorecard"' not in result.stdout
     assert '"global_score"' not in result.stdout
     assert '"layer_scores"' not in result.stdout
@@ -213,7 +213,7 @@ def test_cli_lint_respects_suggestions_enabled_flag(tmp_path) -> None:
             [
                 "rules:",
                 "  active:",
-                "    - surface.contraction",
+                "    - vocabulary.contraction",
                 "suggestions:",
                 "  enabled: false",
                 "reporting:",
@@ -234,6 +234,6 @@ def test_cli_lint_respects_suggestions_enabled_flag(tmp_path) -> None:
         ],
     )
     assert result.exit_code == 1
-    assert '"surface.contraction"' in result.stdout
+    assert '"vocabulary.contraction"' in result.stdout
     assert '"revision_plan"' in result.stdout
     assert '"operations": []' in result.stdout

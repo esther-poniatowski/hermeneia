@@ -32,23 +32,23 @@ runtime:
 
 rules:
   active:
-    - surface.sentence_length
-    - surface.passive_voice
+    - syntax.sentence_length
+    - syntax.passive_voice
     - paragraph.topic_sentence
   disabled:
-    - surface.contraction
+    - vocabulary.contraction
   overrides:
-    surface.sentence_length:
+    syntax.sentence_length:
       options:
         max_words: 24
       severity: warning
       weight: 1.1
-    surface.banned_transition:
+    linkage.banned_transition:
       extra_patterns:
         - as a consequence
       silenced_patterns:
         - note that
-    surface.generic_link_text:
+    reference.generic_link_text:
       options:
         reference_labels: [lemma, theorem, corollary]
         procedural_terms: [note, analysis, specialization, derivation]
@@ -203,7 +203,7 @@ These checks prevent silent policy drift and keep rule behavior auditable across
 - Unknown rule ids in `active`, `disabled`, `overrides`, language defaults, or profile defaults are errors.
 - Unknown override fields are errors.
 - Options model validation errors are surfaced with rule id context.
-- `surface.generic_link_text` options accept only `reference_labels` and `procedural_terms`.
+- `reference.generic_link_text` options accept only `reference_labels` and `procedural_terms`.
 - `structure.opening_sentence_presence` options accept `min_opening_words` and `forbidden_block_kinds`.
 - `structure.section_opener_block_kind` options accept `blocked_block_kinds` and `apply_heading_levels`.
 - Language-pack `supported_rules` (when declared) is enforced as a rule allowlist.

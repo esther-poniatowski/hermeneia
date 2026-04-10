@@ -56,7 +56,7 @@ Current input support is Markdown (`.md`, `.markdown`).
 - [x] Parse Markdown (`.md`, `.markdown`) into block/inline Document IR with stable block ids, sentence ids, and source spans.
 - [x] Build and share `DocumentIndexes`, `SourceLine` structural views, and `FeatureStore` across all rule families.
 - [x] Classify rules as `SourcePatternRule`, `AnnotatedRule`, or `HeuristicSemanticRule`.
-- [x] Cover surface, discourse, paragraph, structure, audience, and math domains with first-party rules.
+- [x] Cover vocabulary, syntax, linkage, reference, paragraph, structure, terminology, evidence, and math domains with first-party rules.
 - [x] Emit text and JSON reports with evidence-bearing diagnostics.
 - [x] Compute weighted hierarchical scores and let configuration control score outputs.
 - [x] Build revision plans and emit conservative deterministic rewrites when preconditions hold.

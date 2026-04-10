@@ -16,11 +16,11 @@ def test_definition_before_use_emits_for_undefined_first_symbol(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    rule = registry.instantiate(research_profile.rules["terminology.definition_before_use"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     violation = violations[0]
-    assert violation.rule_id == "audience.definition_before_use"
+    assert violation.rule_id == "terminology.definition_before_use"
     assert violation.evidence is not None
     assert violation.evidence.features["symbols"] == ("x",)
 
@@ -33,7 +33,7 @@ def test_definition_before_use_skips_symbol_with_local_definition_marker(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    rule = registry.instantiate(research_profile.rules["terminology.definition_before_use"])
     assert rule.check(document, context) == []
 
 
@@ -45,7 +45,7 @@ def test_definition_before_use_only_checks_first_use(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    rule = registry.instantiate(research_profile.rules["terminology.definition_before_use"])
     assert rule.check(document, context) == []
 
 
@@ -57,7 +57,7 @@ def test_definition_before_use_accepts_symbol_defined_by_colon_frame(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    rule = registry.instantiate(research_profile.rules["terminology.definition_before_use"])
     assert rule.check(document, context) == []
 
 
@@ -69,5 +69,5 @@ def test_definition_before_use_accepts_symbol_defined_by_measurement_frame(
         ParseRequest(source=source, path=Path("demo.md"))
     )
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["audience.definition_before_use"])
+    rule = registry.instantiate(research_profile.rules["terminology.definition_before_use"])
     assert rule.check(document, context) == []

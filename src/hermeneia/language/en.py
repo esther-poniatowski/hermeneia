@@ -719,32 +719,32 @@ ENGLISH_PACK = LanguagePack(
         ),
     ),
     rule_defaults={
-        "surface.sentence_length": {"options": {"max_words": 28}},
-        "surface.prep_chain": {"options": {"max_prepositions": 4}},
-        "surface.noun_cluster": {"options": {"max_cluster_tokens": 4}},
-        "discourse.subject_verb_distance": {"options": {"max_distance": 8}},
-        "discourse.subordinate_clause": {"options": {"max_subordinate_clauses": 2}},
-        "discourse.embedding_depth": {
+        "syntax.sentence_length": {"options": {"max_words": 28}},
+        "vocabulary.prep_chain": {"options": {"max_prepositions": 4}},
+        "vocabulary.noun_cluster": {"options": {"max_cluster_tokens": 4}},
+        "syntax.subject_verb_distance": {"options": {"max_distance": 8}},
+        "syntax.subordinate_clause": {"options": {"max_subordinate_clauses": 2}},
+        "syntax.embedding_depth": {
             "options": {
                 "max_dependency_depth": 5,
                 "max_embedding_markers": 4,
                 "min_sentence_words": 14,
             }
         },
-        "discourse.transition_quality": {
+        "linkage.transition_quality": {
             "options": {
                 "min_overlap_without_connector": 0.18,
                 "min_paragraph_sentences": 4,
                 "min_average_overlap_without_connectors": 0.35,
             }
         },
-        "audience.acronym_burden": {
+        "terminology.acronym_burden": {
             "options": {
                 "min_acronym_mentions_for_overuse": 4,
                 "max_acronym_to_full_form_ratio": 2.0,
             }
         },
-        "audience.claim_calibration": {"options": {"lookback_sentences": 3}},
+        "evidence.claim_calibration": {"options": {"lookback_sentences": 3}},
         "paragraph.sentence_redundancy": {"options": {"min_overlap": 0.78}},
         "paragraph.paragraph_redundancy": {
             "options": {"min_similarity": 0.88, "min_lexical_overlap": 0.35, "max_findings": 5}
@@ -758,6 +758,6 @@ ENGLISH_PACK = LanguagePack(
             }
         },
         "structure.orphan_section": {"options": {"min_parent_words": 24}},
-        "audience.imprecise_quantifier_without_citation": {"options": {"lookback_sentences": 0}},
+        "evidence.imprecise_quantifier_without_citation": {"options": {"lookback_sentences": 0}},
     },
 )

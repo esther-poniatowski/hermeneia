@@ -123,13 +123,13 @@ def test_parse_project_config_accepts_sentence_transformers_embedding_backend() 
 
 def test_parse_project_config_rejects_non_numeric_override_weight() -> None:
     with pytest.raises(
-        ConfigError, match="rules.overrides.surface.sentence_length.weight"
+        ConfigError, match="rules.overrides.syntax.sentence_length.weight"
     ):
         parse_project_config(
             {
                 "rules": {
                     "overrides": {
-                        "surface.sentence_length": {
+                        "syntax.sentence_length": {
                             "weight": "heavy",
                         }
                     }
@@ -141,13 +141,13 @@ def test_parse_project_config_rejects_non_numeric_override_weight() -> None:
 def test_parse_project_config_rejects_unknown_override_field() -> None:
     with pytest.raises(
         ConfigError,
-        match="Unknown field 'unexpected' in rules.overrides.surface.sentence_length",
+        match="Unknown field 'unexpected' in rules.overrides.syntax.sentence_length",
     ):
         parse_project_config(
             {
                 "rules": {
                     "overrides": {
-                        "surface.sentence_length": {
+                        "syntax.sentence_length": {
                             "unexpected": 1,
                         }
                     }
@@ -159,13 +159,13 @@ def test_parse_project_config_rejects_unknown_override_field() -> None:
 def test_parse_project_config_rejects_legacy_top_level_override_option_key() -> None:
     with pytest.raises(
         ConfigError,
-        match="Unknown field 'max_words' in rules.overrides.surface.sentence_length",
+        match="Unknown field 'max_words' in rules.overrides.syntax.sentence_length",
     ):
         parse_project_config(
             {
                 "rules": {
                     "overrides": {
-                        "surface.sentence_length": {
+                        "syntax.sentence_length": {
                             "max_words": 18,
                         }
                     }
@@ -185,7 +185,7 @@ def test_profile_resolution_applies_merge_precedence(registry, language_pack) ->
             "profile": {"name": "research"},
             "rules": {
                 "overrides": {
-                    "surface.sentence_length": {
+                    "syntax.sentence_length": {
                         "options": {"max_words": 18},
                         "severity": "info",
                     }
@@ -194,7 +194,7 @@ def test_profile_resolution_applies_merge_precedence(registry, language_pack) ->
         }
     )
     profile = ProfileResolver(registry).resolve(config, language_pack)
-    settings = profile.rules["surface.sentence_length"]
+    settings = profile.rules["syntax.sentence_length"]
     assert settings.options["max_words"] == 18
     assert settings.severity.value == "info"
 
@@ -203,7 +203,7 @@ def test_profile_resolution_rejects_unknown_active_rule(
     registry, language_pack
 ) -> None:
     config = parse_project_config(
-        {"rules": {"active": ["surface.sentence_length", "unknown.rule"]}}
+        {"rules": {"active": ["syntax.sentence_length", "unknown.rule"]}}
     )
     with pytest.raises(
         ValueError, match="Unknown rule ids in rules.active: unknown.rule"
@@ -318,7 +318,7 @@ def test_profile_resolution_rejects_unknown_rule_in_profile_overrides(
         genre="research_note",
         section="body",
         register="formal",
-        active_rules=("surface.sentence_length",),
+        active_rules=("syntax.sentence_length",),
         rule_overrides={"unknown.rule": {"options": {"max_words": 20}}},
     )
     monkeypatch.setitem(PROFILE_PRESETS, "bad-overrides", bad_preset)
@@ -365,15 +365,15 @@ def test_profile_resolution_rejects_rule_not_supported_by_language_pack(
 ) -> None:
     restricted_pack = replace(
         language_pack,
-        supported_rules=frozenset({"surface.sentence_length"}),
+        supported_rules=frozenset({"syntax.sentence_length"}),
         rule_defaults={},
     )
     config = parse_project_config(
-        {"rules": {"active": ["surface.passive_voice"]}}
+        {"rules": {"active": ["syntax.passive_voice"]}}
     )
     with pytest.raises(
         ValueError,
-        match="Rule 'surface.passive_voice' is not supported by language pack 'en'",
+        match="Rule 'syntax.passive_voice' is not supported by language pack 'en'",
     ):
         ProfileResolver(registry).resolve(config, restricted_pack)
 
@@ -383,14 +383,14 @@ def test_profile_resolution_allows_rule_when_language_pack_supports_it(
 ) -> None:
     restricted_pack = replace(
         language_pack,
-        supported_rules=frozenset({"surface.sentence_length"}),
+        supported_rules=frozenset({"syntax.sentence_length"}),
         rule_defaults={},
     )
     config = parse_project_config(
-        {"rules": {"active": ["surface.sentence_length"]}}
+        {"rules": {"active": ["syntax.sentence_length"]}}
     )
     profile = ProfileResolver(registry).resolve(config, restricted_pack)
-    assert "surface.sentence_length" in profile.rules
+    assert "syntax.sentence_length" in profile.rules
 
 
 def test_profile_resolution_rejects_language_default_for_unsupported_rule(
@@ -398,18 +398,18 @@ def test_profile_resolution_rejects_language_default_for_unsupported_rule(
 ) -> None:
     restricted_pack = replace(
         language_pack,
-        supported_rules=frozenset({"surface.sentence_length"}),
+        supported_rules=frozenset({"syntax.sentence_length"}),
         rule_defaults={
-            "surface.sentence_length": {"options": {"max_words": 18}},
-            "surface.passive_voice": {"options": {}},
+            "syntax.sentence_length": {"options": {"max_words": 18}},
+            "syntax.passive_voice": {"options": {}},
         },
     )
     config = parse_project_config(
-        {"rules": {"active": ["surface.sentence_length"]}}
+        {"rules": {"active": ["syntax.sentence_length"]}}
     )
     with pytest.raises(
         ValueError,
-        match="language pack 'en' rule_defaults declare unsupported rule ids: surface.passive_voice",
+        match="language pack 'en' rule_defaults declare unsupported rule ids: syntax.passive_voice",
     ):
         ProfileResolver(registry).resolve(config, restricted_pack)
 
@@ -421,7 +421,7 @@ def test_profile_resolution_accepts_options_mapping_override(
         {
             "rules": {
                 "overrides": {
-                    "surface.sentence_length": {
+                    "syntax.sentence_length": {
                         "options": {"max_words": 17},
                         "severity": "info",
                     }
@@ -430,7 +430,7 @@ def test_profile_resolution_accepts_options_mapping_override(
         }
     )
     profile = ProfileResolver(registry).resolve(config, language_pack)
-    settings = profile.rules["surface.sentence_length"]
+    settings = profile.rules["syntax.sentence_length"]
     assert settings.options["max_words"] == 17
     assert settings.severity.value == "info"
 
@@ -518,12 +518,12 @@ def test_profile_resolution_rejects_legacy_language_default_shape(
 ) -> None:
     bad_pack = replace(
         language_pack,
-        rule_defaults={"surface.sentence_length": {"max_words": 18}},
+        rule_defaults={"syntax.sentence_length": {"max_words": 18}},
     )
-    config = parse_project_config({"rules": {"active": ["surface.sentence_length"]}})
+    config = parse_project_config({"rules": {"active": ["syntax.sentence_length"]}})
     with pytest.raises(
         ValueError,
-        match="language pack defaults override for rule 'surface.sentence_length' has unknown fields: max_words",
+        match="language pack defaults override for rule 'syntax.sentence_length' has unknown fields: max_words",
     ):
         ProfileResolver(registry).resolve(config, bad_pack)
 
@@ -537,14 +537,14 @@ def test_profile_resolution_rejects_legacy_profile_default_shape(
         genre="research_note",
         section="body",
         register="formal",
-        active_rules=("surface.sentence_length",),
-        rule_overrides={"surface.sentence_length": {"max_words": 20}},
+        active_rules=("syntax.sentence_length",),
+        rule_overrides={"syntax.sentence_length": {"max_words": 20}},
     )
     monkeypatch.setitem(PROFILE_PRESETS, "legacy-preset", bad_preset)
     config = parse_project_config({"profile": {"name": "legacy-preset"}})
     with pytest.raises(
         ValueError,
-        match="profile preset 'legacy-preset' override for rule 'surface.sentence_length' has unknown fields: max_words",
+        match="profile preset 'legacy-preset' override for rule 'syntax.sentence_length' has unknown fields: max_words",
     ):
         ProfileResolver(registry).resolve(config, language_pack)
 

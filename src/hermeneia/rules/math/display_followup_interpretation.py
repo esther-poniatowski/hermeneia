@@ -83,7 +83,7 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
             ):
                 continue
             if _is_bare_pronoun_followup(next_sentence):
-                # surface.bare_pronoun_opening handles this case explicitly.
+                # reference.bare_pronoun_opening handles this case explicitly.
                 continue
             violations.append(
                 _build_violation(

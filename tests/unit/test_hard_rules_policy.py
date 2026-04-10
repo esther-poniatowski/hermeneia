@@ -8,14 +8,14 @@ from hermeneia.rules.base import RuleKind, Severity
 @pytest.mark.parametrize(
     "rule_id",
     [
-        "surface.nominalization",
-        "surface.abstract_framing",
-        "surface.banned_transition",
-        "surface.generic_link_text",
-        "surface.abstract_compound_modifier",
-        "surface.case_scaffolding",
+        "vocabulary.nominalization",
+        "vocabulary.abstract_framing",
+        "linkage.banned_transition",
+        "reference.generic_link_text",
+        "vocabulary.abstract_compound_modifier",
+        "linkage.case_scaffolding",
         "math.display_math",
-        "surface.bare_pronoun_opening",
+        "reference.bare_pronoun_opening",
     ],
 )
 def test_hard_rule_policy_defaults_to_error_blockers(registry, rule_id: str) -> None:
