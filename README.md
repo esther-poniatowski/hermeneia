@@ -31,12 +31,11 @@ Audits technical prose for clarity.
 
 ### Motivation
 
-Technical and mathematical writing fails when readers cannot identify the main claim and its
+Technical and mathematical writing loose efficiency when readers cannot identify the main claim and its
 support quickly. Hermeneia helps writers diagnose clarity defects and prioritize revisions across
 drafting, review, and teaching workflows.
 
-By contrast, generic grammar checkers mainly flag spelling, punctuation, and local grammar.
-They usually do not evaluate cross-sentence links, section progression, or equation-to-prose
+By contrast, generic grammar checkers mainly flag spelling, punctuation, and local grammar. They usually do not evaluate cross-sentence links, section progression, or equation-to-prose
 explanation. Hermeneia audits those higher-level signals and reports evidence, confidence, and
 rationale for each finding.
 
@@ -67,6 +66,7 @@ Current input support is Markdown (`.md`, `.markdown`).
 - [ ] Add reporting adapters, including SARIF and HTML.
 - [ ] Integrate with editors and LSP clients for in-editor diagnostics.
 - [ ] Parse native LaTeX (`.tex`) sources directly.
+- [ ] Compute prose metrics directly during lint runs and expose them in reports.
 - [ ] Rewrite source files in place automatically.
 
 ---
@@ -101,10 +101,11 @@ Recommended reading order:
 
 1. Writing Quality Model
 2. Rule Registry
-3. Usage
-4. Configuration
-5. CLI Reference
-6. Prose Audit Protocol
+3. Metrics
+4. Usage
+5. Configuration
+6. CLI Reference
+7. Prose Audit Protocol
 
 | Guide | Content |
 | ----- | ------- |
@@ -114,6 +115,7 @@ Recommended reading order:
 | [Configuration](docs/guide/configuration.md) | Schema, resolution layers, and merge semantics |
 | [Prose Audit Protocol](docs/guide/prose-audit-protocol.md) | Manual audit workflow, severity model, and verdict contract |
 | [Writing Quality Model](docs/guide/writing-quality-model.md) | Conceptual quality rationale and readability baseline |
+| [Metrics](docs/guide/metrics.md) | Readability metrics, formulas, and interpretation limits |
 | [Sources and Further Reading](docs/guide/sources-and-further-reading.md) | External sources and supporting tools |
 | [Internals](docs/internals/index.md) | Architecture, pipeline, and extension seams |
 | [Architecture Decisions](docs/adr/index.md) | Accepted design decisions and rejected alternatives |

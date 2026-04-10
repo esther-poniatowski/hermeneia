@@ -1,15 +1,25 @@
 # Usage
 
-This guide presents the operational flow from first run to policy tuning.
+This guide presents the operational flow from first run to interpretation.
+It is task-oriented, while exact flag grammar is described in [CLI Reference](cli-reference.md).
 
 > [!NOTE]
 > Hermeneia reports findings as diagnostics linked to likely reader-comprehension cost and does not auto-rewrite source files by default.
 
-## Run Lint
+## Workflow
 
-### Quick Check
+Use this sequence:
 
-Start by verifying package and platform diagnostics:
+1. Run a baseline lint pass.
+2. Narrow rule scope or load a project policy.
+3. Set output and failure behavior for local or CI runs.
+4. Interpret findings in structural-to-local priority order.
+
+## Baseline Run
+
+### Check Environment
+
+Verify package and platform diagnostics:
 
 ```sh
 hermeneia info
@@ -17,7 +27,7 @@ hermeneia info
 
 ### Analyze One File
 
-Start to lint one file to validate profile behavior:
+Run one-file analysis to validate profile behavior:
 
 ```sh
 hermeneia lint notes.md --profile research
@@ -25,18 +35,17 @@ hermeneia lint notes.md --profile research
 
 ### Analyze a Directory
 
-After the single-file check, run the same profile on a directory:
+Then apply the same profile to a directory:
 
 ```sh
 hermeneia lint docs/ --profile pedagogical
 ```
 
-`lint` recursively collects `.md` and `.markdown` files and then supports rule-scope refinement with the filters below.
+`lint` recursively collects `.md` and `.markdown` files.
 
-## Configure Rule Scope
+## Adjust Scope and Policy
 
 ### Filter Rules
-To diagnose one writing dimension at a time, several filtering options are available.
 
 Use explicit allowlists to isolate one writing dimension:
 
@@ -52,9 +61,9 @@ Disable specific rules after profile resolution:
 hermeneia lint notes.md --disable-rule surface.passive_voice
 ```
 
-### Use Project Configuration
+### Load Project Configuration
 
-Load project policy from YAML:
+Load resolved policy from YAML:
 
 ```sh
 hermeneia lint notes.md --config hermeneia.yaml
@@ -71,14 +80,13 @@ hermeneia lint notes.md --load-rules custom_rules.math_pack
 ```
 
 External modules must expose `register(registry)`.
-
 This extension point keeps custom rules inside the same scoring and reporting pipeline.
 
-## Control Output and Exit Behavior
+## Control Output and CI Exit
 
 ### Use JSON Output
 
-To feed diagnostics to scripts or in continuous integration pipelines, use JSON output:
+Use JSON output for scripts and CI:
 
 ```sh
 hermeneia lint notes.md --format json
@@ -86,7 +94,7 @@ hermeneia lint notes.md --format json
 
 ### Control Exit Behavior
 
-To enforce thresholds in automated checks, use `--fail-on` to specify the minimum severity that should cause a non-zero exit code:
+Use `--fail-on` to define the minimum severity that should produce a non-zero exit code:
 
 ```sh
 hermeneia lint notes.md --fail-on warning
@@ -94,18 +102,18 @@ hermeneia lint notes.md --fail-on warning
 
 ## Interpret Results
 
-### Output Model
+### Result Components
 
-The linter emits several outputs:
+The linter emits:
 
 - diagnostics (operational + rule execution issues)
 - rule violations with evidence/confidence/rationale
 - revision plan operations
 - scoring output (when enabled by config)
 
-Interpret these outputs before editing text so revisions follow severity and structure.
+Read these outputs before editing so revision order follows severity and structure.
 
-### Interpreting Diagnostics
+### Prioritize Findings
 
 Treat diagnostics in this order:
 
@@ -117,17 +125,9 @@ Evidence fields identify the detected pattern, confidence and rationale indicate
 
 This interpretation order aligns with the audit contract in [Prose Audit Protocol](prose-audit-protocol.md).
 
-### Readability Signals
+### Use Metrics as Supporting Signals
 
-Hermeneia can report readability-oriented supporting signals such as:
-
-- words per sentence
-- sentences per paragraph
-- passive-voice frequency
-- pronoun density
-- Flesch-style readability metrics
-
-These statistics help prioritize revisions.
-However, they do not, on their own, prove argument quality or pedagogical clarity.
+Readability metrics help prioritize revisions, but they do not prove argument quality on their own.
+For definitions, formulas, and interpretation limits, see [Metrics](metrics.md).
 
 For complete command syntax, see [CLI Reference](cli-reference.md).

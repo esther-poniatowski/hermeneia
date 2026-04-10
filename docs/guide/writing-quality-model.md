@@ -1,32 +1,34 @@
 # Writing Quality Model
 
-This guide defines the conceptual quality model used by hermeneia.
+This guide explains how hermeneia models writing quality.
+The model links each rule family to a reader-facing effect, so findings stay tied to comprehension rather than isolated grammar form.
+Use this page as the conceptual bridge between [Usage](usage.md) and [Rule Registry](rule-registry.md).
 
-The model maps each rule family to a specific constraint for reader comprehension.
+## Rationale
 
-## Problem Framing
+Technical and mathematical prose fails most often when readers cannot track the argument path.
+That failure appears at several scales: sentence phrasing, paragraph progression, section ordering, and audience calibration.
 
-Technical and mathematical prose can become difficult to process when it hides action, weakens argument links, or delays the core claim.
+Generic grammar tools mostly detect local form errors such as agreement and punctuation.
+By contrast, hermeneia also checks discourse continuity, concept stability, structural dependency order, and pedagogical fit.
+Because these failures interact across scales, hermeneia organizes checks by layered quality priorities.
 
-Generic grammar tools mostly detect local form errors.
-However, these tools usually do not evaluate discourse continuity, paragraph progression, structural ordering, or audience calibration.
-
-Because this failure mode spans multiple scales, hermeneia organizes checks by layer rather than by isolated grammar patterns.
-
-## Quality Priorities
+## Quality Priorities and Rule Families
 
 Hermeneia evaluates prose with six priorities:
 
-1. Directness: state the operative claim and mechanism without rhetorical detours.
-2. Clarity: keep subject-action relations explicit and close.
-3. Fluency: maintain predictable reader progression across sentences and sections.
-4. Precision: avoid vague placeholders when arguments or operands should be explicit.
-5. Structure: organize content by dependency order, not drafting chronology.
-6. Audience fit: calibrate claims, terms, and notation to target readership.
+1. Directness: state what acts, what changes, and why it matters.
+2. Clarity: keep subject-action relations explicit and local.
+3. Fluency: guide sentence-to-sentence and section-to-section movement.
+4. Precision: replace vague placeholders with concrete references.
+5. Structure: order content by logical dependency.
+6. Audience fit: define terms, calibrate claims, and manage notation load.
 
-These priorities map directly to rule families in [Rule Registry](rule-registry.md).
+These priorities map to concrete checks in [Rule Registry](rule-registry.md).
 
 ## Reader-Expectation Principles
+
+The priorities above become operational through recurring reader expectations:
 
 - Topic control: sentence openings should anchor known context.
 - Stress control: sentence endings should carry new, decision-relevant information.
@@ -34,34 +36,19 @@ These priorities map directly to rule families in [Rule Registry](rule-registry.
 - Concept stability: one concept should keep a stable label unless meaning changes.
 - Section signaling: headings and opening sentences should reveal purpose early.
 
-These principles explain the intended reading path of the document, not only local sentence form.
+Together, these principles describe how a reader should move through the argument path.
 
-## Readability Statistics
+## Supporting Metrics
 
-Readability metrics are supporting signals, not standalone quality proof:
-
-- sentences per paragraph
-- words per sentence
-- verb density
-- pronoun density
-- passive-voice rate
-- Flesch-Kincaid Grade Level
-- Flesch Reading Ease
-- Gunning-Fog index
-
-Use these metrics as triage inputs after rule findings, not as a replacement for argument-level review.
-
-Gunning-Fog formula:
-
-$$
-\text{Fog} = 0.4 \times \left(\frac{\#\text{words}}{\#\text{sentences}} + 100 \times \frac{\#\text{complex words}}{\#\text{words}}\right)
-$$
+Readability metrics are supporting signals, not standalone quality proof.
+For metric definitions, formulas, and interpretation limits, see [Metrics](metrics.md).
 
 ## How To Use This Model
 
-Move from concept to action in this order:
+Apply the model in this order:
 
 1. Inspect concrete checks in [Rule Registry](rule-registry.md).
-2. Run and tune the tool with [Usage](usage.md) and [Configuration](configuration.md).
-3. Apply human-audit constraints with [Prose Audit Protocol](prose-audit-protocol.md).
-4. Consult external grounding in [Sources and Further Reading](sources-and-further-reading.md).
+2. Use [Metrics](metrics.md) to contextualize density and readability signals.
+3. Run and tune the tool with [Usage](usage.md) and [Configuration](configuration.md).
+4. Apply human-audit constraints with [Prose Audit Protocol](prose-audit-protocol.md).
+5. Consult conceptual grounding in [Sources and Further Reading](sources-and-further-reading.md).

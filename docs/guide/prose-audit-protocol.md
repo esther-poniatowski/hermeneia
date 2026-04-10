@@ -3,8 +3,8 @@
 This document defines how to audit technical prose quality with explicit evidence and deterministic reporting.
 It applies to technical, academic, mathematical, teaching, and pedagogical documents.
 
-It does not restate all rule-level checks already encoded in hermeneia.
-Instead, it extends the automated pipeline with review constraints that remain judgment-dependent.
+It does not restate rule-level checks already encoded in hermeneia.
+Instead, it extends automated findings with review constraints that remain judgment-dependent.
 
 ## Purpose
 
@@ -15,7 +15,7 @@ Automated criteria are maintained in:
 - hermeneia configuration and profile defaults
 
 This protocol focuses on audit behavior that cannot be fully reduced to rule matching.
-Accordingly, use it after running the operational workflow in [Usage](usage.md).
+Use it after the operational workflow in [Usage](usage.md).
 
 ## Scope
 
@@ -52,7 +52,7 @@ The following constraints are normative and require human audit judgment.
 1. Run hermeneia with the profile that matches the document audience and genre.
 2. Review findings with evidence/confidence/rationale fields.
 3. Manually assess the non-encodable policies listed above.
-4. Produce a bounded findings report (maximum 15 findings).
+4. Produce a bounded findings report (maximum 15 findings), prioritizing systemic defects first.
 5. Classify the document verdict using the severity model below.
 
 ## Finding Record Contract
@@ -89,4 +89,5 @@ Verdict justification must cite dominant evidence patterns, not isolated example
 ## Related References
 
 - [Writing Quality Model](writing-quality-model.md): conceptual baseline
+- [Metrics](metrics.md): supporting quantitative signals and interpretation limits
 - [Sources and Further Reading](sources-and-further-reading.md): external sources that justify criteria

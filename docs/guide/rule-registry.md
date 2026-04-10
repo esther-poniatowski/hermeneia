@@ -1,8 +1,11 @@
 # Rule Registry
 
 This registry lists all built-in rules shipped with hermeneia, grouped by functional purpose. Each
-rule is illustrated by brief examples. Pair it with [Configuration](configuration.md) for activation
-and override semantics.
+rule is illustrated by brief examples.
+Read it after [Writing Quality Model](writing-quality-model.md) to connect conceptual priorities to concrete checks, and pair it with [Configuration](configuration.md) for activation and override semantics.
+
+The table order follows the same progression as diagnosis and revision planning:
+surface wording, discourse linkage, paragraph coherence, document structure, audience fit, and mathematical exposition.
 
 ## Surface Clarity and Precision
 

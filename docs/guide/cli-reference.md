@@ -1,13 +1,14 @@
 # CLI Reference
 
-This reference is the command grammar companion to [Usage](usage.md).
-Accordingly, it provides exact flags and exit contracts after the workflow overview.
+This reference defines command grammar, option contracts, and exit codes.
+For run order and interpretation workflow, see [Usage](usage.md).
+For policy semantics, see [Configuration](configuration.md).
 
 ## Global Command
 
 Use this root form to invoke subcommands and global flags.
 
-```text
+```sh
 hermeneia [OPTIONS] COMMAND [ARGS]...
 ```
 
@@ -16,29 +17,29 @@ hermeneia [OPTIONS] COMMAND [ARGS]...
 - `--version`, `-v`: show package version and exit.
 - `--help`: show help.
 
-## `info`
+## Getting Info
 
 Use `info` to print version and platform diagnostics.
-Therefore, run this command first when environment behavior is uncertain.
 
-```text
+```sh
 hermeneia info
 ```
 
-## `lint`
+Run this command first when environment behavior is uncertain.
+
+## Linting
 
 Use `lint` to analyze one Markdown file or a directory tree.
-Accordingly, pair these options with [Configuration](configuration.md) when policy must be reproducible across runs.
 
-```text
+```sh
 hermeneia lint [OPTIONS] TARGET
 ```
 
-### Argument
+**Argument**:
 
 - `TARGET` (`PATH`, required): file or directory to analyze.
 
-### Options
+**Options**:
 
 - `--profile TEXT` (default `research`): profile preset.
 - `--config PATH`: YAML configuration file.
@@ -49,10 +50,16 @@ hermeneia lint [OPTIONS] TARGET
 - `--experimental`: enable experimental rules.
 - `--fail-on [info|warning|error]` (default `error`): non-zero exit threshold.
 
-### Exit Codes
+To keep policy reproducible across runs, provide `--config` or select a fixed `--profile`.
+
+```sh
+hermeneia lint --profile research paper.md
+```
+
+**Exit Codes**:
 
 - `0`: success; no violations at or above `--fail-on`, and no fatal runtime error.
 - `1`: at least one violation at or above `--fail-on`.
 - `2`: fatal runtime/configuration/initialization error.
 
-For audit interpretation and severity semantics after command execution, see [Prose Audit Protocol](prose-audit-protocol.md).
+For post-run audit interpretation and severity semantics, see [Prose Audit Protocol](prose-audit-protocol.md).

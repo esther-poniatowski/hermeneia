@@ -1,6 +1,7 @@
 # Installation
 
-This guide indicates how to set up a reproducible environment where `hermeneia` can run deterministically.
+This page sets up a reproducible environment where `hermeneia` runs deterministically.
+It focuses on environment and package setup only; command workflow starts in [Usage](usage.md).
 
 ## Prerequisites
 
@@ -8,6 +9,8 @@ This guide indicates how to set up a reproducible environment where `hermeneia` 
 - `conda` (recommended for this repository)
 
 ## Recommended Setup (From Source)
+
+Run these steps in order:
 
 1. Clone the repository.
 
@@ -37,7 +40,7 @@ This guide indicates how to set up a reproducible environment where `hermeneia` 
 
 ## Optional: Semantic Extras
 
-Install optional embedding dependencies (used by optional embedding-backed heuristics):
+Install optional embedding dependencies when embedding-backed heuristics are required:
 
 ```sh
 pip install -e ".[semantic]"
@@ -48,4 +51,5 @@ pip install -e ".[semantic]"
 - The environment pins spaCy model compatibility for deterministic test behavior.
 - Without editable installation, commands can still run by setting `PYTHONPATH=src`.
 
-After installation, go to [Usage](usage.md) for command workflow and to [Configuration](configuration.md) for policy tuning.
+After setup, continue with [Usage](usage.md).
+Then use [Configuration](configuration.md) to tune policy defaults and overrides.
