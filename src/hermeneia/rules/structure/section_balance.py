@@ -29,7 +29,9 @@ class SectionBalanceRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         max_ratio = self.settings.float_option("max_ratio", 3.5)
-        sections = [section for section in ctx.features.sections if section.heading_block_id is not None]
+        sections = [
+            section for section in ctx.features.sections if section.heading_block_id is not None
+        ]
         if len(sections) < 2:
             return []
         section_words = {
@@ -88,4 +90,3 @@ def _section_word_count(doc, block_ids: tuple[str, ...]) -> int:
 
 def register(registry) -> None:
     registry.add(SectionBalanceRule)
-

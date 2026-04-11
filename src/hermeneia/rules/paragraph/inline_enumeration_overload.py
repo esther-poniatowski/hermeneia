@@ -96,4 +96,3 @@ def _verb_count(sentence) -> int:
 
 def register(registry) -> None:
     registry.add(InlineEnumerationOverloadRule)
-

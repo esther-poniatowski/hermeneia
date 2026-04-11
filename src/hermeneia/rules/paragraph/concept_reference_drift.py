@@ -57,7 +57,9 @@ class ConceptReferenceDriftRule(HeuristicSemanticRule):
                     label_mentions[sentence.id] = labels
             if len(label_mentions) < 2:
                 continue
-            distinct_labels = sorted({label for labels in label_mentions.values() for label in labels})
+            distinct_labels = sorted(
+                {label for labels in label_mentions.values() for label in labels}
+            )
             if len(distinct_labels) < min_distinct_labels:
                 continue
 

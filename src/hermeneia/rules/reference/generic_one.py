@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from hermeneia.document.model import BlockKind, Span
+from hermeneia.document.model import BlockKind, Span, Token
 from hermeneia.rules.base import (
     AnnotatedRule,
     Layer,
@@ -112,7 +112,7 @@ class GenericOneRule(AnnotatedRule):
         return violations
 
 
-def _subject_one_token(tokens):
+def _subject_one_token(tokens: list[Token]) -> Token | None:
     for token in tokens:
         lemma = (token.lemma or token.text).lower()
         dependency = (token.dep or "").lower()

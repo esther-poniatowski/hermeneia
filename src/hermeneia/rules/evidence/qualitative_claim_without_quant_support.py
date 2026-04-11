@@ -96,4 +96,3 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
 
 def register(registry) -> None:
     registry.add(QualitativeClaimWithoutQuantSupportRule)
-

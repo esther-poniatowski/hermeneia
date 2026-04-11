@@ -59,9 +59,7 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
                     span=_match_span(line, match.start(), match.end()),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(
-                        features={"modifier": modifier, "target": target}
-                    ),
+                    evidence=RuleEvidence(features={"modifier": modifier, "target": target}),
                     confidence=0.74,
                     rewrite_tactics=(
                         "Rewrite to foreground the proposition explicitly, for example 'the assumption of ...'.",

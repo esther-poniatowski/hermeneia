@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 from typing import Any
 
 from hermeneia.config.schema import EmbeddingConfig
@@ -24,13 +25,19 @@ class SentenceTransformerEmbeddingBackend:
         if self._model is not None:
             return self._model
         try:
-            from sentence_transformers import SentenceTransformer
+            sentence_transformers = importlib.import_module("sentence_transformers")
         except ImportError as exc:  # pragma: no cover - dependency boundary
             raise RuntimeError(
                 "Embedding backend 'sentence_transformers' requires the "
                 "'sentence-transformers' package."
             ) from exc
-        self._model = SentenceTransformer(self._model_name)
+        sentence_transformer_cls = getattr(sentence_transformers, "SentenceTransformer", None)
+        if sentence_transformer_cls is None:
+            raise RuntimeError(
+                "Embedding backend 'sentence_transformers' is installed but does not expose "
+                "SentenceTransformer."
+            )
+        self._model = sentence_transformer_cls(self._model_name)
         return self._model
 
 
@@ -55,4 +62,3 @@ def _coerce_vector(raw: object) -> tuple[float, ...]:
             return tuple(float(value) for value in nested)
         return tuple(float(value) for value in raw)
     raise TypeError("Embedding backend returned an unsupported vector shape")
-

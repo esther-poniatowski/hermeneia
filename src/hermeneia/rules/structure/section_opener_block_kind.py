@@ -48,9 +48,7 @@ class _SectionOpenerBlockKindOptions:
         blocked_block_kinds = as_block_kind_name_tuple(
             mapping.get("blocked_block_kinds"), field="blocked_block_kinds"
         )
-        apply_heading_levels = _parse_heading_levels(
-            mapping.get("apply_heading_levels")
-        )
+        apply_heading_levels = _parse_heading_levels(mapping.get("apply_heading_levels"))
         return cls(
             blocked_block_kinds=blocked_block_kinds,
             apply_heading_levels=apply_heading_levels,
@@ -77,9 +75,7 @@ class SectionOpenerBlockKindRule(HeuristicSemanticRule):
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
         default_options={
-            "blocked_block_kinds": tuple(
-                kind.value for kind in DEFAULT_BLOCKED_OPENING_KINDS
-            ),
+            "blocked_block_kinds": tuple(kind.value for kind in DEFAULT_BLOCKED_OPENING_KINDS),
         },
         evidence_fields=("issue", "first_block_kind"),
     )
@@ -90,9 +86,7 @@ class SectionOpenerBlockKindRule(HeuristicSemanticRule):
             field="blocked_block_kinds",
             default=DEFAULT_BLOCKED_OPENING_KINDS,
         )
-        apply_levels = _resolve_heading_levels(
-            self.settings.options.get("apply_heading_levels")
-        )
+        apply_levels = _resolve_heading_levels(self.settings.options.get("apply_heading_levels"))
         definition_openers = tuple(ctx.language_pack.lexicons.definitional_markers) + (
             "definition",
         )
@@ -177,9 +171,7 @@ def _parse_heading_levels(raw: object) -> tuple[int, ...] | None:
     levels: list[int] = []
     for value in values:
         if isinstance(value, bool) or not isinstance(value, int):
-            raise ValueError(
-                "apply_heading_levels must be an integer or sequence of integers"
-            )
+            raise ValueError("apply_heading_levels must be an integer or sequence of integers")
         if value < 1:
             raise ValueError("apply_heading_levels must contain levels >= 1")
         levels.append(value)

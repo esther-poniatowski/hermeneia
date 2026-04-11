@@ -87,4 +87,3 @@ def _max_cluster(sentence) -> list[str]:
 
 def register(registry) -> None:
     registry.add(NounClusterRule)
-

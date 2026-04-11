@@ -122,9 +122,7 @@ def test_parse_project_config_accepts_sentence_transformers_embedding_backend() 
 
 
 def test_parse_project_config_rejects_non_numeric_override_weight() -> None:
-    with pytest.raises(
-        ConfigError, match="rules.overrides.syntax.sentence_length.weight"
-    ):
+    with pytest.raises(ConfigError, match="rules.overrides.syntax.sentence_length.weight"):
         parse_project_config(
             {
                 "rules": {
@@ -199,29 +197,19 @@ def test_profile_resolution_applies_merge_precedence(registry, language_pack) ->
     assert settings.severity.value == "info"
 
 
-def test_profile_resolution_rejects_unknown_active_rule(
-    registry, language_pack
-) -> None:
-    config = parse_project_config(
-        {"rules": {"active": ["syntax.sentence_length", "unknown.rule"]}}
-    )
-    with pytest.raises(
-        ValueError, match="Unknown rule ids in rules.active: unknown.rule"
-    ):
+def test_profile_resolution_rejects_unknown_active_rule(registry, language_pack) -> None:
+    config = parse_project_config({"rules": {"active": ["syntax.sentence_length", "unknown.rule"]}})
+    with pytest.raises(ValueError, match="Unknown rule ids in rules.active: unknown.rule"):
         ProfileResolver(registry).resolve(config, language_pack)
 
 
 def test_profile_resolution_rejects_legacy_literary_parallelism_rule_id(
     registry, language_pack
 ) -> None:
-    config = parse_project_config(
-        {"rules": {"active": ["paragraph.literary_parallelism"]}}
-    )
+    config = parse_project_config({"rules": {"active": ["paragraph.literary_parallelism"]}})
     with pytest.raises(
         ValueError,
-        match=(
-            "Unknown rule ids in rules.active: paragraph.literary_parallelism"
-        ),
+        match=("Unknown rule ids in rules.active: paragraph.literary_parallelism"),
     ):
         ProfileResolver(registry).resolve(config, language_pack)
 
@@ -229,9 +217,7 @@ def test_profile_resolution_rejects_legacy_literary_parallelism_rule_id(
 def test_profile_resolution_rejects_legacy_math_abstract_framing_rule_id(
     registry, language_pack
 ) -> None:
-    config = parse_project_config(
-        {"rules": {"active": ["math.abstract_framing"]}}
-    )
+    config = parse_project_config({"rules": {"active": ["math.abstract_framing"]}})
     with pytest.raises(
         ValueError,
         match="Unknown rule ids in rules.active: math.abstract_framing",
@@ -239,43 +225,29 @@ def test_profile_resolution_rejects_legacy_math_abstract_framing_rule_id(
         ProfileResolver(registry).resolve(config, language_pack)
 
 
-def test_profile_resolution_rejects_unknown_override_rule(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_rejects_unknown_override_rule(registry, language_pack) -> None:
     config = parse_project_config(
         {"rules": {"overrides": {"unknown.rule": {"options": {"max_words": 12}}}}}
     )
-    with pytest.raises(
-        ValueError, match="Unknown rule ids in rules.overrides: unknown.rule"
-    ):
+    with pytest.raises(ValueError, match="Unknown rule ids in rules.overrides: unknown.rule"):
         ProfileResolver(registry).resolve(config, language_pack)
 
 
-def test_profile_resolution_rejects_unknown_disabled_rule(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_rejects_unknown_disabled_rule(registry, language_pack) -> None:
     config = parse_project_config({"rules": {"disabled": ["unknown.rule"]}})
-    with pytest.raises(
-        ValueError, match="Unknown rule ids in rules.disabled: unknown.rule"
-    ):
+    with pytest.raises(ValueError, match="Unknown rule ids in rules.disabled: unknown.rule"):
         ProfileResolver(registry).resolve(config, language_pack)
 
 
-def test_profile_resolution_rejects_unknown_cli_rule_id(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_rejects_unknown_cli_rule_id(registry, language_pack) -> None:
     config = parse_project_config({})
-    with pytest.raises(
-        ValueError, match="Unknown rule ids in cli --rule: unknown.rule"
-    ):
+    with pytest.raises(ValueError, match="Unknown rule ids in cli --rule: unknown.rule"):
         ProfileResolver(registry).resolve(
             config, language_pack, cli=CliOverrides(rule_ids=("unknown.rule",))
         )
 
 
-def test_profile_resolution_rejects_unknown_cli_disabled_rule_id(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_rejects_unknown_cli_disabled_rule_id(registry, language_pack) -> None:
     config = parse_project_config({})
     with pytest.raises(
         ValueError,
@@ -368,9 +340,7 @@ def test_profile_resolution_rejects_rule_not_supported_by_language_pack(
         supported_rules=frozenset({"syntax.sentence_length"}),
         rule_defaults={},
     )
-    config = parse_project_config(
-        {"rules": {"active": ["syntax.passive_voice"]}}
-    )
+    config = parse_project_config({"rules": {"active": ["syntax.passive_voice"]}})
     with pytest.raises(
         ValueError,
         match="Rule 'syntax.passive_voice' is not supported by language pack 'en'",
@@ -386,9 +356,7 @@ def test_profile_resolution_allows_rule_when_language_pack_supports_it(
         supported_rules=frozenset({"syntax.sentence_length"}),
         rule_defaults={},
     )
-    config = parse_project_config(
-        {"rules": {"active": ["syntax.sentence_length"]}}
-    )
+    config = parse_project_config({"rules": {"active": ["syntax.sentence_length"]}})
     profile = ProfileResolver(registry).resolve(config, restricted_pack)
     assert "syntax.sentence_length" in profile.rules
 
@@ -404,9 +372,7 @@ def test_profile_resolution_rejects_language_default_for_unsupported_rule(
             "syntax.passive_voice": {"options": {}},
         },
     )
-    config = parse_project_config(
-        {"rules": {"active": ["syntax.sentence_length"]}}
-    )
+    config = parse_project_config({"rules": {"active": ["syntax.sentence_length"]}})
     with pytest.raises(
         ValueError,
         match="language pack 'en' rule_defaults declare unsupported rule ids: syntax.passive_voice",
@@ -414,9 +380,7 @@ def test_profile_resolution_rejects_language_default_for_unsupported_rule(
         ProfileResolver(registry).resolve(config, restricted_pack)
 
 
-def test_profile_resolution_accepts_options_mapping_override(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_accepts_options_mapping_override(registry, language_pack) -> None:
     config = parse_project_config(
         {
             "rules": {
@@ -435,9 +399,7 @@ def test_profile_resolution_accepts_options_mapping_override(
     assert settings.severity.value == "info"
 
 
-def test_profile_resolution_validates_rule_options_model(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_validates_rule_options_model(registry, language_pack) -> None:
     registry.add(_OptionsValidatedRule)
     config = parse_project_config(
         {
@@ -447,9 +409,7 @@ def test_profile_resolution_validates_rule_options_model(
             }
         }
     )
-    with pytest.raises(
-        ValueError, match="Invalid options for rule 'test.options_model'"
-    ):
+    with pytest.raises(ValueError, match="Invalid options for rule 'test.options_model'"):
         ProfileResolver(registry).resolve(config, language_pack)
 
 
@@ -513,9 +473,7 @@ def test_profile_resolution_rejects_invalid_section_opener_heading_levels_option
         ProfileResolver(registry).resolve(config, language_pack)
 
 
-def test_profile_resolution_rejects_legacy_language_default_shape(
-    registry, language_pack
-) -> None:
+def test_profile_resolution_rejects_legacy_language_default_shape(registry, language_pack) -> None:
     bad_pack = replace(
         language_pack,
         rule_defaults={"syntax.sentence_length": {"max_words": 18}},

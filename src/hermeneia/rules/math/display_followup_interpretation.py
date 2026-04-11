@@ -171,8 +171,7 @@ def _is_interpretive_followup(
 def _is_bare_pronoun_followup(sentence) -> bool:
     lowered = sentence.projection.text.lower().strip()
     return bool(
-        lowered
-        and (IT_THEY_OPENING_RE.match(lowered) or DEMONSTRATIVE_PREDICATE_RE.match(lowered))
+        lowered and (IT_THEY_OPENING_RE.match(lowered) or DEMONSTRATIVE_PREDICATE_RE.match(lowered))
     )
 
 

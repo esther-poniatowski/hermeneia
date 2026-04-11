@@ -46,11 +46,7 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
                 sentence.id,
                 max_sentences_back=max(0, lookback),
             )
-            citations = [
-                signal
-                for signal in signals
-                if signal.kind == SupportSignalKind.CITATION
-            ]
+            citations = [signal for signal in signals if signal.kind == SupportSignalKind.CITATION]
             if citations:
                 continue
             violations.append(
@@ -86,4 +82,3 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
 
 def register(registry) -> None:
     registry.add(ImpreciseQuantifierWithoutCitationRule)
-

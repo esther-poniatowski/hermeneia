@@ -56,18 +56,14 @@ class AnnotationResult:
 @dataclass(frozen=True)
 class AnalysisPolicy:
     scoring_aggregation: str = "hierarchical"
-    scoring_output: frozenset[str] = frozenset(
-        {"layer_scores", "global_score", "violation_list"}
-    )
+    scoring_output: frozenset[str] = frozenset({"layer_scores", "global_score", "violation_list"})
     debug_mode: bool = False
     suggestions_enabled: bool = True
     suggestion_default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
 
 
 class DocumentAnnotator(Protocol):
-    def annotate(
-        self, document: Document, profile: ResolvedProfile
-    ) -> AnnotationResult: ...
+    def annotate(self, document: Document, profile: ResolvedProfile) -> AnnotationResult: ...
 
 
 class AnalysisRunner:
@@ -110,9 +106,7 @@ class AnalysisRunner:
             parsed = self._parse_document(analysis_input, diagnostics)
             if parsed is None:
                 continue
-            annotation = self._annotate_document(
-                analysis_input, profile, parsed, diagnostics
-            )
+            annotation = self._annotate_document(analysis_input, profile, parsed, diagnostics)
             if annotation is None:
                 continue
             features = FeatureStore(
@@ -136,9 +130,7 @@ class AnalysisRunner:
                 for diagnostic in detection.diagnostics
             )
             scorecard = (
-                self._scorer.score(detection.violations, rule_weights)
-                if score_enabled
-                else None
+                self._scorer.score(detection.violations, rule_weights) if score_enabled else None
             )
             revision_plan = (
                 self._planner.build(list(detection.violations))
@@ -160,9 +152,7 @@ class AnalysisRunner:
                     report=report,
                 )
             )
-        return BatchAnalysisResult(
-            results=tuple(results), diagnostics=tuple(diagnostics)
-        )
+        return BatchAnalysisResult(results=tuple(results), diagnostics=tuple(diagnostics))
 
     def _parse_document(
         self,

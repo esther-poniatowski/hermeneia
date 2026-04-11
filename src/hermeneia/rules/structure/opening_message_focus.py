@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from hermeneia.document.model import BlockKind
+from hermeneia.document.model import BlockKind, Document, Sentence
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
     Layer,
@@ -119,7 +119,7 @@ class OpeningMessageFocusRule(HeuristicSemanticRule):
         ]
 
 
-def _first_opening_sentence(doc):
+def _first_opening_sentence(doc: Document) -> Sentence | None:
     for block in doc.iter_blocks():
         if block.kind not in OPENING_PROSE_KINDS:
             continue
@@ -144,4 +144,3 @@ def _estimate_enumeration_items(text: str) -> int:
 
 def register(registry) -> None:
     registry.add(OpeningMessageFocusRule)
-

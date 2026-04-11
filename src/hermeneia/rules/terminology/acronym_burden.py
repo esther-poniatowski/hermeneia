@@ -61,17 +61,11 @@ class AcronymBurdenRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        min_mentions_for_overuse = self.settings.int_option(
-            "min_acronym_mentions_for_overuse", 4
-        )
+        min_mentions_for_overuse = self.settings.int_option("min_acronym_mentions_for_overuse", 4)
         max_ratio = self.settings.float_option("max_acronym_to_full_form_ratio", 2.0)
         allowlist = ctx.language_pack.lexicons.acronym_allowlist
-        definition_stopwords = (
-            ctx.language_pack.lexicons.acronym_definition_stopwords
-        )
-        ordinal_by_sentence_id = {
-            ref.id: ref.ordinal for ref in doc.indexes.sentences
-        }
+        definition_stopwords = ctx.language_pack.lexicons.acronym_definition_stopwords
+        ordinal_by_sentence_id = {ref.id: ref.ordinal for ref in doc.indexes.sentences}
         definitions = _collect_definitions(
             doc, allowlist, ordinal_by_sentence_id, definition_stopwords
         )
@@ -118,7 +112,9 @@ class AcronymBurdenRule(AnnotatedRule):
             full_form_mentions = _count_full_form_mentions(doc, definition.full_form)
             if acronym_mentions < min_mentions_for_overuse:
                 continue
-            ratio = float("inf") if full_form_mentions == 0 else acronym_mentions / full_form_mentions
+            ratio = (
+                float("inf") if full_form_mentions == 0 else acronym_mentions / full_form_mentions
+            )
             if ratio <= max_ratio:
                 continue
             violations.append(
@@ -258,9 +254,7 @@ def _initials_align(
     if len(words) < 2:
         return False
     initials = "".join(
-        word[0].upper()
-        for word in words
-        if word.lower() not in definition_stopwords
+        word[0].upper() for word in words if word.lower() not in definition_stopwords
     )
     if not initials:
         return False

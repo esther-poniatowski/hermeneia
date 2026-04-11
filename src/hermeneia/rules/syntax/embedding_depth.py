@@ -56,9 +56,7 @@ class EmbeddingDepthRule(AnnotatedRule):
                 continue
             source = "dependency" if depth > 0 else "regex"
             score = float(max(depth, markers))
-            threshold = float(
-                max(max_dependency_depth, max_embedding_markers)
-            )
+            threshold = float(max(max_dependency_depth, max_embedding_markers))
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
@@ -103,13 +101,7 @@ def _dependency_depth(tokens) -> int:
             return memo[index]
         token = tokens[index]
         head = token.head_idx
-        if (
-            head is None
-            or head < 0
-            or head >= len(tokens)
-            or head == index
-            or index in stack
-        ):
+        if head is None or head < 0 or head >= len(tokens) or head == index or index in stack:
             memo[index] = 1
             return 1
         stack.add(index)
@@ -129,4 +121,3 @@ def _embedding_markers(text: str, subordinate_pattern: re.Pattern[str]) -> int:
 
 def register(registry) -> None:
     registry.add(EmbeddingDepthRule)
-

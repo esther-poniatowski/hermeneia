@@ -32,9 +32,7 @@ class TopicSentenceRule(HeuristicSemanticRule):
 
     def check(self, doc, ctx):
         threshold = self.settings.float_option("minimum_score", 0.45)
-        transitional_openers = tuple(
-            ctx.language_pack.lexicons.topic_sentence_openers
-        )
+        transitional_openers = tuple(ctx.language_pack.lexicons.topic_sentence_openers)
         opener_pattern = compile_leading_phrase_regex(transitional_openers)
         violations: list[Violation] = []
         for block in iter_blocks(doc, {BlockKind.PARAGRAPH}):

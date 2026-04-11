@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from hermeneia.document.model import Token
 from hermeneia.rules.base import (
     AnnotatedRule,
     Layer,
@@ -99,11 +100,11 @@ class NominalizationRule(AnnotatedRule):
             confidence = (
                 0.9
                 if signal_type == "weak_support_verb"
-                else 0.86
-                if signal_type == "abstract_noun_phrase"
-                else 0.82
-                if signal_type == "core_argument_nominalization"
-                else 0.76
+                else (
+                    0.86
+                    if signal_type == "abstract_noun_phrase"
+                    else 0.82 if signal_type == "core_argument_nominalization" else 0.76
+                )
             )
             violations.append(
                 Violation(
@@ -161,7 +162,7 @@ def _detect_nominalization(
 
 
 def _detect_from_tokens(
-    tokens,
+    tokens: list[Token],
     *,
     suffixes: tuple[str, ...],
     allowlist: frozenset[str],
@@ -257,10 +258,10 @@ def _detect_from_text(
 
 def _token_is_candidate(
     *,
-    token,
+    token: Token,
     lemma: str,
     next_word: str | None,
-    next_token,
+    next_token: Token | None,
     suffixes: tuple[str, ...],
     allowlist: frozenset[str],
     linking_prepositions: frozenset[str],
@@ -313,7 +314,7 @@ def _extra_lexicalized_terms(raw: object) -> frozenset[str]:
     return frozenset(values)
 
 
-def _is_adjective_position(token, next_token) -> bool:
+def _is_adjective_position(token: Token, next_token: Token | None) -> bool:
     dependency = (token.dep or "").lower()
     if dependency in ADJECTIVE_POSITION_DEPENDENCIES:
         return True
@@ -321,7 +322,11 @@ def _is_adjective_position(token, next_token) -> bool:
         return False
     token_pos = (token.pos or "").upper()
     next_pos = (next_token.pos or "").upper()
-    return token_pos in {"NOUN", "PROPN"} and next_pos in {"NOUN", "PROPN"} and dependency == "compound"
+    return (
+        token_pos in {"NOUN", "PROPN"}
+        and next_pos in {"NOUN", "PROPN"}
+        and dependency == "compound"
+    )
 
 
 def _is_suffix_candidate(word: str, suffixes: tuple[str, ...], allowlist: frozenset[str]) -> bool:
@@ -339,5 +344,5 @@ def _matching_suffix(word: str, suffixes: tuple[str, ...]) -> str | None:
     return None
 
 
-def _lemma(token) -> str:
+def _lemma(token: Token) -> str:
     return (token.lemma or token.text).lower()

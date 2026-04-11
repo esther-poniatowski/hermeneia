@@ -50,9 +50,7 @@ class ShorthandRule(SourcePatternRule):
                         span=span_from_lines(line),
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}
-                        ),
+                        evidence=RuleEvidence(features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}),
                         rewrite_tactics=(
                             "Keep the original expression unless the shorthand is reused enough to justify a new symbol.",
                         ),
@@ -78,9 +76,7 @@ class ShorthandRule(SourcePatternRule):
                         span=span,
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}
-                        ),
+                        evidence=RuleEvidence(features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}),
                         rewrite_tactics=(
                             "Keep the original expression unless the shorthand is reused enough to justify a new symbol.",
                         ),

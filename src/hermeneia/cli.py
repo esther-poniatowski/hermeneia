@@ -159,10 +159,7 @@ def _render_text(batch) -> str:
                 lines.append(f"    {row.line_number}: {row.line_text}")
                 lines.append(f"       {row.marker_line}")
             _append_violation_details(lines, violation)
-        if (
-            result.report.scorecard is not None
-            and "global_score" in result.report.scoring_output
-        ):
+        if result.report.scorecard is not None and "global_score" in result.report.scoring_output:
             lines.append(f"  global score: {result.report.scorecard.global_score}")
     return "\n".join(lines)
 
@@ -219,8 +216,7 @@ def _analysis_policy_from_config(project_config: ProjectConfig) -> AnalysisPolic
     scoring_aggregation = project_config.scoring.aggregation
     if scoring_aggregation != "hierarchical":
         raise ValueError(
-            "Unsupported scoring.aggregation "
-            f"'{scoring_aggregation}'. Expected 'hierarchical'."
+            "Unsupported scoring.aggregation " f"'{scoring_aggregation}'. Expected 'hierarchical'."
         )
     scoring_output = frozenset(project_config.scoring.output)
     unknown_outputs = sorted(scoring_output - SUPPORTED_SCORING_OUTPUTS)

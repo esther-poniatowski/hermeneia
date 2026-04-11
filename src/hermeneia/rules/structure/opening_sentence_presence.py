@@ -86,9 +86,7 @@ class OpeningSentencePresenceRule(HeuristicSemanticRule):
         supported_languages=frozenset({"en"}),
         default_options={
             "min_opening_words": 8,
-            "forbidden_block_kinds": tuple(
-                kind.value for kind in DEFAULT_FORBIDDEN_BLOCK_KINDS
-            ),
+            "forbidden_block_kinds": tuple(kind.value for kind in DEFAULT_FORBIDDEN_BLOCK_KINDS),
         },
         evidence_fields=("first_structured_kind",),
     )

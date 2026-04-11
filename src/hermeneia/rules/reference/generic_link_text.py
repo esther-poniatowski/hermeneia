@@ -19,9 +19,7 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import line_text_outside_excluded
 from hermeneia.rules.patterns import normalize_phrases
 
-MARKDOWN_LINK_RE = re.compile(
-    r"(?<!\!)\[(?P<link_text>[^\]\n]+)\]\((?P<link_target>[^)\n]*)\)"
-)
+MARKDOWN_LINK_RE = re.compile(r"(?<!\!)\[(?P<link_text>[^\]\n]+)\]\((?P<link_target>[^)\n]*)\)")
 
 
 class _GenericLinkTextOptions:
@@ -73,15 +71,21 @@ class GenericLinkTextRule(SourcePatternRule):
     def check_source(self, lines, doc, ctx):
         _ = doc
         silenced = {pattern.lower() for pattern in self.settings.silenced_patterns}
-        configured_labels = self.settings.options.get("reference_labels")
-        configured_terms = self.settings.options.get("procedural_terms")
+        configured_labels = _as_string_tuple(
+            self.settings.options.get("reference_labels"),
+            "reference_labels",
+        )
+        configured_terms = _as_string_tuple(
+            self.settings.options.get("procedural_terms"),
+            "procedural_terms",
+        )
         reference_labels = (
-            tuple(configured_labels)
+            configured_labels
             if configured_labels is not None
             else tuple(ctx.language_pack.lexicons.generic_link_reference_labels)
         )
         procedural_terms = (
-            tuple(configured_terms)
+            configured_terms
             if configured_terms is not None
             else tuple(ctx.language_pack.lexicons.procedural_link_terms)
         )

@@ -54,7 +54,9 @@ class TransitionQualityRule(HeuristicSemanticRule):
             anchored=True,
         )
         violations: list[Violation] = []
-        for block in iter_blocks(doc, {BlockKind.PARAGRAPH, BlockKind.BLOCK_QUOTE, BlockKind.LIST_ITEM}):
+        for block in iter_blocks(
+            doc, {BlockKind.PARAGRAPH, BlockKind.BLOCK_QUOTE, BlockKind.LIST_ITEM}
+        ):
             if len(block.sentences) < 2:
                 continue
             connector_count = 0

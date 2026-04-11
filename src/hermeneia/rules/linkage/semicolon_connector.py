@@ -18,6 +18,7 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import iter_sentences
 from hermeneia.rules.patterns import compile_leading_phrase_regex
 
+
 class SemicolonConnectorRule(HeuristicSemanticRule):
     metadata = RuleMetadata(
         rule_id="linkage.semicolon_connector",
@@ -84,9 +85,7 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         return violations
 
 
-def _strict_parallel_pair(
-    left: str, right: str, parallel_starters: frozenset[str]
-) -> bool:
+def _strict_parallel_pair(left: str, right: str, parallel_starters: frozenset[str]) -> bool:
     left_first = _first_token(left)
     right_first = _first_token(right)
     if left_first is None or right_first is None:

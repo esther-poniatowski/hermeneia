@@ -99,10 +99,7 @@ def _support_signals_by_sentence(doc) -> dict[str, frozenset[SupportSignalKind]]
         if signal.sentence_id is None:
             continue
         signals.setdefault(signal.sentence_id, set()).add(signal.kind)
-    return {
-        sentence_id: frozenset(signal_kinds)
-        for sentence_id, signal_kinds in signals.items()
-    }
+    return {sentence_id: frozenset(signal_kinds) for sentence_id, signal_kinds in signals.items()}
 
 
 def register(registry) -> None:

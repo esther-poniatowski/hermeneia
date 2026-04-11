@@ -66,4 +66,3 @@ class BoilerplateOpenerRule(AnnotatedRule):
 
 def register(registry) -> None:
     registry.add(BoilerplateOpenerRule)
-

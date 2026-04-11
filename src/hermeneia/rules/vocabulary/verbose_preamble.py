@@ -31,7 +31,9 @@ class VerbosePreambleRule(SourcePatternRule):
 
     def check_source(self, lines, doc, ctx):
         _ = doc
-        pattern = compile_leading_phrase_regex(tuple(ctx.language_pack.lexicons.verbose_preamble_markers))
+        pattern = compile_leading_phrase_regex(
+            tuple(ctx.language_pack.lexicons.verbose_preamble_markers)
+        )
         if pattern.pattern == r"(?!x)x":
             return []
         violations: list[Violation] = []

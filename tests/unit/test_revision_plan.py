@@ -186,9 +186,7 @@ def test_revision_plan_passive_voice_template_requires_identifiable_actor() -> N
                 span,
                 Severity.WARNING,
                 Layer.SURFACE_STYLE,
-                evidence=RuleEvidence(
-                    features={"actor": "the authors", "participle": "derived"}
-                ),
+                evidence=RuleEvidence(features={"actor": "the authors", "participle": "derived"}),
                 rewrite_tactics=("Rewrite the clause in active voice.",),
             ),
         ]

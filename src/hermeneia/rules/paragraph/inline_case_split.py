@@ -62,4 +62,3 @@ class InlineCaseSplitRule(HeuristicSemanticRule):
 
 def register(registry) -> None:
     registry.add(InlineCaseSplitRule)
-

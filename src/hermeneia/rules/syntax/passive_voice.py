@@ -19,9 +19,7 @@ from hermeneia.rules.common import iter_sentences, upstream_limits
 PASSIVE_FALLBACK_RE = re.compile(
     r"\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b", re.IGNORECASE
 )
-BY_PHRASE_RE = re.compile(
-    r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE
-)
+BY_PHRASE_RE = re.compile(r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE)
 
 
 class PassiveVoiceRule(AnnotatedRule):

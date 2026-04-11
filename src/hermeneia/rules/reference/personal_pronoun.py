@@ -41,7 +41,9 @@ class PersonalPronounRule(SourcePatternRule):
 
     def check_source(self, lines, doc, ctx):
         _ = doc
-        pattern = compile_inline_phrase_regex(tuple(ctx.language_pack.lexicons.personal_pronoun_markers))
+        pattern = compile_inline_phrase_regex(
+            tuple(ctx.language_pack.lexicons.personal_pronoun_markers)
+        )
         if pattern.pattern == r"(?!x)x":
             return []
         violations: list[Violation] = []

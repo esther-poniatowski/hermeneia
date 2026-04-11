@@ -16,9 +16,7 @@ from hermeneia.suggest.template import (
 
 
 class RevisionPlanner:
-    def __init__(
-        self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
-    ) -> None:
+    def __init__(self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY) -> None:
         self._default_mode = default_mode
 
     def build(self, violations: list[Violation]) -> RevisionPlan:

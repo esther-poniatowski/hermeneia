@@ -26,9 +26,7 @@ $$
     assert any(kind == BlockKind.LIST for _, kind in flat_blocks)
     assert any(kind == BlockKind.LIST_ITEM for _, kind in flat_blocks)
     assert any(kind == BlockKind.DISPLAY_MATH for _, kind in flat_blocks)
-    sentence_ids = [
-        sentence.id for block in document.iter_blocks() for sentence in block.sentences
-    ]
+    sentence_ids = [sentence.id for block in document.iter_blocks() for sentence in block.sentences]
     assert sentence_ids[:3] == ["s000", "s001", "s002"]
     paragraph_sentence = next(
         sentence

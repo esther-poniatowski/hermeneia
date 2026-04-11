@@ -50,7 +50,9 @@ class VaguePhrasingRule(SourcePatternRule):
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
                     evidence=RuleEvidence(features={"phrase": phrase.lower()}),
-                    rewrite_tactics=("State the concrete mechanism instead of a broad qualitative placeholder.",),
+                    rewrite_tactics=(
+                        "State the concrete mechanism instead of a broad qualitative placeholder.",
+                    ),
                 )
             )
         return violations

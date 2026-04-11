@@ -100,9 +100,7 @@ class FeatureStore:
         self._paragraph_ordinals = {
             block.id: ordinal for ordinal, block in enumerate(self._paragraph_blocks)
         }
-        self._paragraph_terms = {
-            block.id: _block_terms(block) for block in self._paragraph_blocks
-        }
+        self._paragraph_terms = {block.id: _block_terms(block) for block in self._paragraph_blocks}
         self._block_sections = _block_section_map(indexes.sections)
 
     def term_first_use(self, term: str) -> Span | None:

@@ -52,9 +52,7 @@ class DisplayUnclosedRule(SourcePatternRule):
                     span=span_from_lines(open_line),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(
-                        features={"opening_line": open_line.span.start_line}
-                    ),
+                    evidence=RuleEvidence(features={"opening_line": open_line.span.start_line}),
                     rewrite_tactics=(
                         "Add a closing '$$' delimiter for the opened display equation.",
                     ),

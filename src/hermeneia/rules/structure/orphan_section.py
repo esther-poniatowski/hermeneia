@@ -123,4 +123,3 @@ def _violation(
 
 def register(registry) -> None:
     registry.add(OrphanSectionRule)
-

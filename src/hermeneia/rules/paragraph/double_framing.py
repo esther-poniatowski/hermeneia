@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from hermeneia.document.model import BlockKind
+from hermeneia.document.model import Block, BlockKind
 from hermeneia.rules.base import (
     HeuristicSemanticRule,
     Layer,
@@ -45,9 +45,7 @@ class DoubleFramingRule(HeuristicSemanticRule):
             list_items = _following_list_items(flat_blocks, index)
             if len(list_items) < 2:
                 continue
-            reframed = sum(
-                1 for item in list_items if _item_reframes(item, framing_markers)
-            )
+            reframed = sum(1 for item in list_items if _item_reframes(item, framing_markers))
             if reframed < 2:
                 continue
             violations.append(
@@ -79,7 +77,7 @@ class DoubleFramingRule(HeuristicSemanticRule):
         return violations
 
 
-def _following_list_items(blocks, index: int):
+def _following_list_items(blocks: list[Block], index: int) -> list[Block]:
     if index + 1 >= len(blocks):
         return []
     next_block = blocks[index + 1]
@@ -95,7 +93,7 @@ def _following_list_items(blocks, index: int):
     return items
 
 
-def _item_reframes(item, markers: tuple[str, ...]) -> bool:
+def _item_reframes(item: Block, markers: tuple[str, ...]) -> bool:
     opening = _first_sentence_text(item)
     if opening is None:
         return False
@@ -107,7 +105,7 @@ def _item_reframes(item, markers: tuple[str, ...]) -> bool:
     return text_has_marker(opening, markers)
 
 
-def _first_sentence_text(block) -> str | None:
+def _first_sentence_text(block: Block) -> str | None:
     if block.sentences:
         return block.sentences[0].projection.text
     for descendant in block.iter_blocks():

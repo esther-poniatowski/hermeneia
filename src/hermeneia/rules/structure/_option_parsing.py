@@ -7,9 +7,7 @@ from collections.abc import Mapping
 from hermeneia.document.model import BlockKind
 
 
-def as_block_kind_name_tuple(
-    raw: object, *, field: str
-) -> tuple[str, ...] | None:
+def as_block_kind_name_tuple(raw: object, *, field: str) -> tuple[str, ...] | None:
     """Validate and normalize block-kind option values."""
 
     if raw is None:
@@ -55,9 +53,7 @@ def mapping_with_allowed_keys(
         raise ValueError("options must be a mapping")
     unknown = sorted(key for key in raw if key not in allowed)
     if unknown:
-        raise ValueError(
-            f"{scope} has unknown option keys: {', '.join(unknown)}"
-        )
+        raise ValueError(f"{scope} has unknown option keys: {', '.join(unknown)}")
     return raw
 
 
@@ -68,6 +64,5 @@ def parse_block_kind_name(value: str, *, field: str) -> BlockKind:
     except ValueError as exc:
         expected = ", ".join(sorted(kind.value for kind in BlockKind))
         raise ValueError(
-            f"{field} includes unknown block kind '{value}'. "
-            f"Expected one of: {expected}"
+            f"{field} includes unknown block kind '{value}'. " f"Expected one of: {expected}"
         ) from exc

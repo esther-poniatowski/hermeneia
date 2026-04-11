@@ -132,9 +132,7 @@ def test_rule_detector_enforces_violation_contract(registry, language_pack) -> N
     )
 
 
-def test_rule_detector_populates_runtime_capability_flags(
-    registry, language_pack
-) -> None:
+def test_rule_detector_populates_runtime_capability_flags(registry, language_pack) -> None:
     registry.add(ContextFlagsRule)
     config = parse_project_config(
         {

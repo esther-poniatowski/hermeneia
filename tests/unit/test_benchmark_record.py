@@ -3,12 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 BENCHMARK_RECORD = (
-    Path(__file__).resolve().parents[1]
-    / "fixtures"
-    / "benchmarks"
-    / "warm_run_benchmark.json"
+    Path(__file__).resolve().parents[1] / "fixtures" / "benchmarks" / "warm_run_benchmark.json"
 )
 EXPECTED_FIXTURES = {"small.md", "medium.md", "large.md"}
 

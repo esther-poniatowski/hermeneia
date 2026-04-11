@@ -76,4 +76,3 @@ class ParagraphRedundancyRule(HeuristicSemanticRule):
 
 def register(registry) -> None:
     registry.add(ParagraphRedundancyRule)
-

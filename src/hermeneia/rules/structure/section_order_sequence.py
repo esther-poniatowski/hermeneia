@@ -62,11 +62,11 @@ class SectionOrderSequenceRule(HeuristicSemanticRule):
         )
 
         violations: list[Violation] = []
-        violations.extend(_order_violation(self, installation, purpose, "purpose_over_installation"))
-        violations.extend(_order_violation(self, usage, purpose, "purpose_over_usage"))
         violations.extend(
-            _order_violation(self, configuration, usage, "usage_over_configuration")
+            _order_violation(self, installation, purpose, "purpose_over_installation")
         )
+        violations.extend(_order_violation(self, usage, purpose, "purpose_over_usage"))
+        violations.extend(_order_violation(self, configuration, usage, "usage_over_configuration"))
         violations.extend(_order_violation(self, advanced, usage, "usage_over_advanced"))
         return violations
 
@@ -126,4 +126,3 @@ def _order_violation(
 
 def register(registry) -> None:
     registry.add(SectionOrderSequenceRule)
-

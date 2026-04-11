@@ -52,8 +52,7 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
         definition_signal_sentences = {
             signal.sentence_id
             for signal in doc.indexes.support_signals
-            if signal.kind == SupportSignalKind.DEFINITION_MARKER
-            and signal.sentence_id is not None
+            if signal.kind == SupportSignalKind.DEFINITION_MARKER and signal.sentence_id is not None
         }
         for block in iter_blocks(
             doc,
@@ -71,9 +70,7 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
                 if self.should_abstain(sentence.annotation_flags):
                     continue
                 previous_sentence = block.sentences[index - 1] if index > 0 else None
-                sentence_matched_markers = matched_sentence_markers(
-                    sentence, definitional_markers
-                )
+                sentence_matched_markers = matched_sentence_markers(sentence, definitional_markers)
                 undefined_symbols: set[str] = set()
                 matched_markers: set[str] = set()
                 definition_signals: set[str] = set()

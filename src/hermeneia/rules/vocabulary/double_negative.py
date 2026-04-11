@@ -106,4 +106,3 @@ def _match_span(line, start: int, end: int) -> Span:
 
 def register(registry) -> None:
     registry.add(DoubleNegativeRule)
-

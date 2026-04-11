@@ -18,11 +18,7 @@ def _parse(language_pack, source: str):
 
 
 def _annotate(language_pack, profile, document):
-    return (
-        SpaCyDocumentAnnotator(language_pack.parser_model)
-        .annotate(document, profile)
-        .document
-    )
+    return SpaCyDocumentAnnotator(language_pack.parser_model).annotate(document, profile).document
 
 
 def test_nominalization_rule_can_disable_lexicalized_exception(registry, language_pack) -> None:
@@ -59,7 +55,9 @@ def test_nominalization_rule_can_disable_lexicalized_exception(registry, languag
     assert violations[0].rule_id == "vocabulary.nominalization"
 
 
-def test_nominalization_rule_can_disable_adjective_position_exception(registry, language_pack) -> None:
+def test_nominalization_rule_can_disable_adjective_position_exception(
+    registry, language_pack
+) -> None:
     source = "Configuration file stores values.\n"
 
     default_config = parse_project_config({"rules": {"active": ["vocabulary.nominalization"]}})
@@ -97,11 +95,15 @@ def test_nominalization_rule_can_disable_adjective_position_exception(registry, 
     assert violations[0].rule_id == "vocabulary.nominalization"
 
 
-def test_vague_procedural_nominalization_rule_emits(registry, language_pack, research_profile) -> None:
+def test_vague_procedural_nominalization_rule_emits(
+    registry, language_pack, research_profile
+) -> None:
     source = "The comparison remains inconclusive.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["vocabulary.vague_procedural_nominalization"])
+    rule = registry.instantiate(
+        research_profile.rules["vocabulary.vague_procedural_nominalization"]
+    )
     violations = rule.check(document, context)
     assert len(violations) == 1
 
@@ -123,7 +125,9 @@ def test_vague_procedural_nominalization_rule_accepts_explicit_arguments(
     source = "The comparison between X and Y remains inconclusive.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["vocabulary.vague_procedural_nominalization"])
+    rule = registry.instantiate(
+        research_profile.rules["vocabulary.vague_procedural_nominalization"]
+    )
     assert rule.check(document, context) == []
 
 
@@ -148,7 +152,9 @@ def test_lexicalized_compound_exception_is_configurable(registry, language_pack)
     default_context = RuleContext(
         default_profile, language_pack, FeatureStore(document, document.indexes)
     )
-    default_rule = registry.instantiate(default_profile.rules["vocabulary.abstract_compound_modifier"])
+    default_rule = registry.instantiate(
+        default_profile.rules["vocabulary.abstract_compound_modifier"]
+    )
     assert default_rule.check(document, default_context) == []
 
     strict_config = parse_project_config(
@@ -167,7 +173,9 @@ def test_lexicalized_compound_exception_is_configurable(registry, language_pack)
     strict_context = RuleContext(
         strict_profile, language_pack, FeatureStore(document, document.indexes)
     )
-    strict_rule = registry.instantiate(strict_profile.rules["vocabulary.abstract_compound_modifier"])
+    strict_rule = registry.instantiate(
+        strict_profile.rules["vocabulary.abstract_compound_modifier"]
+    )
     violations = strict_rule.check(document, strict_context)
     assert len(violations) == 1
 
@@ -187,7 +195,9 @@ def test_sentence_economy_rules_emit(registry, language_pack, research_profile) 
     verbose = registry.instantiate(research_profile.rules["vocabulary.verbose_preamble"])
     redundant = registry.instantiate(research_profile.rules["vocabulary.redundant_leadin"])
     long_enum = registry.instantiate(research_profile.rules["syntax.long_inline_enumeration"])
-    stacked = registry.instantiate(research_profile.rules["vocabulary.stacked_nominalization_chain"])
+    stacked = registry.instantiate(
+        research_profile.rules["vocabulary.stacked_nominalization_chain"]
+    )
 
     assert len(verbose.check(document, context)) == 1
     assert len(redundant.check(document, context)) == 1
@@ -213,7 +223,9 @@ def test_information_architecture_rules(registry, language_pack, research_profil
     opening_context = RuleContext(
         research_profile, language_pack, FeatureStore(opening_missing, opening_missing.indexes)
     )
-    opening_rule = registry.instantiate(research_profile.rules["structure.opening_sentence_presence"])
+    opening_rule = registry.instantiate(
+        research_profile.rules["structure.opening_sentence_presence"]
+    )
     assert len(opening_rule.check(opening_missing, opening_context)) == 1
 
     prose_outside = _parse(

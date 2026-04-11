@@ -18,12 +18,8 @@ def test_build_projection_preserves_offsets_and_placeholders() -> None:
     )
     assert projection.projection.text == "Let MATHSYM be CODEID."
     assert len(projection.projection.masked_segments) == 2
-    assert (
-        projection.projection.masked_segments[0].kind == MaskedSegmentKind.INLINE_MATH
-    )
-    assert (
-        projection.projection.masked_segments[1].kind == MaskedSegmentKind.INLINE_CODE
-    )
+    assert projection.projection.masked_segments[0].kind == MaskedSegmentKind.INLINE_MATH
+    assert projection.projection.masked_segments[1].kind == MaskedSegmentKind.INLINE_CODE
     assert projection.flags == frozenset()
 
 

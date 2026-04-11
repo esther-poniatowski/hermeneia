@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from hermeneia.document.model import Sentence
 from hermeneia.rules.base import (
     AnnotatedRule,
     Layer,
@@ -58,15 +59,13 @@ class StressPositionRule(AnnotatedRule):
                     ),
                     confidence=0.58,
                     rationale="Stress-position checks are heuristic and should be interpreted with local rhetorical context.",
-                    rewrite_tactics=(
-                        "Move the key new information to the end of the sentence.",
-                    ),
+                    rewrite_tactics=("Move the key new information to the end of the sentence.",),
                 )
             )
         return violations
 
 
-def _final_content_token(sentence) -> str | None:
+def _final_content_token(sentence: Sentence) -> str | None:
     if sentence.tokens:
         for token in reversed(sentence.tokens):
             if token.pos == "PUNCT":

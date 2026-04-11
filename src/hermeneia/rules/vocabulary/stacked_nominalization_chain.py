@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from hermeneia.document.model import Sentence, Token
 from hermeneia.rules.base import (
     AnnotatedRule,
     Layer,
@@ -79,7 +80,7 @@ class StackedNominalizationChainRule(AnnotatedRule):
 
 
 def _largest_chain(
-    sentence,
+    sentence: Sentence,
     *,
     suffixes: tuple[str, ...],
     allowlist: frozenset[str],
@@ -138,7 +139,7 @@ def _matching_suffix(word: str, suffixes: tuple[str, ...]) -> str | None:
     return None
 
 
-def _token_word(token) -> str:
+def _token_word(token: Token) -> str:
     return (token.lemma or token.text).lower()
 
 

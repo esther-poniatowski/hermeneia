@@ -215,9 +215,7 @@ class MarkdownDocumentParser(DocumentParser):
     ) -> Block:
         block_span = _token_span(open_token, source, line_starts)
         raw_segment = source[block_span.start : block_span.end]
-        buffer = _visible_buffer(
-            raw_segment, block_span.start, inline_token, source, line_starts
-        )
+        buffer = _visible_buffer(raw_segment, block_span.start, inline_token, source, line_starts)
         block_metadata = dict(metadata or {})
         block_kind = kind
 
@@ -300,9 +298,7 @@ class MarkdownDocumentParser(DocumentParser):
             match = ADMONITION_RE.match(block.sentences[0].source_text.strip())
             if match is not None:
                 parent.kind = BlockKind.ADMONITION
-                block.sentences = (
-                    block.sentences[1:] if len(block.sentences) > 1 else []
-                )
+                block.sentences = block.sentences[1:] if len(block.sentences) > 1 else []
                 parent.metadata = {"label": match.group(1).lower()}
 
 
@@ -315,9 +311,7 @@ def _visible_buffer(
 ) -> VisibleBuffer:
     children = inline_token.children or []
     if not children:
-        source_offsets = tuple(
-            segment_start + index for index in range(len(inline_token.content))
-        )
+        source_offsets = tuple(segment_start + index for index in range(len(inline_token.content)))
         return VisibleBuffer(
             text=inline_token.content, source_offsets=source_offsets, special_spans=()
         )
@@ -437,9 +431,7 @@ def _inject_math_spans(buffer: VisibleBuffer, line_starts: list[int]) -> Visible
     )
 
 
-def _inline_nodes_from_buffer(
-    buffer: VisibleBuffer, line_starts: list[int]
-) -> list[InlineNode]:
+def _inline_nodes_from_buffer(buffer: VisibleBuffer, line_starts: list[int]) -> list[InlineNode]:
     return _inline_nodes_for_range(buffer, 0, len(buffer.text), line_starts)
 
 
@@ -466,19 +458,13 @@ def _inline_nodes_for_range(
     return [node for node in nodes if node.text]
 
 
-def _text_node(
-    buffer: VisibleBuffer, start: int, end: int, line_starts: list[int]
-) -> InlineNode:
+def _text_node(buffer: VisibleBuffer, start: int, end: int, line_starts: list[int]) -> InlineNode:
     source_start = next(
         (offset for offset in buffer.source_offsets[start:end] if offset is not None),
         None,
     )
     source_end = next(
-        (
-            offset
-            for offset in reversed(buffer.source_offsets[start:end])
-            if offset is not None
-        ),
+        (offset for offset in reversed(buffer.source_offsets[start:end]) if offset is not None),
         None,
     )
     if source_start is None or source_end is None:
@@ -502,12 +488,8 @@ def _build_sentences(
         segment_text = buffer.text[start:end].strip()
         if not segment_text:
             continue
-        trimmed_start = (
-            start + len(buffer.text[start:end]) - len(buffer.text[start:end].lstrip())
-        )
-        trimmed_end = (
-            end - len(buffer.text[start:end]) + len(buffer.text[start:end].rstrip())
-        )
+        trimmed_start = start + len(buffer.text[start:end]) - len(buffer.text[start:end].lstrip())
+        trimmed_end = end - len(buffer.text[start:end]) + len(buffer.text[start:end].rstrip())
         source_start = next(
             (
                 offset
@@ -527,9 +509,7 @@ def _build_sentences(
         if source_start is None or source_end is None:
             continue
         span = _span_from_offsets(source_start, source_end + 1, line_starts)
-        inline_nodes = _inline_nodes_for_range(
-            buffer, trimmed_start, trimmed_end, line_starts
-        )
+        inline_nodes = _inline_nodes_for_range(buffer, trimmed_start, trimmed_end, line_starts)
         projection_result = build_projection(
             text=buffer.text[trimmed_start:trimmed_end],
             source_offsets=buffer.source_offsets[trimmed_start:trimmed_end],
@@ -555,9 +535,7 @@ def _build_sentences(
     return sentences
 
 
-def _segment_ranges(
-    block_kind: BlockKind, text: str
-) -> list[tuple[int, int, set[str]]]:
+def _segment_ranges(block_kind: BlockKind, text: str) -> list[tuple[int, int, set[str]]]:
     stripped = text.strip()
     if not stripped:
         return []
@@ -637,11 +615,7 @@ def _token_span(token: MarkdownToken, source: str, line_starts: list[int]) -> Sp
     end_line_number = source.count("\n", 0, end) + 1 if source else 1
     end_column = (
         end
-        - (
-            line_starts[end_line_number - 1]
-            if end_line_number - 1 < len(line_starts)
-            else 0
-        )
+        - (line_starts[end_line_number - 1] if end_line_number - 1 < len(line_starts) else 0)
         + 1
     )
     return Span(

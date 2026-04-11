@@ -18,11 +18,7 @@ def _parse(language_pack, source: str):
 
 
 def _annotate(language_pack, profile, document):
-    return (
-        SpaCyDocumentAnnotator(language_pack.parser_model)
-        .annotate(document, profile)
-        .document
-    )
+    return SpaCyDocumentAnnotator(language_pack.parser_model).annotate(document, profile).document
 
 
 def test_passive_voice_rule_emits(registry, language_pack, research_profile) -> None:
@@ -191,7 +187,9 @@ def test_jargon_density_rule_emits_for_learner_profile(registry, language_pack) 
         }
     )
     profile = ProfileResolver(registry).resolve(config, language_pack)
-    source = "The homomorphism and isomorphism induce a stochastic asymptotic cohomology argument.\n"
+    source = (
+        "The homomorphism and isomorphism induce a stochastic asymptotic cohomology argument.\n"
+    )
     document = _parse(language_pack, source)
     context = RuleContext(profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(profile.rules["terminology.jargon_density"])
@@ -302,9 +300,7 @@ def test_surface_assumption_hypothesis_framing_rule_emits(
     assert violations[0].rule_id == "vocabulary.assumption_hypothesis_framing"
 
 
-def test_surface_indefinite_reference_rule_emits(
-    registry, language_pack, research_profile
-) -> None:
+def test_surface_indefinite_reference_rule_emits(registry, language_pack, research_profile) -> None:
     source = "Everything improves somehow in the argument.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
@@ -437,9 +433,7 @@ def test_surface_raw_anchor_rule_emits(registry, language_pack, research_profile
     assert violations[0].rule_id == "reference.raw_anchor"
 
 
-def test_surface_generic_link_text_rule_emits(
-    registry, language_pack, research_profile
-) -> None:
+def test_surface_generic_link_text_rule_emits(registry, language_pack, research_profile) -> None:
     source = "[Lemma (Boundary bound)](#^lemma-two)\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
@@ -699,9 +693,7 @@ def test_math_assumption_motivation_order_rule_emits(
     assert violations[0].rule_id == "math.assumption_motivation_order"
 
 
-def test_math_proof_placement_context_rule_emits(
-    registry, language_pack, research_profile
-) -> None:
+def test_math_proof_placement_context_rule_emits(registry, language_pack, research_profile) -> None:
     source = "Lemma 2. The bound holds.\n\nProof.\nThe argument is standard.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
@@ -714,15 +706,10 @@ def test_math_proof_placement_context_rule_emits(
 def test_math_display_followup_interpretation_rule_emits(
     registry, language_pack, research_profile
 ) -> None:
-    source = (
-        "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n"
-        "The claim is immediate.\n"
-    )
+    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n" "The claim is immediate.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(
-        research_profile.rules["math.display_followup_interpretation"]
-    )
+    rule = registry.instantiate(research_profile.rules["math.display_followup_interpretation"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "math.display_followup_interpretation"
@@ -751,9 +738,7 @@ def test_math_display_followup_interpretation_rule_accepts_interpretive_followup
     )
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(
-        research_profile.rules["math.display_followup_interpretation"]
-    )
+    rule = registry.instantiate(research_profile.rules["math.display_followup_interpretation"])
     violations = rule.check(document, context)
     assert violations == []
 
@@ -764,16 +749,12 @@ def test_math_display_followup_interpretation_rule_skips_bare_pronoun_followup(
     source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(
-        research_profile.rules["math.display_followup_interpretation"]
-    )
+    rule = registry.instantiate(research_profile.rules["math.display_followup_interpretation"])
     violations = rule.check(document, context)
     assert violations == []
 
 
-def test_surface_bare_pronoun_opening_rule_emits(
-    registry, language_pack, research_profile
-) -> None:
+def test_surface_bare_pronoun_opening_rule_emits(registry, language_pack, research_profile) -> None:
     source = "It follows that the estimate converges.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
@@ -829,10 +810,7 @@ def test_math_display_math_rule_allows_internal_nonterminal_punctuation(
 def test_math_consecutive_display_blocks_without_bridge_rule_passes_with_motivation(
     registry, language_pack, research_profile
 ) -> None:
-    source = (
-        "We introduce two identities:\n\n$$\na=b\n$$\n\n"
-        "$$\nc=d\n$$\n"
-    )
+    source = "We introduce two identities:\n\n$$\na=b\n$$\n\n" "$$\nc=d\n$$\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(
@@ -863,17 +841,13 @@ def test_paragraph_inline_enumeration_overload_rule_emits(
     )
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(
-        research_profile.rules["paragraph.inline_enumeration_overload"]
-    )
+    rule = registry.instantiate(research_profile.rules["paragraph.inline_enumeration_overload"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "paragraph.inline_enumeration_overload"
 
 
-def test_paragraph_inline_case_split_rule_emits(
-    registry, language_pack, research_profile
-) -> None:
+def test_paragraph_inline_case_split_rule_emits(registry, language_pack, research_profile) -> None:
     source = "When g < 1, the series converges; when g >= 1, it diverges.\n"
     document = _parse(language_pack, source)
     context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))

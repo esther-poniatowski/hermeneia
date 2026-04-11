@@ -24,9 +24,7 @@ def _rule_from_profile(registry, language_pack, config_payload: dict[str, object
     return profile, rule
 
 
-def test_vague_rhetorical_opener_emits_for_default_phrase(
-    registry, language_pack
-) -> None:
+def test_vague_rhetorical_opener_emits_for_default_phrase(registry, language_pack) -> None:
     profile, rule = _rule_from_profile(
         registry,
         language_pack,
@@ -44,9 +42,7 @@ def test_vague_rhetorical_opener_emits_for_default_phrase(
     assert violations[0].evidence.features.get("opener") == "in this context"
 
 
-def test_vague_rhetorical_opener_honors_silenced_patterns(
-    registry, language_pack
-) -> None:
+def test_vague_rhetorical_opener_honors_silenced_patterns(registry, language_pack) -> None:
     profile, rule = _rule_from_profile(
         registry,
         language_pack,
@@ -55,9 +51,7 @@ def test_vague_rhetorical_opener_honors_silenced_patterns(
             "rules": {
                 "active": ["paragraph.vague_rhetorical_opener"],
                 "overrides": {
-                    "paragraph.vague_rhetorical_opener": {
-                        "silenced_patterns": ["in this context"]
-                    }
+                    "paragraph.vague_rhetorical_opener": {"silenced_patterns": ["in this context"]}
                 },
             },
         },
@@ -67,9 +61,7 @@ def test_vague_rhetorical_opener_honors_silenced_patterns(
     assert rule.check(document, context) == []
 
 
-def test_vague_rhetorical_opener_supports_extra_patterns(
-    registry, language_pack
-) -> None:
+def test_vague_rhetorical_opener_supports_extra_patterns(registry, language_pack) -> None:
     profile, rule = _rule_from_profile(
         registry,
         language_pack,
@@ -78,9 +70,7 @@ def test_vague_rhetorical_opener_supports_extra_patterns(
             "rules": {
                 "active": ["paragraph.vague_rhetorical_opener"],
                 "overrides": {
-                    "paragraph.vague_rhetorical_opener": {
-                        "extra_patterns": ["for clarity"]
-                    }
+                    "paragraph.vague_rhetorical_opener": {"extra_patterns": ["for clarity"]}
                 },
             },
         },

@@ -34,10 +34,7 @@ def sentence_lemmas(sentence: Sentence) -> set[str]:
         }
         if lemmas:
             return lemmas
-    return {
-        match.group(0).lower()
-        for match in WORD_RE.finditer(sentence.projection.text)
-    }
+    return {match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)}
 
 
 def matched_sentence_markers(
@@ -69,9 +66,7 @@ def matched_sentence_markers(
                 (
                     token.text.lower()
                     for token in sentence.tokens
-                    if token.lemma
-                    and token.lemma.lower() == marker
-                    and token.text
+                    if token.lemma and token.lemma.lower() == marker and token.text
                 ),
                 marker,
             )

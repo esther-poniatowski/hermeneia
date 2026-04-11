@@ -35,9 +35,7 @@ def main() -> None:
     args = _parse_args()
     fixtures_dir = args.fixtures_dir.resolve()
     output_path = args.output.resolve()
-    fixture_paths = tuple(
-        sorted(path for path in fixtures_dir.glob("*.md") if path.is_file())
-    )
+    fixture_paths = tuple(sorted(path for path in fixtures_dir.glob("*.md") if path.is_file()))
     if not fixture_paths:
         raise RuntimeError(f"No benchmark fixtures found in {fixtures_dir}")
 
@@ -143,7 +141,9 @@ def _safe_package_version(package_name: str) -> str | None:
 
 def _size_payload(source: str) -> dict[str, int]:
     stripped = source.strip()
-    paragraphs = 0 if not stripped else len([chunk for chunk in stripped.split("\n\n") if chunk.strip()])
+    paragraphs = (
+        0 if not stripped else len([chunk for chunk in stripped.split("\n\n") if chunk.strip()])
+    )
     words = len(stripped.split()) if stripped else 0
     return {
         "chars": len(source),

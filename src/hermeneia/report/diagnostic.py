@@ -17,9 +17,7 @@ class DiagnosticReport:
     violations: tuple[Violation, ...]
     scorecard: Scorecard | None
     revision_plan: RevisionPlan
-    scoring_output: frozenset[str] = frozenset(
-        {"layer_scores", "global_score", "violation_list"}
-    )
+    scoring_output: frozenset[str] = frozenset({"layer_scores", "global_score", "violation_list"})
 
     def to_dict(self) -> dict[str, object]:
         payload: dict[str, object] = {

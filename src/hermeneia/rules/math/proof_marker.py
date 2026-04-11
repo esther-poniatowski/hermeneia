@@ -42,7 +42,9 @@ class ProofMarkerRule(SourcePatternRule):
                 continue
             start = max(0, index - max_lookback)
             window = lines[start:index]
-            has_proof_opener = any(PROOF_OPENER_RE.match(candidate.text.strip()) for candidate in window)
+            has_proof_opener = any(
+                PROOF_OPENER_RE.match(candidate.text.strip()) for candidate in window
+            )
             if has_proof_opener:
                 continue
             violations.append(
@@ -58,7 +60,9 @@ class ProofMarkerRule(SourcePatternRule):
                             "has_proof_opener": has_proof_opener,
                         }
                     ),
-                    rewrite_tactics=("Introduce '*Proof.*' before the proof body when using a closing square marker.",),
+                    rewrite_tactics=(
+                        "Introduce '*Proof.*' before the proof body when using a closing square marker.",
+                    ),
                 )
             )
         return violations

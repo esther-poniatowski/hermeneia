@@ -69,4 +69,3 @@ class HeadingLinkRule(SourcePatternRule):
 
 def register(registry) -> None:
     registry.add(HeadingLinkRule)
-

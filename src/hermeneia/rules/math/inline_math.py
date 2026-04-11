@@ -72,9 +72,7 @@ class InlineMathRule(SourcePatternRule):
                         span=span,
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={"reason": reason, "expression": content}
-                        ),
+                        evidence=RuleEvidence(features={"reason": reason, "expression": content}),
                         rewrite_tactics=(
                             "Move the expression into a '$$...$$' block and introduce it in prose.",
                         ),

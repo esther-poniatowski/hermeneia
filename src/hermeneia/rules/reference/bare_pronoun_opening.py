@@ -42,7 +42,9 @@ class BarePronounOpeningRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        openers = frozenset(word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_openers)
+        openers = frozenset(
+            word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_openers
+        )
         predicate_starters = frozenset(
             word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_predicate_starters
         )

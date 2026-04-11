@@ -11,12 +11,8 @@ def test_hierarchical_scorer_applies_rule_weights_by_layer() -> None:
     span = Span(0, 5, 1, 1, 1, 6)
     scorecard = HierarchicalScorer().score(
         [
-            Violation(
-                "vocabulary.contraction", "x", span, Severity.WARNING, Layer.SURFACE_STYLE
-            ),
-            Violation(
-                "math.display_math", "y", span, Severity.ERROR, Layer.SURFACE_STYLE
-            ),
+            Violation("vocabulary.contraction", "x", span, Severity.WARNING, Layer.SURFACE_STYLE),
+            Violation("math.display_math", "y", span, Severity.ERROR, Layer.SURFACE_STYLE),
             Violation(
                 "paragraph.topic_sentence",
                 "z",
@@ -31,13 +27,9 @@ def test_hierarchical_scorer_applies_rule_weights_by_layer() -> None:
             "paragraph.topic_sentence": 2.0,
         },
     )
-    surface = next(
-        layer for layer in scorecard.layer_scores if layer.layer == Layer.SURFACE_STYLE
-    )
+    surface = next(layer for layer in scorecard.layer_scores if layer.layer == Layer.SURFACE_STYLE)
     paragraph = next(
-        layer
-        for layer in scorecard.layer_scores
-        if layer.layer == Layer.PARAGRAPH_RHETORIC
+        layer for layer in scorecard.layer_scores if layer.layer == Layer.PARAGRAPH_RHETORIC
     )
     assert surface.violation_count == 2
     assert surface.weighted_penalty == 1.5
