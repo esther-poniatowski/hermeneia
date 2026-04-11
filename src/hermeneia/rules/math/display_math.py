@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from hermeneia.document.model import BlockKind, Span
+from hermeneia.document.model import BlockKind
 from hermeneia.rules.base import (
     Layer,
     RuleEvidence,
@@ -69,7 +69,9 @@ class DisplayMathRule(SourcePatternRule):
                     )
                 )
             if require_leadin:
-                leadin = _previous_nonempty_line(source_lines, block.span.start_line - 1)
+                leadin = _previous_nonempty_line(
+                    source_lines, block.span.start_line - 1
+                )
                 if leadin is None or CONTENT_FREE_LEADIN_RE.search(leadin.text.strip()):
                     span = block.span if leadin is None else leadin.span
                     violations.append(

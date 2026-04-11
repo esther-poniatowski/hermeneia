@@ -17,7 +17,9 @@ from hermeneia.rules.base import (
 
 INLINE_ATOM_RE = re.compile(r"[A-Za-z][A-Za-z0-9']*")
 INLINE_NUMERIC_RE = re.compile(r"[+-]?\d+(?:\.\d+)?")
-INLINE_LATEX_ATOM_RE = re.compile(r"\\(?:mathbf|boldsymbol|mathbb|mathrm)\{[A-Za-z0-9]+\}")
+INLINE_LATEX_ATOM_RE = re.compile(
+    r"\\(?:mathbf|boldsymbol|mathbb|mathrm)\{[A-Za-z0-9]+\}"
+)
 INLINE_ALLOWED_RE = re.compile(r"[A-Za-z0-9\\_^{}()\[\]|,.'\s:/+-]+")
 
 
@@ -72,7 +74,9 @@ class InlineMathRule(SourcePatternRule):
                         span=span,
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(features={"reason": reason, "expression": content}),
+                        evidence=RuleEvidence(
+                            features={"reason": reason, "expression": content}
+                        ),
                         rewrite_tactics=(
                             "Move the expression into a '$$...$$' block and introduce it in prose.",
                         ),
@@ -119,7 +123,7 @@ def _is_simple_inline_expression(expression: str) -> bool:
 def _is_trivial_inline_equality(content: str) -> bool:
     stripped = content.strip()
     eq_count = stripped.count("=")
-    if eq_count == 0:
+    if not eq_count:
         return False
 
     if eq_count >= 2 and ":=" not in stripped:

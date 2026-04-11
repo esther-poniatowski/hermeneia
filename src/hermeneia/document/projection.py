@@ -10,7 +10,6 @@ from hermeneia.document.model import (
     InlineNode,
     MaskedSegment,
     MaskedSegmentKind,
-    Span,
     TextProjection,
 )
 
@@ -57,7 +56,9 @@ def build_projection(
     """Build a normalized projection and populate reliability flags."""
 
     if len(text) != len(source_offsets):
-        raise ValueError("Projection text and source-offset map must have the same length")
+        raise ValueError(
+            "Projection text and source-offset map must have the same length"
+        )
 
     masked_segments: list[MaskedSegment] = []
     normalized_chars: list[str] = []
@@ -78,9 +79,15 @@ def build_projection(
         node_end = _relative_end(node.span.end, source_offsets)
 
         if node.kind == InlineKind.LINK_TARGET:
-            if node_start is not None and node_end is not None and node_end > node_start:
+            if (
+                node_start is not None
+                and node_end is not None
+                and node_end > node_start
+            ):
                 if node_start > cursor:
-                    append_literal(text[cursor:node_start], source_offsets[cursor:node_start])
+                    append_literal(
+                        text[cursor:node_start], source_offsets[cursor:node_start]
+                    )
                 cursor = node_end
             masked_segments.append(
                 MaskedSegment(
@@ -97,7 +104,9 @@ def build_projection(
             append_literal(text[cursor:node_start], source_offsets[cursor:node_start])
 
         if node.kind == InlineKind.TEXT:
-            append_literal(text[node_start:node_end], source_offsets[node_start:node_end])
+            append_literal(
+                text[node_start:node_end], source_offsets[node_start:node_end]
+            )
         else:
             placeholder = (
                 "CODEID"
@@ -193,7 +202,9 @@ def _normalize_map(
     result: list[int | None] = []
     raw_index = 0
     for char in normalized_text:
-        while raw_index < len(raw_text) and raw_text[raw_index].isspace() and char != " ":
+        while (
+            raw_index < len(raw_text) and raw_text[raw_index].isspace() and char != " "
+        ):
             raw_index += 1
         if raw_index < len(raw_text):
             result.append(raw_map[raw_index])

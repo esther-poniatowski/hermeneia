@@ -56,10 +56,12 @@ class RuleDetector:
         )
         violations: list[Violation] = []
         diagnostics: list[RuleDiagnostic] = []
+        # Defensive boundary: rule modules are extension points.
+        # pylint: disable=broad-exception-caught
         for settings in profile.active_rules():
             try:
                 rule = self._registry.instantiate(settings)
-            except Exception as exc:  # pragma: no cover - defensive boundary
+            except Exception as exc:  # pragma: no cover
                 diagnostics.append(
                     RuleDiagnostic(
                         code="rule_instantiation_error",
@@ -92,9 +94,14 @@ class RuleDetector:
                     continue
                 violations.append(violation)
         ordered_violations = tuple(
-            sorted(violations, key=lambda violation: (violation.span.start, violation.rule_id))
+            sorted(
+                violations,
+                key=lambda violation: (violation.span.start, violation.rule_id),
+            )
         )
-        return DetectionResult(violations=ordered_violations, diagnostics=tuple(diagnostics))
+        return DetectionResult(
+            violations=ordered_violations, diagnostics=tuple(diagnostics)
+        )
 
 
 def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | None:
@@ -113,10 +120,14 @@ def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | 
         if violation.evidence is None:
             return "violation is missing evidence required by rule metadata"
         missing = [
-            field for field in metadata.evidence_fields if field not in violation.evidence.features
+            field
+            for field in metadata.evidence_fields
+            if field not in violation.evidence.features
         ]
         if missing:
-            return f"violation evidence is missing required fields: {', '.join(missing)}"
+            return (
+                f"violation evidence is missing required fields: {', '.join(missing)}"
+            )
     if metadata.tractability == Tractability.CLASS_H:
         if violation.evidence is None:
             return "class_h violation must include evidence"

@@ -61,7 +61,9 @@ class AcronymBurdenRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        min_mentions_for_overuse = self.settings.int_option("min_acronym_mentions_for_overuse", 4)
+        min_mentions_for_overuse = self.settings.int_option(
+            "min_acronym_mentions_for_overuse", 4
+        )
         max_ratio = self.settings.float_option("max_acronym_to_full_form_ratio", 2.0)
         allowlist = ctx.language_pack.lexicons.acronym_allowlist
         definition_stopwords = ctx.language_pack.lexicons.acronym_definition_stopwords
@@ -113,7 +115,9 @@ class AcronymBurdenRule(AnnotatedRule):
             if acronym_mentions < min_mentions_for_overuse:
                 continue
             ratio = (
-                float("inf") if full_form_mentions == 0 else acronym_mentions / full_form_mentions
+                float("inf")
+                if not full_form_mentions
+                else acronym_mentions / full_form_mentions
             )
             if ratio <= max_ratio:
                 continue

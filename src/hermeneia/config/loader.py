@@ -15,4 +15,3 @@ def load_project_config(path: Path | None) -> ProjectConfig:
     with path.open("r", encoding="utf-8") as handle:
         raw = yaml.safe_load(handle) or {}
     return parse_project_config(raw)
-

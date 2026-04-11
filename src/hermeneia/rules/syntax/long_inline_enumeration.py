@@ -68,7 +68,7 @@ class LongInlineEnumerationRule(AnnotatedRule):
 
 def _estimated_item_count(text: str) -> int:
     separators = len(SEPARATOR_RE.findall(text))
-    if separators == 0:
+    if not separators:
         return 1
     tail = text.rsplit(",", 1)[-1].lower()
     has_terminal_conjunction = " and " in tail or " or " in tail

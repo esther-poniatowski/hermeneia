@@ -72,8 +72,7 @@ def _build_line_marker(
     else:
         marker_end = line_length + 1
 
-    if marker_end < marker_start:
-        marker_end = marker_start
+    marker_end = max(marker_end, marker_start)
     width = max(1, marker_end - marker_start)
     return " " * (marker_start - 1) + "^" * width
 

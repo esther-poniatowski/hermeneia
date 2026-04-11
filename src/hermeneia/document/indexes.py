@@ -12,7 +12,9 @@ from hermeneia.document.model import Block, BlockKind, Document, Sentence, Span
 
 TERM_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9-]{2,}\b")
 SYMBOL_RE = re.compile(r"^\$([A-Za-z][A-Za-z0-9']*)\$$")
-CITATION_RE = re.compile(r"(?:\[[A-Z][^\]]+,\s*\d{4}\]|\\cite\{[^}]+\}|\[\d+(?:,\s*\d+)*\])")
+CITATION_RE = re.compile(
+    r"(?:\[[A-Z][^\]]+,\s*\d{4}\]|\\cite\{[^}]+\}|\[\d+(?:,\s*\d+)*\])"
+)
 THEOREM_RE = re.compile(r"\b(?:Theorem|Lemma|Proposition|Corollary)\s+\d+\b")
 PROOF_RE = re.compile(r"\bProof\.\b")
 QUANT_RE = re.compile(r"\b(?:Figure|Table)\s+\d+\b|\bp\s*[<>]=?\s*\d|\b\d+(?:\.\d+)?%")
@@ -90,17 +92,23 @@ class FeatureStore:
         self._paragraph_embedding_cache: dict[str, tuple[float, ...]] = {}
         self._sentence_overlap_cache: dict[tuple[str, str], float] = {}
         self._paragraph_overlap_cache: dict[tuple[str, str], float] = {}
-        self._redundancy_candidate_cache: dict[float, tuple[tuple[str, str, float], ...]] = {}
+        self._redundancy_candidate_cache: dict[
+            float, tuple[tuple[str, str, float], ...]
+        ] = {}
         self._sentence_index = {ref.id: ref for ref in indexes.sentences}
         self._sentence_ordinals = {ref.id: ref.ordinal for ref in indexes.sentences}
         self._heading_parents = _heading_parent_map(indexes.sections)
         self._paragraph_blocks = tuple(
-            block for block in self._doc.iter_blocks() if block.kind == BlockKind.PARAGRAPH
+            block
+            for block in self._doc.iter_blocks()
+            if block.kind == BlockKind.PARAGRAPH
         )
         self._paragraph_ordinals = {
             block.id: ordinal for ordinal, block in enumerate(self._paragraph_blocks)
         }
-        self._paragraph_terms = {block.id: _block_terms(block) for block in self._paragraph_blocks}
+        self._paragraph_terms = {
+            block.id: _block_terms(block) for block in self._paragraph_blocks
+        }
         self._block_sections = _block_section_map(indexes.sections)
 
     def term_first_use(self, term: str) -> Span | None:
@@ -136,15 +144,23 @@ class FeatureStore:
         return results
 
     def sentence_overlap(self, sent_a_id: str, sent_b_id: str) -> float:
-        key = (sent_a_id, sent_b_id) if sent_a_id <= sent_b_id else (sent_b_id, sent_a_id)
+        key = (
+            (sent_a_id, sent_b_id) if sent_a_id <= sent_b_id else (sent_b_id, sent_a_id)
+        )
         if key not in self._sentence_overlap_cache:
             sent_a = self._doc.sentence_by_id(sent_a_id)
             sent_b = self._doc.sentence_by_id(sent_b_id)
-            self._sentence_overlap_cache[key] = _jaccard(_lemmas(sent_a), _lemmas(sent_b))
+            self._sentence_overlap_cache[key] = _jaccard(
+                _lemmas(sent_a), _lemmas(sent_b)
+            )
         return self._sentence_overlap_cache[key]
 
     def paragraph_overlap(self, block_id_a: str, block_id_b: str) -> float:
-        key = (block_id_a, block_id_b) if block_id_a <= block_id_b else (block_id_b, block_id_a)
+        key = (
+            (block_id_a, block_id_b)
+            if block_id_a <= block_id_b
+            else (block_id_b, block_id_a)
+        )
         if key not in self._paragraph_overlap_cache:
             block_a = self._doc.block_by_id(block_id_a)
             block_b = self._doc.block_by_id(block_id_b)
@@ -168,7 +184,9 @@ class FeatureStore:
             sentence = self._doc.sentence_by_id(sent_id)
             if sentence is None:
                 return None
-            self._sentence_embedding_cache[sent_id] = backend.embed_text(sentence.projection.text)
+            self._sentence_embedding_cache[sent_id] = backend.embed_text(
+                sentence.projection.text
+            )
         return self._sentence_embedding_cache[sent_id]
 
     def paragraph_embedding(self, block_id: str) -> tuple[float, ...] | None:
@@ -179,7 +197,9 @@ class FeatureStore:
             block = self._doc.block_by_id(block_id)
             if block is None:
                 return None
-            self._paragraph_embedding_cache[block_id] = backend.embed_text(_block_text(block))
+            self._paragraph_embedding_cache[block_id] = backend.embed_text(
+                _block_text(block)
+            )
         return self._paragraph_embedding_cache[block_id]
 
     def redundancy_candidates(
@@ -222,7 +242,9 @@ class FeatureStore:
         pairs: set[tuple[str, str]] = set()
 
         for ordinal, block in enumerate(self._paragraph_blocks):
-            upper = min(len(self._paragraph_blocks), ordinal + 1 + REDUNDANCY_LOCAL_WINDOW)
+            upper = min(
+                len(self._paragraph_blocks), ordinal + 1 + REDUNDANCY_LOCAL_WINDOW
+            )
             for candidate_ordinal in range(ordinal + 1, upper):
                 candidate = self._paragraph_blocks[candidate_ordinal]
                 pairs.add((block.id, candidate.id))
@@ -233,7 +255,9 @@ class FeatureStore:
             by_section.setdefault(section_id, []).append(block.id)
         for section_block_ids in by_section.values():
             for index, left_id in enumerate(section_block_ids):
-                upper = min(len(section_block_ids), index + 1 + REDUNDANCY_SECTION_WINDOW)
+                upper = min(
+                    len(section_block_ids), index + 1 + REDUNDANCY_SECTION_WINDOW
+                )
                 for right_id in section_block_ids[index + 1 : upper]:
                     pairs.add(_ordered_paragraph_pair(left_id, right_id, ordinals))
 
@@ -247,18 +271,24 @@ class FeatureStore:
                 continue
             ordered_posting = sorted(posting, key=lambda block_id: ordinals[block_id])
             for index, left_id in enumerate(ordered_posting):
-                upper = min(len(ordered_posting), index + 1 + REDUNDANCY_TERM_NEIGHBOR_WINDOW)
+                upper = min(
+                    len(ordered_posting), index + 1 + REDUNDANCY_TERM_NEIGHBOR_WINDOW
+                )
                 for right_id in ordered_posting[index + 1 : upper]:
                     pairs.add(_ordered_paragraph_pair(left_id, right_id, ordinals))
 
-        return tuple(sorted(pairs, key=lambda pair: (ordinals[pair[0]], ordinals[pair[1]])))
+        return tuple(
+            sorted(pairs, key=lambda pair: (ordinals[pair[0]], ordinals[pair[1]]))
+        )
 
     @property
     def sections(self) -> list[SectionView]:
         return self._indexes.sections
 
     def sibling_headings(self, level: int) -> list[Block]:
-        return [heading for group in self.sibling_heading_groups(level) for heading in group]
+        return [
+            heading for group in self.sibling_heading_groups(level) for heading in group
+        ]
 
     def sibling_heading_groups(self, level: int) -> tuple[tuple[Block, ...], ...]:
         grouped: dict[str | None, list[Block]] = {}
@@ -307,7 +337,12 @@ def build_document_indexes(
             code_block_ids.append(block.id)
         for sentence in block.sentences:
             sentence_refs.append(
-                SentenceRef(id=sentence.id, block_id=block.id, ordinal=ordinal, span=sentence.span)
+                SentenceRef(
+                    id=sentence.id,
+                    block_id=block.id,
+                    ordinal=ordinal,
+                    span=sentence.span,
+                )
             )
             ordinal += 1
             _record_first_uses(sentence, term_first_use, symbol_first_use)
@@ -399,33 +434,51 @@ def _detect_support_signals(
     results: list[SupportSignal] = []
     if CITATION_RE.search(text):
         results.append(
-            SupportSignal(SupportSignalKind.CITATION, sentence.span, block_id, sentence.id)
+            SupportSignal(
+                SupportSignalKind.CITATION, sentence.span, block_id, sentence.id
+            )
         )
     if THEOREM_RE.search(text):
         results.append(
-            SupportSignal(SupportSignalKind.THEOREM_REF, sentence.span, block_id, sentence.id)
+            SupportSignal(
+                SupportSignalKind.THEOREM_REF, sentence.span, block_id, sentence.id
+            )
         )
     if PROOF_RE.search(text):
         results.append(
-            SupportSignal(SupportSignalKind.PROOF_REF, sentence.span, block_id, sentence.id)
+            SupportSignal(
+                SupportSignalKind.PROOF_REF, sentence.span, block_id, sentence.id
+            )
         )
     if QUANT_RE.search(text):
         results.append(
             SupportSignal(
-                SupportSignalKind.QUANTITATIVE_RESULT, sentence.span, block_id, sentence.id
+                SupportSignalKind.QUANTITATIVE_RESULT,
+                sentence.span,
+                block_id,
+                sentence.id,
             )
         )
     if any(marker in lower for marker in contrast_markers):
         results.append(
-            SupportSignal(SupportSignalKind.CONTRAST_MARKER, sentence.span, block_id, sentence.id)
+            SupportSignal(
+                SupportSignalKind.CONTRAST_MARKER, sentence.span, block_id, sentence.id
+            )
         )
     if lower.startswith("for example") or "example" in lower:
         results.append(
-            SupportSignal(SupportSignalKind.EXAMPLE_MARKER, sentence.span, block_id, sentence.id)
+            SupportSignal(
+                SupportSignalKind.EXAMPLE_MARKER, sentence.span, block_id, sentence.id
+            )
         )
     if _contains_any_marker(lower, definitional_markers):
         results.append(
-            SupportSignal(SupportSignalKind.DEFINITION_MARKER, sentence.span, block_id, sentence.id)
+            SupportSignal(
+                SupportSignalKind.DEFINITION_MARKER,
+                sentence.span,
+                block_id,
+                sentence.id,
+            )
         )
     return results
 
@@ -448,8 +501,12 @@ def _lemmas(sentence: Sentence | None) -> set[str]:
     if sentence is None:
         return set()
     if sentence.tokens:
-        return {token.lemma.lower() for token in sentence.tokens if token.lemma.isalpha()}
-    return {match.group(0).lower() for match in TERM_RE.finditer(sentence.projection.text)}
+        return {
+            token.lemma.lower() for token in sentence.tokens if token.lemma.isalpha()
+        }
+    return {
+        match.group(0).lower() for match in TERM_RE.finditer(sentence.projection.text)
+    }
 
 
 def _block_terms(block: Block | None) -> set[str]:
@@ -480,7 +537,7 @@ def _cosine(left: tuple[float, ...], right: tuple[float, ...]) -> float:
     numerator = sum(a * b for a, b in zip(left, right, strict=True))
     left_norm = math.sqrt(sum(value * value for value in left))
     right_norm = math.sqrt(sum(value * value for value in right))
-    if left_norm == 0 or right_norm == 0:
+    if not left_norm or not right_norm:
         return 0.0
     return numerator / (left_norm * right_norm)
 

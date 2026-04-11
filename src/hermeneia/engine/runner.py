@@ -56,14 +56,18 @@ class AnnotationResult:
 @dataclass(frozen=True)
 class AnalysisPolicy:
     scoring_aggregation: str = "hierarchical"
-    scoring_output: frozenset[str] = frozenset({"layer_scores", "global_score", "violation_list"})
+    scoring_output: frozenset[str] = frozenset(
+        {"layer_scores", "global_score", "violation_list"}
+    )
     debug_mode: bool = False
     suggestions_enabled: bool = True
     suggestion_default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
 
 
 class DocumentAnnotator(Protocol):
-    def annotate(self, document: Document, profile: ResolvedProfile) -> AnnotationResult: ...
+    def annotate(
+        self, document: Document, profile: ResolvedProfile
+    ) -> AnnotationResult: ...
 
 
 class AnalysisRunner:
@@ -87,7 +91,9 @@ class AnalysisRunner:
         self._validate_policy(self._policy)
         self._detector = RuleDetector(registry)
         self._scorer = HierarchicalScorer()
-        self._planner = RevisionPlanner(default_mode=self._policy.suggestion_default_mode)
+        self._planner = RevisionPlanner(
+            default_mode=self._policy.suggestion_default_mode
+        )
 
     def analyze(
         self,
@@ -106,7 +112,9 @@ class AnalysisRunner:
             parsed = self._parse_document(analysis_input, diagnostics)
             if parsed is None:
                 continue
-            annotation = self._annotate_document(analysis_input, profile, parsed, diagnostics)
+            annotation = self._annotate_document(
+                analysis_input, profile, parsed, diagnostics
+            )
             if annotation is None:
                 continue
             features = FeatureStore(
@@ -130,7 +138,9 @@ class AnalysisRunner:
                 for diagnostic in detection.diagnostics
             )
             scorecard = (
-                self._scorer.score(detection.violations, rule_weights) if score_enabled else None
+                self._scorer.score(detection.violations, rule_weights)
+                if score_enabled
+                else None
             )
             revision_plan = (
                 self._planner.build(list(detection.violations))
@@ -152,7 +162,9 @@ class AnalysisRunner:
                     report=report,
                 )
             )
-        return BatchAnalysisResult(results=tuple(results), diagnostics=tuple(diagnostics))
+        return BatchAnalysisResult(
+            results=tuple(results), diagnostics=tuple(diagnostics)
+        )
 
     def _parse_document(
         self,
@@ -163,7 +175,7 @@ class AnalysisRunner:
             return self._parser.parse(
                 ParseRequest(source=analysis_input.source, path=analysis_input.path)
             )
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             diagnostics.append(
                 OperationalDiagnostic(
                     code="parse_failure",
@@ -182,7 +194,7 @@ class AnalysisRunner:
     ) -> AnnotationResult | None:
         try:
             annotation = self._annotator.annotate(document, profile)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             diagnostics.append(
                 OperationalDiagnostic(
                     code="annotation_failure",

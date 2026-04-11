@@ -50,25 +50,26 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
             redundant_pairs: list[tuple[str, str, float]] = []
             max_overlap = 0.0
             sentences = block.sentences
-            for left_index in range(len(sentences)):
-                left = sentences[left_index]
-                for right_index in range(left_index + 2, len(sentences)):
-                    right = sentences[right_index]
+            for left_index, left in enumerate(sentences):
+                for right in sentences[left_index + 2 :]:
                     overlap = ctx.features.sentence_overlap(left.id, right.id)
                     if overlap < min_overlap:
                         continue
                     if _introduces_new_support(
                         right_sentence=right,
-                        right_sentence_signals=support_by_sentence.get(right.id, frozenset()),
+                        right_sentence_signals=support_by_sentence.get(
+                            right.id, frozenset()
+                        ),
                         strong_claim_markers=strong_claim_markers,
                     ):
                         continue
                     redundant_pairs.append((left.id, right.id, overlap))
-                    if overlap > max_overlap:
-                        max_overlap = overlap
+                    max_overlap = max(max_overlap, overlap)
             if len(redundant_pairs) < min_redundant_pairs:
                 continue
-            top_pairs = sorted(redundant_pairs, key=lambda item: (-item[2], item[0], item[1]))[:3]
+            top_pairs = sorted(
+                redundant_pairs, key=lambda item: (-item[2], item[0], item[1])
+            )[:3]
             pair_payload = tuple(
                 {
                     "left_sentence_id": left_id,
