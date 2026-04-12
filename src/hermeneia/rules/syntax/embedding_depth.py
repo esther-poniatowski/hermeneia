@@ -21,6 +21,8 @@ EMBEDDING_PUNCT_RE = re.compile(r"[,;:()—-]")
 
 
 class EmbeddingDepthRule(AnnotatedRule):
+    """Embeddingdepthrule."""
+
     metadata = RuleMetadata(
         rule_id="syntax.embedding_depth",
         label="Sentence embedding depth is likely to require multiple reads",
@@ -39,10 +41,13 @@ class EmbeddingDepthRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         max_dependency_depth = self.settings.int_option("max_dependency_depth", 5)
         max_embedding_markers = self.settings.int_option("max_embedding_markers", 4)
         min_sentence_words = self.settings.int_option("min_sentence_words", 14)
-        subordinate_markers = tuple(ctx.language_pack.lexicons.subordinate_clause_markers)
+        subordinate_markers = tuple(
+            ctx.language_pack.lexicons.subordinate_clause_markers
+        )
         subordinate_pattern = compile_inline_phrase_regex(subordinate_markers)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -91,17 +96,25 @@ class EmbeddingDepthRule(AnnotatedRule):
 
 
 def _dependency_depth(tokens) -> int:
+    """Dependency depth."""
     if not tokens or not any(token.dep for token in tokens):
         return 0
     memo: dict[int, int] = {}
     stack: set[int] = set()
 
     def depth(index: int) -> int:
+        """Depth."""
         if index in memo:
             return memo[index]
         token = tokens[index]
         head = token.head_idx
-        if head is None or head < 0 or head >= len(tokens) or head == index or index in stack:
+        if (
+            head is None
+            or head < 0
+            or head >= len(tokens)
+            or head == index
+            or index in stack
+        ):
             memo[index] = 1
             return 1
         stack.add(index)
@@ -114,10 +127,12 @@ def _dependency_depth(tokens) -> int:
 
 
 def _embedding_markers(text: str, subordinate_pattern: re.Pattern[str]) -> int:
+    """Embedding markers."""
     punct = len(EMBEDDING_PUNCT_RE.findall(text))
     subordinate = sum(1 for _ in subordinate_pattern.finditer(text))
     return punct + subordinate
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(EmbeddingDepthRule)

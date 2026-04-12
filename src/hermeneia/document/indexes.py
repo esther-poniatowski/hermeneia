@@ -28,6 +28,8 @@ REDUNDANCY_LEXICAL_FLOOR = 0.25
 
 @dataclass(frozen=True)
 class SectionView:
+    """Sectionview."""
+
     heading_block_id: str | None
     level: int
     block_ids: tuple[str, ...]
@@ -36,6 +38,8 @@ class SectionView:
 
 @dataclass(frozen=True)
 class SentenceRef:
+    """Sentenceref."""
+
     id: str
     block_id: str
     ordinal: int
@@ -43,6 +47,8 @@ class SentenceRef:
 
 
 class SupportSignalKind(StrEnum):
+    """Supportsignalkind."""
+
     CITATION = "citation"
     THEOREM_REF = "theorem_ref"
     PROOF_REF = "proof_ref"
@@ -55,6 +61,8 @@ class SupportSignalKind(StrEnum):
 
 @dataclass(frozen=True)
 class SupportSignal:
+    """Supportsignal."""
+
     kind: SupportSignalKind
     span: Span
     block_id: str
@@ -63,6 +71,8 @@ class SupportSignal:
 
 @dataclass
 class DocumentIndexes:
+    """Documentindexes."""
+
     sections: list[SectionView]
     sentences: tuple[SentenceRef, ...]
     math_block_ids: tuple[str, ...]
@@ -73,6 +83,8 @@ class DocumentIndexes:
 
 
 class EmbeddingBackend(Protocol):
+    """Embeddingbackend."""
+
     def embed_text(self, text: str) -> tuple[float, ...]: ...
 
 
@@ -85,6 +97,7 @@ class FeatureStore:
         indexes: DocumentIndexes,
         embedding_backend: EmbeddingBackend | None = None,
     ) -> None:
+        """Init."""
         self._doc = doc
         self._indexes = indexes
         self._embedding_backend = embedding_backend
@@ -112,9 +125,11 @@ class FeatureStore:
         self._block_sections = _block_section_map(indexes.sections)
 
     def term_first_use(self, term: str) -> Span | None:
+        """Term first use."""
         return self._indexes.term_first_use.get(term.lower())
 
     def symbol_first_use(self, symbol: str) -> Span | None:
+        """Symbol first use."""
         return self._indexes.symbol_first_use.get(symbol)
 
     def support_signals_in_window(
@@ -122,6 +137,7 @@ class FeatureStore:
         anchor_sentence_id: str,
         max_sentences_back: int = 3,
     ) -> list[SupportSignal]:
+        """Support signals in window."""
         anchor = self._sentence_ordinals.get(anchor_sentence_id)
         anchor_ref = self._sentence_index.get(anchor_sentence_id)
         if anchor is None or anchor_ref is None:
@@ -144,6 +160,7 @@ class FeatureStore:
         return results
 
     def sentence_overlap(self, sent_a_id: str, sent_b_id: str) -> float:
+        """Sentence overlap."""
         key = (
             (sent_a_id, sent_b_id) if sent_a_id <= sent_b_id else (sent_b_id, sent_a_id)
         )
@@ -156,6 +173,7 @@ class FeatureStore:
         return self._sentence_overlap_cache[key]
 
     def paragraph_overlap(self, block_id_a: str, block_id_b: str) -> float:
+        """Paragraph overlap."""
         key = (
             (block_id_a, block_id_b)
             if block_id_a <= block_id_b
@@ -174,9 +192,11 @@ class FeatureStore:
 
     @property
     def embeddings_available(self) -> bool:
+        """Embeddings available."""
         return self._embedding_backend is not None
 
     def sentence_embedding(self, sent_id: str) -> tuple[float, ...] | None:
+        """Sentence embedding."""
         backend = self._embedding_backend
         if backend is None:
             return None
@@ -190,6 +210,7 @@ class FeatureStore:
         return self._sentence_embedding_cache[sent_id]
 
     def paragraph_embedding(self, block_id: str) -> tuple[float, ...] | None:
+        """Paragraph embedding."""
         backend = self._embedding_backend
         if backend is None:
             return None
@@ -206,6 +227,7 @@ class FeatureStore:
         self,
         similarity_threshold: float = 0.85,
     ) -> list[tuple[str, str, float]]:
+        """Redundancy candidates."""
         cache_key = round(similarity_threshold, 6)
         cached = self._redundancy_candidate_cache.get(cache_key)
         if cached is not None:
@@ -236,6 +258,7 @@ class FeatureStore:
         return list(frozen)
 
     def _blocked_redundancy_pairs(self) -> tuple[tuple[str, str], ...]:
+        """Blocked redundancy pairs."""
         if len(self._paragraph_blocks) < 2:
             return ()
         ordinals = self._paragraph_ordinals
@@ -283,14 +306,17 @@ class FeatureStore:
 
     @property
     def sections(self) -> list[SectionView]:
+        """Sections."""
         return self._indexes.sections
 
     def sibling_headings(self, level: int) -> list[Block]:
+        """Sibling headings."""
         return [
             heading for group in self.sibling_heading_groups(level) for heading in group
         ]
 
     def sibling_heading_groups(self, level: int) -> tuple[tuple[Block, ...], ...]:
+        """Sibling heading groups."""
         grouped: dict[str | None, list[Block]] = {}
         for block in self._doc.iter_blocks():
             if block.kind != BlockKind.HEADING:
@@ -368,6 +394,7 @@ def build_document_indexes(
 
 
 def _build_sections(doc: Document) -> list[SectionView]:
+    """Build sections."""
     headings = [block for block in doc.iter_blocks() if block.kind == BlockKind.HEADING]
     flat_blocks = list(doc.iter_blocks())
     if not headings:
@@ -415,6 +442,7 @@ def _record_first_uses(
     term_index: dict[str, Span],
     symbol_index: dict[str, Span],
 ) -> None:
+    """Record first uses."""
     for match in TERM_RE.finditer(sentence.projection.text):
         term_index.setdefault(match.group(0).lower(), sentence.span)
     for node in sentence.inline_nodes:
@@ -429,6 +457,7 @@ def _detect_support_signals(
     contrast_markers: Iterable[str],
     definitional_markers: Iterable[str],
 ) -> list[SupportSignal]:
+    """Detect support signals."""
     text = sentence.source_text
     lower = text.lower()
     results: list[SupportSignal] = []
@@ -484,6 +513,7 @@ def _detect_support_signals(
 
 
 def _contains_any_marker(lowered_text: str, markers: Iterable[str]) -> bool:
+    """Contains any marker."""
     for marker in markers:
         normalized = marker.strip().lower()
         if not normalized:
@@ -498,6 +528,7 @@ def _contains_any_marker(lowered_text: str, markers: Iterable[str]) -> bool:
 
 
 def _lemmas(sentence: Sentence | None) -> set[str]:
+    """Lemmas."""
     if sentence is None:
         return set()
     if sentence.tokens:
@@ -510,6 +541,7 @@ def _lemmas(sentence: Sentence | None) -> set[str]:
 
 
 def _block_terms(block: Block | None) -> set[str]:
+    """Block terms."""
     if block is None:
         return set()
     terms: set[str] = set()
@@ -519,12 +551,14 @@ def _block_terms(block: Block | None) -> set[str]:
 
 
 def _block_text(block: Block | None) -> str:
+    """Block text."""
     if block is None:
         return ""
     return " ".join(sentence.projection.text for sentence in block.sentences)
 
 
 def _jaccard(left: set[str], right: set[str]) -> float:
+    """Jaccard."""
     union = left | right
     if not union:
         return 0.0
@@ -532,6 +566,7 @@ def _jaccard(left: set[str], right: set[str]) -> float:
 
 
 def _cosine(left: tuple[float, ...], right: tuple[float, ...]) -> float:
+    """Cosine."""
     if not left or not right or len(left) != len(right):
         return 0.0
     numerator = sum(a * b for a, b in zip(left, right, strict=True))
@@ -543,6 +578,7 @@ def _cosine(left: tuple[float, ...], right: tuple[float, ...]) -> float:
 
 
 def _heading_parent_map(sections: list[SectionView]) -> dict[str, str | None]:
+    """Heading parent map."""
     parents: dict[str, str | None] = {}
     stack: list[SectionView] = []
     ordered_sections = sorted(
@@ -561,6 +597,7 @@ def _heading_parent_map(sections: list[SectionView]) -> dict[str, str | None]:
 
 
 def _block_section_map(sections: list[SectionView]) -> dict[str, str | None]:
+    """Block section map."""
     block_sections: dict[str, str | None] = {}
     for section in sorted(sections, key=lambda value: value.level):
         for block_id in section.block_ids:
@@ -573,6 +610,7 @@ def _ordered_paragraph_pair(
     right_id: str,
     ordinals: dict[str, int],
 ) -> tuple[str, str]:
+    """Ordered paragraph pair."""
     if ordinals[left_id] <= ordinals[right_id]:
         return left_id, right_id
     return right_id, left_id

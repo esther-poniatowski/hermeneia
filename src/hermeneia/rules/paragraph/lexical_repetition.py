@@ -18,6 +18,8 @@ from hermeneia.rules.common import iter_blocks, sentence_has_marker
 
 
 class LexicalRepetitionRule(HeuristicSemanticRule):
+    """Lexicalrepetitionrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.lexical_repetition",
         label="Paragraph repeats equivalent claims with limited new contribution",
@@ -35,6 +37,7 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_overlap = self.settings.float_option("min_nonadjacent_overlap", 0.7)
         min_redundant_pairs = self.settings.int_option("min_redundant_pairs", 1)
         min_sentence_count = self.settings.int_option("min_sentence_count", 3)
@@ -112,6 +115,7 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
 
 
 def _support_signals_by_sentence(doc) -> dict[str, frozenset[SupportSignalKind]]:
+    """Support signals by sentence."""
     signals: dict[str, set[SupportSignalKind]] = {}
     for signal in doc.indexes.support_signals:
         if signal.sentence_id is None:
@@ -126,6 +130,7 @@ def _introduces_new_support(
     right_sentence_signals: frozenset[SupportSignalKind],
     strong_claim_markers: tuple[str, ...],
 ) -> bool:
+    """Introduces new support."""
     if right_sentence_signals & {
         SupportSignalKind.CITATION,
         SupportSignalKind.THEOREM_REF,
@@ -138,4 +143,5 @@ def _introduces_new_support(
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(LexicalRepetitionRule)

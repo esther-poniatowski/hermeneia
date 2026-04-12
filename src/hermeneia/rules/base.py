@@ -13,6 +13,8 @@ from hermeneia.language.base import LanguagePack
 
 
 class Layer(StrEnum):
+    """Layer."""
+
     SURFACE_STYLE = "surface_style"
     LOCAL_DISCOURSE = "local_discourse"
     PARAGRAPH_RHETORIC = "paragraph_rhetoric"
@@ -21,6 +23,8 @@ class Layer(StrEnum):
 
 
 class Tractability(StrEnum):
+    """Tractability."""
+
     CLASS_A = "class_a"
     CLASS_B = "class_b"
     CLASS_H = "class_h"
@@ -28,12 +32,16 @@ class Tractability(StrEnum):
 
 
 class Severity(StrEnum):
+    """Severity."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
 
 
 class RuleKind(StrEnum):
+    """Rulekind."""
+
     HARD_CONSTRAINT = "hard_constraint"
     SOFT_HEURISTIC = "soft_heuristic"
     DIAGNOSTIC_METRIC = "diagnostic_metric"
@@ -42,6 +50,8 @@ class RuleKind(StrEnum):
 
 
 class SuggestionMode(StrEnum):
+    """Suggestionmode."""
+
     TEMPLATE = "template"
     TACTIC_ONLY = "tactic_only"
     NONE = "none"
@@ -49,6 +59,8 @@ class SuggestionMode(StrEnum):
 
 @dataclass(frozen=True)
 class RuleMetadata:
+    """Rulemetadata."""
+
     rule_id: str
     label: str
     layer: Layer
@@ -67,6 +79,8 @@ class RuleMetadata:
 
 @dataclass(frozen=True)
 class RuleEvidence:
+    """Ruleevidence."""
+
     features: Mapping[str, Any]
     score: float | None = None
     threshold: float | None = None
@@ -75,6 +89,8 @@ class RuleEvidence:
 
 @dataclass(frozen=True)
 class Violation:
+    """Violation."""
+
     rule_id: str
     message: str
     span: Span
@@ -88,6 +104,8 @@ class Violation:
 
 @dataclass(frozen=True)
 class ResolvedRuleSettings:
+    """Resolvedrulesettings."""
+
     metadata: RuleMetadata
     enabled: bool
     severity: Severity
@@ -97,18 +115,21 @@ class ResolvedRuleSettings:
     silenced_patterns: tuple[str, ...] = ()
 
     def int_option(self, key: str, default: int) -> int:
+        """Int option."""
         value = self.options.get(key, default)
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise ValueError(f"Rule option '{key}' must be convertible to int")
         return int(value)
 
     def float_option(self, key: str, default: float) -> float:
+        """Float option."""
         value = self.options.get(key, default)
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise ValueError(f"Rule option '{key}' must be convertible to float")
         return float(value)
 
     def bool_option(self, key: str, default: bool) -> bool:
+        """Bool option."""
         value = self.options.get(key, default)
         if isinstance(value, bool):
             return value
@@ -123,6 +144,8 @@ class ResolvedRuleSettings:
 
 @dataclass(frozen=True)
 class ResolvedProfile:
+    """Resolvedprofile."""
+
     profile_name: str
     audience: str
     genre: str
@@ -134,17 +157,21 @@ class ResolvedProfile:
     rules: Mapping[str, ResolvedRuleSettings]
 
     def active_rules(self) -> tuple[ResolvedRuleSettings, ...]:
+        """Active rules."""
         return tuple(settings for settings in self.rules.values() if settings.enabled)
 
 
 @dataclass(frozen=True)
 class RuntimeCapabilities:
+    """Runtimecapabilities."""
+
     embeddings_available: bool
     debug_mode: bool
     experimental_rules_enabled: bool
 
     @classmethod
     def defaults(cls) -> "RuntimeCapabilities":
+        """Defaults."""
         return cls(
             embeddings_available=False,
             debug_mode=False,
@@ -154,60 +181,79 @@ class RuntimeCapabilities:
 
 @dataclass(frozen=True)
 class RuleContext:
+    """Rulecontext."""
+
     profile: ResolvedProfile
     language_pack: LanguagePack
     features: FeatureStore
-    capabilities: RuntimeCapabilities = field(default_factory=RuntimeCapabilities.defaults)
+    capabilities: RuntimeCapabilities = field(
+        default_factory=RuntimeCapabilities.defaults
+    )
 
     @property
     def embeddings_available(self) -> bool:
+        """Embeddings available."""
         return self.capabilities.embeddings_available
 
     @property
     def debug_mode(self) -> bool:
+        """Debug mode."""
         return self.capabilities.debug_mode
 
     @property
     def enable_experimental(self) -> bool:
+        """Enable experimental."""
         return self.capabilities.experimental_rules_enabled
 
 
 class BaseRule(ABC):
+    """Baserule."""
+
     metadata: ClassVar[RuleMetadata]
     options_model: ClassVar[type[object] | None] = None
 
     def __init__(self, settings: ResolvedRuleSettings) -> None:
+        """Init."""
         self.settings = settings
 
     @property
     def rule_id(self) -> str:
+        """Rule id."""
         return self.metadata.rule_id
 
     def should_abstain(self, annotation_flags: frozenset[str]) -> bool:
+        """Should abstain."""
         if not self.metadata.abstain_when_flags:
             return False
         return bool(annotation_flags & self.metadata.abstain_when_flags)
 
     @abstractmethod
-    def check(self, doc: Document, ctx: RuleContext) -> list[Violation]: ...
+    def check(self, doc: Document, ctx: RuleContext) -> list[Violation]:
+        """Check."""
+        raise NotImplementedError
 
 
 class SourcePatternRule(BaseRule):
+    """Rule base class for source-line and source-span checks."""
+
     @abstractmethod
     def check_source(
         self,
         lines: list[SourceLine],
         doc: Document,
         ctx: RuleContext,
-    ) -> list[Violation]: ...
+    ) -> list[Violation]:
+        """Check source."""
+        raise NotImplementedError
 
     def check(self, doc: Document, ctx: RuleContext) -> list[Violation]:
+        """Check."""
         return self.check_source(doc.source_lines, doc, ctx)
 
 
 class AnnotatedRule(BaseRule):
-    pass
+    """Annotatedrule."""
 
 
 class HeuristicSemanticRule(BaseRule):
-    pass
+    """Heuristicsemanticrule."""

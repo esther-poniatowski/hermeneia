@@ -21,6 +21,8 @@ NUMBERED_CASE_RE = re.compile(r"\b[Cc]ase\s+\d+\b")
 
 
 class NumberedCaseRule(SourcePatternRule):
+    """Numberedcaserule."""
+
     metadata = RuleMetadata(
         rule_id="linkage.numbered_case",
         label="Prefer named cases over anonymous numbered case splits",
@@ -33,10 +35,14 @@ class NumberedCaseRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = NUMBERED_CASE_RE.search(probe)
@@ -63,6 +69,7 @@ class NumberedCaseRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -74,4 +81,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(NumberedCaseRule)

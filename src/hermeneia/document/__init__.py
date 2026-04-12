@@ -10,4 +10,12 @@ from hermeneia.document.model import (
     Span,
 )
 
-__all__ = ["Block", "BlockKind", "Document", "InlineKind", "InlineNode", "Sentence", "Span"]
+__all__ = [
+    "Block",
+    "BlockKind",
+    "Document",
+    "InlineKind",
+    "InlineNode",
+    "Sentence",
+    "Span",
+]

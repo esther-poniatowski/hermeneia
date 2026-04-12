@@ -17,6 +17,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class AssumptionMotivationOrderRule(HeuristicSemanticRule):
+    """Assumptionmotivationorderrule."""
+
     metadata = RuleMetadata(
         rule_id="math.assumption_motivation_order",
         label="Assumptions should be introduced by purpose",
@@ -26,10 +28,15 @@ class AssumptionMotivationOrderRule(HeuristicSemanticRule):
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
         default_options={"lookback_sentences": 1},
-        evidence_fields=("assumption_marker", "has_prefix_purpose", "previous_has_purpose"),
+        evidence_fields=(
+            "assumption_marker",
+            "has_prefix_purpose",
+            "previous_has_purpose",
+        ),
     )
 
     def check(self, doc, ctx):
+        """Check."""
         lookback = self.settings.int_option("lookback_sentences", 1)
         assumption_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.assumption_markers)
@@ -83,4 +90,5 @@ class AssumptionMotivationOrderRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(AssumptionMotivationOrderRule)

@@ -17,6 +17,8 @@ from hermeneia.rules.common import text_has_marker
 
 
 class DoubleFramingRule(HeuristicSemanticRule):
+    """Doubleframingrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.double_framing",
         label="Avoid double framing around list introductions",
@@ -29,6 +31,7 @@ class DoubleFramingRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         framing_markers = tuple(ctx.language_pack.lexicons.list_framing_markers)
         flat_blocks = list(doc.iter_blocks())
         violations: list[Violation] = []
@@ -45,7 +48,9 @@ class DoubleFramingRule(HeuristicSemanticRule):
             list_items = _following_list_items(flat_blocks, index)
             if len(list_items) < 2:
                 continue
-            reframed = sum(1 for item in list_items if _item_reframes(item, framing_markers))
+            reframed = sum(
+                1 for item in list_items if _item_reframes(item, framing_markers)
+            )
             if reframed < 2:
                 continue
             violations.append(
@@ -78,11 +83,14 @@ class DoubleFramingRule(HeuristicSemanticRule):
 
 
 def _following_list_items(blocks: list[Block], index: int) -> list[Block]:
+    """Following list items."""
     if index + 1 >= len(blocks):
         return []
     next_block = blocks[index + 1]
     if next_block.kind == BlockKind.LIST:
-        return [item for item in next_block.children if item.kind == BlockKind.LIST_ITEM]
+        return [
+            item for item in next_block.children if item.kind == BlockKind.LIST_ITEM
+        ]
     if next_block.kind != BlockKind.LIST_ITEM:
         return []
     items = [next_block]
@@ -94,6 +102,7 @@ def _following_list_items(blocks: list[Block], index: int) -> list[Block]:
 
 
 def _item_reframes(item: Block, markers: tuple[str, ...]) -> bool:
+    """Item reframes."""
     opening = _first_sentence_text(item)
     if opening is None:
         return False
@@ -106,6 +115,7 @@ def _item_reframes(item: Block, markers: tuple[str, ...]) -> bool:
 
 
 def _first_sentence_text(block: Block) -> str | None:
+    """First sentence text."""
     if block.sentences:
         return block.sentences[0].projection.text
     for descendant in block.iter_blocks():
@@ -117,4 +127,5 @@ def _first_sentence_text(block: Block) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(DoubleFramingRule)

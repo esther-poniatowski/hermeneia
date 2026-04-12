@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class TopicSentenceRule(HeuristicSemanticRule):
+    """Topicsentencerule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.topic_sentence",
         label="Paragraph lacks a strong topic sentence",
@@ -31,6 +33,7 @@ class TopicSentenceRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         threshold = self.settings.float_option("minimum_score", 0.45)
         transitional_openers = tuple(ctx.language_pack.lexicons.topic_sentence_openers)
         opener_pattern = compile_leading_phrase_regex(transitional_openers)
@@ -65,9 +68,13 @@ class TopicSentenceRule(HeuristicSemanticRule):
                         threshold=threshold,
                     ),
                     confidence=0.65,
-                    rationale="Topic-sentence detection is a bounded heuristic combining early position and lexical centrality.",
+                    rationale=(
+                        "Topic-sentence detection is a bounded heuristic combining early "
+                        "position and lexical centrality."
+                    ),
                     rewrite_tactics=(
-                        "Open the paragraph with the paragraph’s governing claim, object, or question before elaboration or examples.",
+                        "Open the paragraph with the paragraph’s governing claim, object, "
+                        "or question before elaboration or examples.",
                     ),
                 )
             )
@@ -81,17 +88,21 @@ class TopicSentenceRule(HeuristicSemanticRule):
         position_bonus: float,
         opener_pattern,
     ) -> float:
+        """Score candidate."""
         if opener_pattern.search(sentence.source_text):
             position_bonus -= 0.15
         others = [other for other in block.sentences if other.id != sentence.id]
         overlap = (
             0.0
             if not others
-            else sum(ctx.features.sentence_overlap(sentence.id, other.id) for other in others)
+            else sum(
+                ctx.features.sentence_overlap(sentence.id, other.id) for other in others
+            )
             / len(others)
         )
         return max(0.0, min(1.0, position_bonus + overlap))
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(TopicSentenceRule)

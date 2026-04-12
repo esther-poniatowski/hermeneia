@@ -20,6 +20,8 @@ _LEADING_PUNCTUATION_RE = re.compile(r'^[\s"\'`([{]+')
 
 
 class VagueRhetoricalOpenerRule(HeuristicSemanticRule):
+    """Vaguerhetoricalopenerrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.vague_rhetorical_opener",
         label="Avoid vague rhetorical openers that delay the claim",
@@ -33,6 +35,7 @@ class VagueRhetoricalOpenerRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         patterns = _resolve_patterns(
             base=tuple(ctx.language_pack.lexicons.vague_rhetorical_openers),
             extra=self.settings.extra_patterns,
@@ -74,6 +77,7 @@ def _resolve_patterns(
     extra: tuple[str, ...],
     silenced: tuple[str, ...],
 ) -> tuple[str, ...]:
+    """Resolve patterns."""
     silenced_set = {item.strip().lower() for item in silenced}
     combined = tuple(base) + tuple(extra)
     normalized: list[str] = []
@@ -88,6 +92,7 @@ def _resolve_patterns(
 
 
 def _matched_opener(text: str, patterns: tuple[str, ...]) -> str | None:
+    """Matched opener."""
     probe = _LEADING_PUNCTUATION_RE.sub("", text).lower()
     for pattern in patterns:
         if probe.startswith(pattern) and _token_boundary_after_pattern(probe, pattern):
@@ -96,6 +101,7 @@ def _matched_opener(text: str, patterns: tuple[str, ...]) -> str | None:
 
 
 def _token_boundary_after_pattern(text: str, pattern: str) -> bool:
+    """Token boundary after pattern."""
     end = len(pattern)
     if end >= len(text):
         return True
@@ -104,4 +110,5 @@ def _token_boundary_after_pattern(text: str, pattern: str) -> bool:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(VagueRhetoricalOpenerRule)

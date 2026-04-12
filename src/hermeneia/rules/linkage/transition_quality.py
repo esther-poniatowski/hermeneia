@@ -21,6 +21,8 @@ from hermeneia.rules.patterns import (
 
 
 class TransitionQualityRule(HeuristicSemanticRule):
+    """Transitionqualityrule."""
+
     metadata = RuleMetadata(
         rule_id="linkage.transition_quality",
         label="Discourse transitions are weakly articulated",
@@ -39,6 +41,7 @@ class TransitionQualityRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_overlap = self.settings.float_option("min_overlap_without_connector", 0.18)
         max_shift_findings = self.settings.int_option("max_shift_findings", 3)
         min_paragraph_sentences = self.settings.int_option("min_paragraph_sentences", 4)
@@ -153,12 +156,15 @@ class TransitionQualityRule(HeuristicSemanticRule):
 
 
 def _starts_with_connector(text: str, connector_pattern) -> bool:
+    """Starts with connector."""
     return connector_pattern.search(text) is not None
 
 
 def _starts_with_linking_reference(text: str, reference_pattern) -> bool:
+    """Starts with linking reference."""
     return reference_pattern.search(text) is not None
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(TransitionQualityRule)

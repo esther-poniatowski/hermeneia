@@ -22,6 +22,8 @@ WORD_RE = re.compile(r"\b\w+\b")
 
 @dataclass(frozen=True)
 class ProjectionSettings:
+    """Projectionsettings."""
+
     heavy_math_masking_ratio: float = 0.4
     symbol_dense_threshold: int = 4
     fragment_token_threshold: int = 4
@@ -30,6 +32,8 @@ class ProjectionSettings:
 
 @dataclass(frozen=True)
 class ProjectionResult:
+    """Projectionresult."""
+
     projection: TextProjection
     flags: frozenset[str]
 
@@ -67,6 +71,7 @@ def build_projection(
     ordered_nodes = sorted(inline_nodes, key=lambda node: node.span.start)
 
     def append_literal(segment: str, offsets: tuple[int | None, ...]) -> None:
+        """Append literal."""
         normalized_chars.extend(segment)
         normalized_to_source.extend(offsets)
 
@@ -174,6 +179,7 @@ def build_projection(
 
 
 def _relative_start(source_start: int, offsets: tuple[int | None, ...]) -> int | None:
+    """Relative start."""
     for index, offset in enumerate(offsets):
         if offset == source_start:
             return index
@@ -181,6 +187,7 @@ def _relative_start(source_start: int, offsets: tuple[int | None, ...]) -> int |
 
 
 def _relative_end(source_end: int, offsets: tuple[int | None, ...]) -> int | None:
+    """Relative end."""
     for index in range(len(offsets) - 1, -1, -1):
         offset = offsets[index]
         if offset is not None and offset < source_end:
@@ -189,6 +196,7 @@ def _relative_end(source_end: int, offsets: tuple[int | None, ...]) -> int | Non
 
 
 def _normalize_whitespace(text: str) -> str:
+    """Normalize whitespace."""
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -197,6 +205,7 @@ def _normalize_map(
     raw_text: str,
     normalized_text: str,
 ) -> tuple[int | None, ...]:
+    """Normalize map."""
     if raw_text == normalized_text:
         return raw_map
     result: list[int | None] = []

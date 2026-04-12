@@ -13,15 +13,18 @@ class SentenceTransformerEmbeddingBackend:
     """Lazy sentence-transformers backend bound to a specific model id."""
 
     def __init__(self, model_name: str) -> None:
+        """Init."""
         self._model_name = model_name
         self._model: Any | None = None
 
     def embed_text(self, text: str) -> tuple[float, ...]:
+        """Embed text."""
         model = self._get_model()
         raw = model.encode(text, normalize_embeddings=True)
         return _coerce_vector(raw)
 
     def _get_model(self) -> Any:
+        """Get model."""
         if self._model is not None:
             return self._model
         try:
@@ -31,7 +34,9 @@ class SentenceTransformerEmbeddingBackend:
                 "Embedding backend 'sentence_transformers' requires the "
                 "'sentence-transformers' package."
             ) from exc
-        sentence_transformer_cls = getattr(sentence_transformers, "SentenceTransformer", None)
+        sentence_transformer_cls = getattr(
+            sentence_transformers, "SentenceTransformer", None
+        )
         if sentence_transformer_cls is None:
             raise RuntimeError(
                 "Embedding backend 'sentence_transformers' is installed but does not expose "
@@ -52,6 +57,7 @@ def build_embedding_backend(config: EmbeddingConfig) -> EmbeddingBackend | None:
 
 
 def _coerce_vector(raw: object) -> tuple[float, ...]:
+    """Coerce vector."""
     if hasattr(raw, "tolist"):
         raw = raw.tolist()
     if isinstance(raw, tuple):

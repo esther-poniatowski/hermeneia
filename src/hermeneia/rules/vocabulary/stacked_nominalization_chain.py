@@ -23,6 +23,8 @@ HIGH_NOISE_SUFFIXES = frozenset({"al", "ing"})
 
 
 class StackedNominalizationChainRule(AnnotatedRule):
+    """Stackednominalizationchainrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.stacked_nominalization_chain",
         label="Avoid stacked nominalization chains",
@@ -36,9 +38,11 @@ class StackedNominalizationChainRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_chain = self.settings.int_option("min_chain", 3)
         suffixes = tuple(
-            suffix.lower() for suffix in ctx.language_pack.lexicons.nominalization_suffixes
+            suffix.lower()
+            for suffix in ctx.language_pack.lexicons.nominalization_suffixes
         )
         allowlist = frozenset(
             term.lower() for term in ctx.language_pack.lexicons.nominalization_allowlist
@@ -85,11 +89,14 @@ def _largest_chain(
     suffixes: tuple[str, ...],
     allowlist: frozenset[str],
 ) -> list[str]:
+    """Largest chain."""
     if sentence.tokens:
         words = [_token_word(token) for token in sentence.tokens]
         poses = [(token.pos or "").upper() for token in sentence.tokens]
         return _largest_chain_from_words(words, suffixes, allowlist, poses=poses)
-    words = [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
+    words = [
+        match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)
+    ]
     return _largest_chain_from_words(words, suffixes, allowlist, poses=None)
 
 
@@ -100,6 +107,7 @@ def _largest_chain_from_words(
     *,
     poses: list[str] | None,
 ) -> list[str]:
+    """Largest chain from words."""
     best: list[str] = []
     current: list[str] = []
     for index, word in enumerate(words):
@@ -122,6 +130,7 @@ def _is_nominalization(
     *,
     pos: str | None,
 ) -> bool:
+    """Is nominalization."""
     if len(word) < 6 or word in allowlist:
         return False
     suffix = _matching_suffix(word, suffixes)
@@ -133,6 +142,7 @@ def _is_nominalization(
 
 
 def _matching_suffix(word: str, suffixes: tuple[str, ...]) -> str | None:
+    """Matching suffix."""
     for suffix in suffixes:
         if word.endswith(suffix):
             return suffix
@@ -140,8 +150,10 @@ def _matching_suffix(word: str, suffixes: tuple[str, ...]) -> str | None:
 
 
 def _token_word(token: Token) -> str:
+    """Token word."""
     return (token.lemma or token.text).lower()
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(StackedNominalizationChainRule)

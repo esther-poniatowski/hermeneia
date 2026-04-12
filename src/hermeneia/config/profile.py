@@ -11,9 +11,13 @@ from hermeneia.engine.registry import RuleRegistry
 from hermeneia.language.base import LanguagePack
 from hermeneia.rules.base import ResolvedProfile, ResolvedRuleSettings, Severity
 
+COMMA_SEPARATOR = ", "
+
 
 @dataclass(frozen=True)
 class CliOverrides:
+    """Clioverrides."""
+
     profile_name: str | None = None
     rule_ids: tuple[str, ...] = ()
     disabled_rule_ids: tuple[str, ...] = ()
@@ -25,6 +29,7 @@ class ProfileResolver:
     """Merge rule defaults, language defaults, profile defaults, and overrides."""
 
     def __init__(self, registry: RuleRegistry) -> None:
+        """Init."""
         self._registry = registry
 
     def resolve(
@@ -33,6 +38,7 @@ class ProfileResolver:
         language_pack: LanguagePack,
         cli: CliOverrides | None = None,
     ) -> ResolvedProfile:
+        """Resolve."""
         cli = cli or CliOverrides()
         preset = self._resolve_preset(cli.profile_name or config.profile.name)
         self._validate_rule_id_references(config, cli, preset, language_pack)
@@ -102,11 +108,14 @@ class ProfileResolver:
         )
 
     def _resolve_preset(self, profile_name: str) -> ProfilePreset:
+        """Resolve preset."""
         try:
             return PROFILE_PRESETS[profile_name]
         except KeyError as exc:
             raise ValueError(
-                f"Unknown profile '{profile_name}'. Expected one of: {', '.join(sorted(PROFILE_PRESETS))}"
+                "Unknown profile "
+                f"'{profile_name}'. Expected one of: "
+                f"{COMMA_SEPARATOR.join(sorted(PROFILE_PRESETS))}"
             ) from exc
 
     def _resolve_active_rules(
@@ -115,6 +124,7 @@ class ProfileResolver:
         preset: ProfilePreset,
         cli: CliOverrides,
     ) -> tuple[str, ...]:
+        """Resolve active rules."""
         if cli.rule_ids:
             active = set(cli.rule_ids)
         elif config.rules.active is not None:
@@ -132,6 +142,7 @@ class ProfileResolver:
         user_override: RuleOverrideConfig | None,
         language_pack: LanguagePack,
     ) -> RuleOverrideConfig:
+        """Merge rule settings."""
         merged = RuleOverrideConfig()
         merged = _merge_override(
             merged,
@@ -154,6 +165,7 @@ class ProfileResolver:
         return merged
 
     def _experimental_enabled(self, config: ProjectConfig, cli: CliOverrides) -> bool:
+        """Experimental enabled."""
         if cli.enable_experimental is not None:
             return cli.enable_experimental
         return config.runtime.experimental_rules
@@ -165,6 +177,7 @@ class ProfileResolver:
         preset: ProfilePreset,
         language_pack: LanguagePack,
     ) -> None:
+        """Validate rule id references."""
         self._raise_unknown_rule_ids("rules.active", config.rules.active or ())
         self._raise_unknown_rule_ids("rules.disabled", config.rules.disabled)
         self._raise_unknown_rule_ids("rules.overrides", config.rules.overrides)
@@ -189,25 +202,30 @@ class ProfileResolver:
         supported = language_pack.supported_rules
         if supported:
             defaults_outside_support = sorted(
-                rule_id for rule_id in language_pack.rule_defaults if rule_id not in supported
+                rule_id
+                for rule_id in language_pack.rule_defaults
+                if rule_id not in supported
             )
             if defaults_outside_support:
                 raise ValueError(
                     f"language pack '{language_pack.code}' rule_defaults declare unsupported "
-                    "rule ids: "
-                    + ", ".join(defaults_outside_support)
+                    "rule ids: " + ", ".join(defaults_outside_support)
                 )
 
     def _raise_unknown_rule_ids(self, source: str, rule_ids: Iterable[str]) -> None:
+        """Raise unknown rule ids."""
         unknown = sorted(
             rule_id for rule_id in rule_ids if rule_id not in self._registry
         )
         if unknown:
-            raise ValueError(f"Unknown rule ids in {source}: {', '.join(unknown)}")
+            raise ValueError(
+                f"Unknown rule ids in {source}: {COMMA_SEPARATOR.join(unknown)}"
+            )
 
     def _language_pack_supports_rule(
         self, language_pack: LanguagePack, rule_id: str
     ) -> bool:
+        """Language pack supports rule."""
         supported_rules = language_pack.supported_rules
         if not supported_rules:
             return True
@@ -218,6 +236,7 @@ class ProfileResolver:
         config: ProjectConfig,
         cli: CliOverrides,
     ) -> frozenset[str]:
+        """Explicit rule ids."""
         explicit: set[str] = set()
         explicit.update(cli.rule_ids)
         if config.rules.active is not None:
@@ -228,6 +247,7 @@ class ProfileResolver:
 def _merge_override(
     base: RuleOverrideConfig, incoming: RuleOverrideConfig
 ) -> RuleOverrideConfig:
+    """Merge override."""
     return RuleOverrideConfig(
         enabled=incoming.enabled if incoming.enabled is not None else base.enabled,
         severity=incoming.severity or base.severity,
@@ -239,6 +259,7 @@ def _merge_override(
 
 
 def _merge_options(*mappings: object) -> dict[str, object]:
+    """Merge options."""
     merged: dict[str, object] = {}
     for mapping in mappings:
         if isinstance(mapping, Mapping):
@@ -250,6 +271,7 @@ def _deep_merge_mapping(
     base: Mapping[str, object],
     incoming: Mapping[str, object],
 ) -> dict[str, object]:
+    """Deep merge mapping."""
     merged: dict[str, object] = {
         key: _clone_option_value(value) for key, value in base.items()
     }
@@ -260,17 +282,16 @@ def _deep_merge_mapping(
 
 
 def _merge_option_values(current: object, incoming: object) -> object:
+    """Merge option values."""
     if isinstance(current, Mapping) and isinstance(incoming, Mapping):
         return _deep_merge_mapping(current, incoming)
     return _clone_option_value(incoming)
 
 
 def _clone_option_value(value: object) -> object:
+    """Clone option value."""
     if isinstance(value, Mapping):
-        return {
-            key: _clone_option_value(item)
-            for key, item in value.items()
-        }
+        return {key: _clone_option_value(item) for key, item in value.items()}
     if isinstance(value, list):
         return [_clone_option_value(item) for item in value]
     if isinstance(value, tuple):
@@ -283,6 +304,7 @@ def _mapping_to_override(
     raw: object,
     source: str,
 ) -> RuleOverrideConfig:
+    """Mapping to override."""
     if not raw:
         return RuleOverrideConfig()
     if not isinstance(raw, Mapping):
@@ -300,7 +322,8 @@ def _mapping_to_override(
     unknown = sorted(key for key in raw if key not in allowed_fields)
     if unknown:
         raise ValueError(
-            f"{source} override for rule '{rule_id}' has unknown fields: {', '.join(unknown)}"
+            f"{source} override for rule '{rule_id}' has unknown fields: "
+            f"{COMMA_SEPARATOR.join(unknown)}"
         )
     enabled = raw.get("enabled")
     if enabled is not None and not isinstance(enabled, bool):
@@ -349,6 +372,7 @@ def _mapping_to_override(
 
 
 def _string_tuple(raw: object, field_label: str) -> tuple[str, ...]:
+    """String tuple."""
     if raw is None:
         return ()
     if not isinstance(raw, (list, tuple)):
@@ -363,6 +387,7 @@ def _validate_options_model(
     rule_cls: type[object],
     options: dict[str, object],
 ) -> dict[str, object]:
+    """Validate options model."""
     options_model = getattr(rule_cls, "options_model", None)
     if options_model is None:
         return options

@@ -17,6 +17,8 @@ from hermeneia.rules.common import previous_prose_block, text_has_marker
 
 
 class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
+    """Consecutivedisplayblockswithoutbridgerule."""
+
     metadata = RuleMetadata(
         rule_id="math.consecutive_display_blocks_without_bridge",
         label="Consecutive display equations need a motivational bridge",
@@ -30,9 +32,14 @@ class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_chain_length = self.settings.int_option("min_chain_length", 2)
-        motivation_markers = tuple(ctx.language_pack.lexicons.assumption_purpose_markers)
-        motivation_action_verbs = tuple(ctx.language_pack.lexicons.motivation_action_verbs)
+        motivation_markers = tuple(
+            ctx.language_pack.lexicons.assumption_purpose_markers
+        )
+        motivation_action_verbs = tuple(
+            ctx.language_pack.lexicons.motivation_action_verbs
+        )
         flat_blocks = list(doc.iter_blocks())
         violations: list[Violation] = []
         index = 0
@@ -81,7 +88,8 @@ class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
                                 "model deeper section-level narrative context."
                             ),
                             rewrite_tactics=(
-                                "Add one motivation sentence before the chain that states the shared purpose of the introduced objects.",
+                                "Add one motivation sentence before the chain that states "
+                                "the shared purpose of the introduced objects.",
                             ),
                         )
                     )
@@ -90,6 +98,7 @@ class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
 
 
 def _chain_span(first_block, last_block) -> Span:
+    """Chain span."""
     return Span(
         start=first_block.span.start,
         end=last_block.span.end,
@@ -105,9 +114,12 @@ def _has_preceding_motivation(
     motivation_markers: tuple[str, ...],
     motivation_action_verbs: tuple[str, ...],
 ) -> bool:
+    """Has preceding motivation."""
     if preceding is None or not preceding.sentences:
         return False
-    text = " ".join(sentence.projection.text for sentence in preceding.sentences).strip()
+    text = " ".join(
+        sentence.projection.text for sentence in preceding.sentences
+    ).strip()
     if not text:
         return False
     if text_has_marker(text, motivation_markers):
@@ -116,4 +128,5 @@ def _has_preceding_motivation(
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ConsecutiveDisplayBlocksWithoutBridgeRule)

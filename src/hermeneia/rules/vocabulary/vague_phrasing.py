@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class VaguePhrasingRule(SourcePatternRule):
+    """Vaguephrasingrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.vague_phrasing",
         label="Avoid vague mechanism phrasing",
@@ -30,13 +32,17 @@ class VaguePhrasingRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         vague_phrase_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.vague_mechanism_phrases)
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             match = match_allowed(line, vague_phrase_pattern)
             if match is None:
@@ -59,6 +65,7 @@ class VaguePhrasingRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -70,4 +77,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(VaguePhrasingRule)

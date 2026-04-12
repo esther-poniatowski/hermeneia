@@ -35,6 +35,8 @@ BARE_SPACE_SYMBOL_RE = re.compile(
 
 
 class BareSymbolRule(SourcePatternRule):
+    """Baresymbolrule."""
+
     metadata = RuleMetadata(
         rule_id="math.bare_symbol",
         label="Symbols in qualifier or prepositional position must carry object names",
@@ -47,10 +49,14 @@ class BareSymbolRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         violations: list[Violation] = []
         patterns = (BARE_SYMBOL_RE, BARE_PREP_SYMBOL_RE, BARE_SPACE_SYMBOL_RE)
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line.text
             for pattern in patterns:
@@ -60,12 +66,19 @@ class BareSymbolRule(SourcePatternRule):
                 violations.append(
                     Violation(
                         rule_id=self.rule_id,
-                        message="Name the mathematical object before the symbol in this qualifier or prepositional phrase.",
+                        message=(
+                            "Name the mathematical object before the symbol in this "
+                            "qualifier or prepositional phrase."
+                        ),
                         span=_match_span(line, match.start(), match.end()),
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(features={"matched_text": match.group(0)}),
-                        rewrite_tactics=("Insert the object name immediately before the symbol.",),
+                        evidence=RuleEvidence(
+                            features={"matched_text": match.group(0)}
+                        ),
+                        rewrite_tactics=(
+                            "Insert the object name immediately before the symbol.",
+                        ),
                     )
                 )
                 break
@@ -73,6 +86,7 @@ class BareSymbolRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -84,4 +98,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(BareSymbolRule)

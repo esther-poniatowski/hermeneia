@@ -17,6 +17,8 @@ from hermeneia.rules.common import text_has_marker
 
 
 class SectionOrderSequenceRule(HeuristicSemanticRule):
+    """Sectionordersequencerule."""
+
     metadata = RuleMetadata(
         rule_id="structure.section_order_sequence",
         label="Section ordering should follow reader decision sequence",
@@ -29,6 +31,7 @@ class SectionOrderSequenceRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         headings = [
             block
             for block in doc.iter_blocks()
@@ -38,7 +41,9 @@ class SectionOrderSequenceRule(HeuristicSemanticRule):
             return []
         heading_rows = [
             (index, heading, _heading_text(heading))
-            for index, heading in enumerate(sorted(headings, key=lambda block: block.span.start))
+            for index, heading in enumerate(
+                sorted(headings, key=lambda block: block.span.start)
+            )
         ]
         purpose = _first_match(
             heading_rows,
@@ -66,16 +71,22 @@ class SectionOrderSequenceRule(HeuristicSemanticRule):
             _order_violation(self, installation, purpose, "purpose_over_installation")
         )
         violations.extend(_order_violation(self, usage, purpose, "purpose_over_usage"))
-        violations.extend(_order_violation(self, configuration, usage, "usage_over_configuration"))
-        violations.extend(_order_violation(self, advanced, usage, "usage_over_advanced"))
+        violations.extend(
+            _order_violation(self, configuration, usage, "usage_over_configuration")
+        )
+        violations.extend(
+            _order_violation(self, advanced, usage, "usage_over_advanced")
+        )
         return violations
 
 
 def _heading_text(heading) -> str:
+    """Heading text."""
     return " ".join(sentence.projection.text for sentence in heading.sentences).strip()
 
 
 def _first_match(heading_rows, markers: tuple[str, ...]):
+    """First match."""
     if not markers:
         return None
     for index, heading, text in heading_rows:
@@ -90,6 +101,7 @@ def _order_violation(
     right,
     issue: str,
 ) -> list[Violation]:
+    """Order violation."""
     if left is None or right is None:
         return []
     left_index, left_heading, left_text = left
@@ -118,11 +130,13 @@ def _order_violation(
                 "Reader-sequence checks compare coarse heading categories only when both categories are present."
             ),
             rewrite_tactics=(
-                "Reorder sections so purpose and usage context appear before installation/configuration/advanced material.",
+                "Reorder sections so purpose and usage context appear before "
+                "installation/configuration/advanced material.",
             ),
         )
     ]
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SectionOrderSequenceRule)

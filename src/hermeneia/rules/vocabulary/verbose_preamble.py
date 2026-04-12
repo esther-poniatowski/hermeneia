@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class VerbosePreambleRule(SourcePatternRule):
+    """Verbosepreamblerule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.verbose_preamble",
         label="Avoid verbose preambles before the main claim",
@@ -30,6 +32,7 @@ class VerbosePreambleRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         pattern = compile_leading_phrase_regex(
             tuple(ctx.language_pack.lexicons.verbose_preamble_markers)
@@ -38,7 +41,10 @@ class VerbosePreambleRule(SourcePatternRule):
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = pattern.search(probe)
@@ -62,6 +68,7 @@ class VerbosePreambleRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -73,4 +80,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(VerbosePreambleRule)

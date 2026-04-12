@@ -21,6 +21,8 @@ NOUNISH_POS = frozenset({"NOUN", "PROPN", "ADJ"})
 
 
 class NounClusterRule(AnnotatedRule):
+    """Nounclusterrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.noun_cluster",
         label="Sentence contains an overloaded noun cluster",
@@ -35,6 +37,7 @@ class NounClusterRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         max_cluster = self.settings.int_option("max_cluster_tokens", 4)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -60,7 +63,8 @@ class NounClusterRule(AnnotatedRule):
                     ),
                     confidence=0.68,
                     rewrite_tactics=(
-                        "Convert part of the noun stack into a clause or use prepositions to make relationships explicit.",
+                        "Convert part of the noun stack into a clause or use "
+                        "prepositions to make relationships explicit.",
                     ),
                 )
             )
@@ -68,6 +72,7 @@ class NounClusterRule(AnnotatedRule):
 
 
 def _max_cluster(sentence) -> list[str]:
+    """Max cluster."""
     if sentence.tokens and any(token.pos is not None for token in sentence.tokens):
         longest: list[str] = []
         current: list[str] = []
@@ -86,4 +91,5 @@ def _max_cluster(sentence) -> list[str]:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(NounClusterRule)

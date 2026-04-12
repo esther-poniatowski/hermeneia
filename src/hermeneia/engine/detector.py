@@ -18,9 +18,13 @@ from hermeneia.document.model import Document
 from hermeneia.document.indexes import FeatureStore
 from hermeneia.language.base import LanguagePack
 
+COMMA_SEPARATOR = ", "
+
 
 @dataclass(frozen=True)
 class RuleDiagnostic:
+    """Rulediagnostic."""
+
     code: str
     rule_id: str
     message: str
@@ -28,12 +32,17 @@ class RuleDiagnostic:
 
 @dataclass(frozen=True)
 class DetectionResult:
+    """Detectionresult."""
+
     violations: tuple[Violation, ...]
     diagnostics: tuple[RuleDiagnostic, ...] = ()
 
 
 class RuleDetector:
+    """Ruledetector."""
+
     def __init__(self, registry: RuleRegistry) -> None:
+        """Init."""
         self._registry = registry
 
     def detect(
@@ -44,6 +53,7 @@ class RuleDetector:
         features: FeatureStore,
         debug_mode: bool = False,
     ) -> DetectionResult:
+        """Detect."""
         context = RuleContext(
             profile=profile,
             language_pack=language_pack,
@@ -105,6 +115,7 @@ class RuleDetector:
 
 
 def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | None:
+    """Validate violation contract."""
     metadata = rule.metadata
     if violation.rule_id != metadata.rule_id:
         return (
@@ -126,7 +137,8 @@ def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | 
         ]
         if missing:
             return (
-                f"violation evidence is missing required fields: {', '.join(missing)}"
+                "violation evidence is missing required fields: "
+                f"{COMMA_SEPARATOR.join(missing)}"
             )
     if metadata.tractability == Tractability.CLASS_H:
         if violation.evidence is None:

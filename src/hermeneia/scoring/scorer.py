@@ -16,6 +16,8 @@ SEVERITY_MULTIPLIERS = {
 
 @dataclass(frozen=True)
 class LayerScore:
+    """Layerscore."""
+
     layer: Layer
     violation_count: int
     weighted_penalty: float
@@ -24,6 +26,8 @@ class LayerScore:
 
 @dataclass(frozen=True)
 class Scorecard:
+    """Scorecard."""
+
     layer_scores: tuple[LayerScore, ...]
     global_score: float
 
@@ -36,11 +40,13 @@ class HierarchicalScorer:
         violations: Sequence[Violation],
         rule_weights: Mapping[str, float],
     ) -> Scorecard:
+        """Score."""
         per_layer: dict[Layer, list[Violation]] = {layer: [] for layer in Layer}
         for violation in violations:
             per_layer[violation.layer].append(violation)
         layer_scores = tuple(
-            self._score_layer(layer, issues, rule_weights) for layer, issues in per_layer.items()
+            self._score_layer(layer, issues, rule_weights)
+            for layer, issues in per_layer.items()
         )
         penalties = sum(score.weighted_penalty for score in layer_scores)
         global_score = max(0.0, 100.0 - penalties * 5.0)
@@ -52,7 +58,10 @@ class HierarchicalScorer:
         violations: Sequence[Violation],
         rule_weights: Mapping[str, float],
     ) -> LayerScore:
-        penalty = sum(self._violation_penalty(violation, rule_weights) for violation in violations)
+        """Score layer."""
+        penalty = sum(
+            self._violation_penalty(violation, rule_weights) for violation in violations
+        )
         score = max(0.0, 100.0 - penalty * 10.0)
         return LayerScore(
             layer=layer,
@@ -66,10 +75,15 @@ class HierarchicalScorer:
         violation: Violation,
         rule_weights: Mapping[str, float],
     ) -> float:
+        """Violation penalty."""
         try:
             rule_weight = rule_weights[violation.rule_id]
         except KeyError as exc:
-            raise ValueError(f"Missing rule weight for rule id '{violation.rule_id}'") from exc
+            raise ValueError(
+                f"Missing rule weight for rule id '{violation.rule_id}'"
+            ) from exc
         if rule_weight < 0.0:
-            raise ValueError(f"Rule weight for rule id '{violation.rule_id}' must be non-negative")
+            raise ValueError(
+                f"Rule weight for rule id '{violation.rule_id}' must be non-negative"
+            )
         return SEVERITY_MULTIPLIERS[violation.severity] * rule_weight

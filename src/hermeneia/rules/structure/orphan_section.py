@@ -17,6 +17,8 @@ from hermeneia.rules.common import sentence_word_count
 
 
 class OrphanSectionRule(HeuristicSemanticRule):
+    """Orphansectionrule."""
+
     metadata = RuleMetadata(
         rule_id="structure.orphan_section",
         label="Avoid orphan section shells",
@@ -30,6 +32,7 @@ class OrphanSectionRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_parent_words = self.settings.int_option("min_parent_words", 24)
         violations: list[Violation] = []
         for section in ctx.features.sections:
@@ -70,6 +73,7 @@ class OrphanSectionRule(HeuristicSemanticRule):
 def _section_shell_stats(
     doc, block_ids: tuple[str, ...], level: int
 ) -> tuple[int, int]:
+    """Section shell stats."""
     direct_children = 0
     parent_words = 0
     before_first_direct_child = True
@@ -98,6 +102,7 @@ def _violation(
     direct_children: int,
     parent_words: int,
 ) -> Violation:
+    """Violation."""
     if issue == "empty_section":
         message = "Section has a heading but no substantive content."
     else:
@@ -124,4 +129,5 @@ def _violation(
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(OrphanSectionRule)

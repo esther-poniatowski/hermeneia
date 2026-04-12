@@ -30,6 +30,8 @@ PROSE_BLOCK_KINDS = {
 
 
 class GenericOneRule(AnnotatedRule):
+    """Genericonerule."""
+
     metadata = RuleMetadata(
         rule_id="reference.generic_one",
         label="Avoid generic actor 'one' in technical prose",
@@ -42,6 +44,7 @@ class GenericOneRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         markers = tuple(ctx.language_pack.lexicons.generic_one_markers)
         phrase_markers = tuple(marker for marker in markers if " " in marker)
         phrase_pattern = compile_inline_phrase_regex(phrase_markers)
@@ -113,6 +116,7 @@ class GenericOneRule(AnnotatedRule):
 
 
 def _subject_one_token(tokens: list[Token]) -> Token | None:
+    """Subject one token."""
     for token in tokens:
         lemma = (token.lemma or token.text).lower()
         dependency = (token.dep or "").lower()
@@ -122,14 +126,19 @@ def _subject_one_token(tokens: list[Token]) -> Token | None:
 
 
 def _is_prose_line(line) -> bool:
+    """Is prose line."""
     if not line.container_kinds:
         return True
-    if any(kind in {BlockKind.CODE_BLOCK, BlockKind.DISPLAY_MATH} for kind in line.container_kinds):
+    if any(
+        kind in {BlockKind.CODE_BLOCK, BlockKind.DISPLAY_MATH}
+        for kind in line.container_kinds
+    ):
         return False
     return any(kind in PROSE_BLOCK_KINDS for kind in line.container_kinds)
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -141,6 +150,7 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def _seen(seen: set[tuple[int, int]], span: Span) -> bool:
+    """Seen."""
     key = (span.start, span.end)
     if key in seen:
         return True
@@ -149,4 +159,5 @@ def _seen(seen: set[tuple[int, int]], span: Span) -> bool:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(GenericOneRule)

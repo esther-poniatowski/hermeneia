@@ -21,6 +21,8 @@ PROOF_END_RE = re.compile(r"(?:\$?\\square\$?|□|QED)\s*$", re.IGNORECASE)
 
 
 class ProofMarkerRule(SourcePatternRule):
+    """Proofmarkerrule."""
+
     metadata = RuleMetadata(
         rule_id="math.proof_marker",
         label="Proof end markers require explicit proof opener",
@@ -34,6 +36,7 @@ class ProofMarkerRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         max_lookback = self.settings.int_option("max_lookback_lines", 12)
         violations: list[Violation] = []
@@ -69,6 +72,7 @@ class ProofMarkerRule(SourcePatternRule):
 
 
 def _line_span(line) -> Span:
+    """Line span."""
     return Span(
         start=line.span.start,
         end=line.span.end,
@@ -80,4 +84,5 @@ def _line_span(line) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ProofMarkerRule)

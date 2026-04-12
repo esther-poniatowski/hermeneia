@@ -21,6 +21,8 @@ INLINE_QUANT_RE = re.compile(r"\d|\$")
 
 
 class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
+    """Qualitativeclaimwithoutquantsupportrule."""
+
     metadata = RuleMetadata(
         rule_id="evidence.qualitative_claim_without_quant_support",
         label="Qualitative claim lacks nearby quantitative support",
@@ -37,9 +39,11 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         lookback = self.settings.int_option("lookback_sentences", 2)
         markers = tuple(
-            marker.lower() for marker in ctx.language_pack.lexicons.qualitative_claim_markers
+            marker.lower()
+            for marker in ctx.language_pack.lexicons.qualitative_claim_markers
         )
         evidence_kinds = {
             SupportSignalKind.CITATION,
@@ -60,7 +64,9 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
             signals = ctx.features.support_signals_in_window(
                 sentence.id, max_sentences_back=lookback
             )
-            strong_support = [signal for signal in signals if signal.kind in evidence_kinds]
+            strong_support = [
+                signal for signal in signals if signal.kind in evidence_kinds
+            ]
             if strong_support:
                 continue
             violations.append(
@@ -76,7 +82,9 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
                     evidence=RuleEvidence(
                         features={
                             "claim_markers": matched_markers,
-                            "support_signals": tuple(signal.kind.value for signal in signals),
+                            "support_signals": tuple(
+                                signal.kind.value for signal in signals
+                            ),
                         },
                         score=0.0,
                         threshold=1.0,
@@ -95,4 +103,5 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(QualitativeClaimWithoutQuantSupportRule)

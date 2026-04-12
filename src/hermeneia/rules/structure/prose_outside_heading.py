@@ -26,6 +26,8 @@ PROSE_KINDS = {
 
 
 class ProseOutsideHeadingRule(HeuristicSemanticRule):
+    """Proseoutsideheadingrule."""
+
     metadata = RuleMetadata(
         rule_id="structure.prose_outside_heading",
         label="Significant prose should live under an explicit heading",
@@ -39,9 +41,12 @@ class ProseOutsideHeadingRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = ctx
         min_words = self.settings.int_option("min_words", 12)
-        headings = [block for block in doc.iter_blocks() if block.kind == BlockKind.HEADING]
+        headings = [
+            block for block in doc.iter_blocks() if block.kind == BlockKind.HEADING
+        ]
         if not headings:
             return []
         first_heading_start = min(heading.span.start for heading in headings)
@@ -51,7 +56,9 @@ class ProseOutsideHeadingRule(HeuristicSemanticRule):
                 continue
             if block.span.start >= first_heading_start:
                 continue
-            word_count = sum(sentence_word_count(sentence) for sentence in block.sentences)
+            word_count = sum(
+                sentence_word_count(sentence) for sentence in block.sentences
+            )
             if word_count < min_words:
                 continue
             violations.append(
@@ -74,4 +81,5 @@ class ProseOutsideHeadingRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ProseOutsideHeadingRule)

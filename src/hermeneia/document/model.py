@@ -23,16 +23,21 @@ class Span:
     end_column: int
 
     def contains_offset(self, offset: int) -> bool:
+        """Contains offset."""
         return self.start <= offset < self.end
 
     def overlaps(self, other: "Span") -> bool:
+        """Overlaps."""
         return self.start < other.end and other.start < self.end
 
     def line_tuple(self) -> tuple[int, int]:
+        """Line tuple."""
         return self.start_line, self.end_line
 
 
 class MaskedSegmentKind(StrEnum):
+    """Maskedsegmentkind."""
+
     INLINE_MATH = "inline_math"
     INLINE_CODE = "inline_code"
     LINK_TARGET = "link_target"
@@ -56,6 +61,7 @@ class TextProjection:
     masked_segments: tuple[MaskedSegment, ...] = ()
 
     def source_offset_for(self, projection_offset: int) -> int | None:
+        """Source offset for."""
         if projection_offset < 0 or projection_offset >= len(self.normalized_to_source):
             return None
         return self.normalized_to_source[projection_offset]
@@ -76,6 +82,8 @@ class Token:
 
 
 class BlockKind(StrEnum):
+    """Blockkind."""
+
     HEADING = "heading"
     PARAGRAPH = "paragraph"
     LIST = "list"
@@ -91,6 +99,8 @@ class BlockKind(StrEnum):
 
 
 class InlineKind(StrEnum):
+    """Inlinekind."""
+
     TEXT = "text"
     INLINE_MATH = "inline_math"
     INLINE_CODE = "inline_code"
@@ -119,6 +129,7 @@ class Sentence:
     annotation_flags: frozenset[str] = frozenset()
 
     def token_text(self) -> str:
+        """Token text."""
         return " ".join(token.text for token in self.tokens)
 
 
@@ -135,6 +146,7 @@ class Block:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def iter_blocks(self) -> Iterable["Block"]:
+        """Iter blocks."""
         yield self
         for child in self.children:
             yield from child.iter_blocks()
@@ -162,16 +174,19 @@ class Document:
     path: Path | None = None
 
     def iter_blocks(self) -> Iterable[Block]:
+        """Iter blocks."""
         for block in self.blocks:
             yield from block.iter_blocks()
 
     def block_by_id(self, block_id: str) -> Block | None:
+        """Block by id."""
         for block in self.iter_blocks():
             if block.id == block_id:
                 return block
         return None
 
     def sentence_by_id(self, sentence_id: str) -> Sentence | None:
+        """Sentence by id."""
         for block in self.iter_blocks():
             for sentence in block.sentences:
                 if sentence.id == sentence_id:
@@ -179,6 +194,7 @@ class Document:
         return None
 
     def prose_blocks(self) -> Iterable[Block]:
+        """Prose blocks."""
         annotatable = {
             BlockKind.HEADING,
             BlockKind.PARAGRAPH,

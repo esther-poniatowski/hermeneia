@@ -19,6 +19,8 @@ SLUG_FRAGMENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
 
 
 class HeadingLinkRule(SourcePatternRule):
+    """Headinglinkrule."""
+
     metadata = RuleMetadata(
         rule_id="reference.heading_link",
         label="Avoid heading-slug fragments in markdown links",
@@ -31,6 +33,7 @@ class HeadingLinkRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = ctx
         violations: list[Violation] = []
         for line in lines:
@@ -68,4 +71,5 @@ class HeadingLinkRule(SourcePatternRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(HeadingLinkRule)

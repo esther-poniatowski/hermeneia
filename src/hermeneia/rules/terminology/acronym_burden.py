@@ -32,6 +32,8 @@ WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9-]*")
 
 @dataclass(frozen=True)
 class AcronymDefinition:
+    """Acronymdefinition."""
+
     acronym: str
     full_form: str
     sentence_id: str
@@ -39,6 +41,8 @@ class AcronymDefinition:
 
 
 class AcronymBurdenRule(AnnotatedRule):
+    """Acronymburdenrule."""
+
     metadata = RuleMetadata(
         rule_id="terminology.acronym_burden",
         label="Acronyms should be defined first and kept secondary to full forms",
@@ -61,6 +65,7 @@ class AcronymBurdenRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_mentions_for_overuse = self.settings.int_option(
             "min_acronym_mentions_for_overuse", 4
         )
@@ -148,7 +153,8 @@ class AcronymBurdenRule(AnnotatedRule):
                         "mentions after a valid local definition is available."
                     ),
                     rewrite_tactics=(
-                        "Keep the full form as the dominant reference in prose and reserve the acronym for dense local contexts.",
+                        "Keep the full form as the dominant reference in prose and reserve "
+                        "the acronym for dense local contexts.",
                     ),
                 )
             )
@@ -160,6 +166,7 @@ def _collect_mentions(
     allowlist: frozenset[str],
     ordinal_by_sentence_id: dict[str, int],
 ) -> dict[str, list[tuple[int, Sentence]]]:
+    """Collect mentions."""
     mentions: dict[str, list[tuple[int, Sentence]]] = {}
     for sentence in iter_sentences(doc):
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
@@ -180,6 +187,7 @@ def _collect_definitions(
     ordinal_by_sentence_id: dict[str, int],
     definition_stopwords: frozenset[str],
 ) -> dict[str, AcronymDefinition]:
+    """Collect definitions."""
     definitions: dict[str, AcronymDefinition] = {}
     for sentence in iter_sentences(doc):
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
@@ -215,6 +223,7 @@ def _definition_from_match(
     sentence_ordinal: int,
     definition_stopwords: frozenset[str],
 ) -> AcronymDefinition | None:
+    """Definition from match."""
     acronym = _normalize_acronym(acronym_raw)
     full_form = _normalize_full_form(full_form_raw)
     if not acronym or not full_form:
@@ -233,12 +242,14 @@ def _store_definition(
     definitions: dict[str, AcronymDefinition],
     definition: AcronymDefinition,
 ) -> None:
+    """Store definition."""
     current = definitions.get(definition.acronym)
     if current is None or definition.sentence_ordinal < current.sentence_ordinal:
         definitions[definition.acronym] = definition
 
 
 def _normalize_acronym(value: str) -> str:
+    """Normalize acronym."""
     acronym = value.strip()
     if acronym.endswith("s") and len(acronym) > 2:
         acronym = acronym[:-1]
@@ -246,6 +257,7 @@ def _normalize_acronym(value: str) -> str:
 
 
 def _normalize_full_form(value: str) -> str:
+    """Normalize full form."""
     return re.sub(r"\s+", " ", value.strip())
 
 
@@ -254,6 +266,7 @@ def _initials_align(
     full_form: str,
     definition_stopwords: frozenset[str],
 ) -> bool:
+    """Initials align."""
     words = [word.group(0) for word in WORD_RE.finditer(full_form)]
     if len(words) < 2:
         return False
@@ -273,6 +286,7 @@ def _initials_align(
 
 
 def _count_full_form_mentions(doc, full_form: str) -> int:
+    """Count full form mentions."""
     pattern = re.compile(rf"\b{re.escape(full_form)}\b", re.IGNORECASE)
     count = 0
     for sentence in iter_sentences(doc):
@@ -281,4 +295,5 @@ def _count_full_form_mentions(doc, full_form: str) -> int:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(AcronymBurdenRule)

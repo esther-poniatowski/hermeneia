@@ -23,7 +23,9 @@ from hermeneia.rules.loader import load_builtin_rules, load_external_rules
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
-SUPPORTED_SCORING_OUTPUTS = frozenset({"layer_scores", "global_score", "violation_list"})
+SUPPORTED_SCORING_OUTPUTS = frozenset(
+    {"layer_scores", "global_score", "violation_list"}
+)
 
 
 @app.command("info")
@@ -47,17 +49,25 @@ def cli_lint(
         resolve_path=True,
         help="Project YAML configuration.",
     ),
-    output_format: str | None = typer.Option(None, "--format", help="Output format: text or json."),
-    rule: list[str] = typer.Option([], "--rule", help="Restrict analysis to these rule ids."),
+    output_format: str | None = typer.Option(
+        None, "--format", help="Output format: text or json."
+    ),
+    rule: list[str] = typer.Option(
+        [], "--rule", help="Restrict analysis to these rule ids."
+    ),
     disable_rule: list[str] = typer.Option(
         [], "--disable-rule", help="Disable specific rule ids after profile resolution."
     ),
     load_rules: list[str] = typer.Option(
         [], "--load-rules", help="External rule modules exposing register(registry)."
     ),
-    experimental: bool = typer.Option(False, "--experimental", help="Enable experimental rules."),
+    experimental: bool = typer.Option(
+        False, "--experimental", help="Enable experimental rules."
+    ),
     fail_on: Severity = typer.Option(
-        Severity.ERROR, "--fail-on", help="Exit non-zero when this severity or higher is present."
+        Severity.ERROR,
+        "--fail-on",
+        help="Exit non-zero when this severity or higher is present.",
     ),
 ) -> None:
     """Lint a markdown file or directory."""
@@ -95,7 +105,9 @@ def cli_lint(
         )
         inputs = _collect_inputs(target)
         if not inputs:
-            raise typer.BadParameter("No markdown files were found at the requested target.")
+            raise typer.BadParameter(
+                "No markdown files were found at the requested target."
+            )
         batch = runner.analyze(inputs, resolved_profile)
 
         effective_format = output_format or project_config.reporting.format
@@ -127,6 +139,7 @@ def main_callback(
 
 
 def _collect_inputs(target: Path) -> tuple[AnalysisInput, ...]:
+    """Collect inputs."""
     if target.is_file():
         return (AnalysisInput(path=target, source=target.read_text(encoding="utf-8")),)
     files = sorted(
@@ -135,17 +148,21 @@ def _collect_inputs(target: Path) -> tuple[AnalysisInput, ...]:
         if path.is_file() and path.suffix.lower() in {".md", ".markdown"}
     )
     return tuple(
-        AnalysisInput(path=path, source=path.read_text(encoding="utf-8")) for path in files
+        AnalysisInput(path=path, source=path.read_text(encoding="utf-8"))
+        for path in files
     )
 
 
 def _render_text(batch) -> str:
+    """Render text."""
     lines: list[str] = []
     for diagnostic in batch.diagnostics:
         location = f"{diagnostic.path}: " if diagnostic.path is not None else ""
         lines.append(f"[diagnostic] {location}{diagnostic.message}")
     for result in batch.results:
-        path_label = str(result.report.path) if result.report.path is not None else "<memory>"
+        path_label = (
+            str(result.report.path) if result.report.path is not None else "<memory>"
+        )
         lines.append(f"{path_label}:")
         if not result.violations:
             lines.append("  no violations")
@@ -159,12 +176,16 @@ def _render_text(batch) -> str:
                 lines.append(f"    {row.line_number}: {row.line_text}")
                 lines.append(f"       {row.marker_line}")
             _append_violation_details(lines, violation)
-        if result.report.scorecard is not None and "global_score" in result.report.scoring_output:
+        if (
+            result.report.scorecard is not None
+            and "global_score" in result.report.scoring_output
+        ):
             lines.append(f"  global score: {result.report.scorecard.global_score}")
     return "\n".join(lines)
 
 
 def _render_json(batch) -> str:
+    """Render json."""
     payload = {
         "diagnostics": [
             {
@@ -180,6 +201,7 @@ def _render_json(batch) -> str:
 
 
 def _has_failure(batch, threshold: Severity) -> bool:
+    """Has failure."""
     ranks = {Severity.INFO: 1, Severity.WARNING: 2, Severity.ERROR: 3}
     minimum = ranks[threshold]
     return any(
@@ -190,6 +212,7 @@ def _has_failure(batch, threshold: Severity) -> bool:
 
 
 def _append_violation_details(lines: list[str], violation: Violation) -> None:
+    """Append violation details."""
     evidence = violation.evidence
     if evidence is not None:
         if evidence.score is not None:
@@ -213,10 +236,12 @@ def _append_violation_details(lines: list[str], violation: Violation) -> None:
 
 
 def _analysis_policy_from_config(project_config: ProjectConfig) -> AnalysisPolicy:
+    """Analysis policy from config."""
     scoring_aggregation = project_config.scoring.aggregation
     if scoring_aggregation != "hierarchical":
         raise ValueError(
-            "Unsupported scoring.aggregation " f"'{scoring_aggregation}'. Expected 'hierarchical'."
+            "Unsupported scoring.aggregation "
+            f"'{scoring_aggregation}'. Expected 'hierarchical'."
         )
     scoring_output = frozenset(project_config.scoring.output)
     unknown_outputs = sorted(scoring_output - SUPPORTED_SCORING_OUTPUTS)

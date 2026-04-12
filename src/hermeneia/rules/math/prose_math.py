@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class ProseMathRule(SourcePatternRule):
+    """Prosemathrule."""
+
     metadata = RuleMetadata(
         rule_id="math.prose_math",
         label="Avoid prose paraphrases for explicit mathematical relations",
@@ -30,6 +32,7 @@ class ProseMathRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         prose_math_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.prose_math_phrases)
@@ -49,13 +52,17 @@ class ProseMathRule(SourcePatternRule):
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message=f"Phrase '{phrase}' paraphrases a mathematical relation; use explicit math notation.",
+                    message=(
+                        f"Phrase '{phrase}' paraphrases a mathematical relation; "
+                        "use explicit math notation."
+                    ),
                     span=_match_span(line, match.start(), match.end()),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
                     evidence=RuleEvidence(features={"phrase": phrase.lower()}),
                     rewrite_tactics=(
-                        "Render the relation in math notation (for example with '=', multiplication symbols, or asymptotic notation).",
+                        "Render the relation in math notation (for example with '=', "
+                        "multiplication symbols, or asymptotic notation).",
                     ),
                 )
             )
@@ -63,6 +70,7 @@ class ProseMathRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -74,4 +82,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ProseMathRule)

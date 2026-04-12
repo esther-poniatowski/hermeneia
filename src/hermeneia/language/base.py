@@ -8,6 +8,8 @@ from typing import Mapping
 
 @dataclass(frozen=True)
 class PreprocessingPolicy:
+    """Preprocessingpolicy."""
+
     heavy_math_masking_ratio: float = 0.4
     symbol_dense_threshold: int = 4
     fragment_token_threshold: int = 4
@@ -16,6 +18,8 @@ class PreprocessingPolicy:
 
 @dataclass(frozen=True)
 class LanguageLexicons:
+    """Languagelexicons."""
+
     weak_support_verbs: frozenset[str] = frozenset()
     nominalization_suffixes: tuple[str, ...] = ()
     nominalization_allowlist: frozenset[str] = frozenset()
@@ -84,6 +88,8 @@ class LanguageLexicons:
 
 @dataclass(frozen=True)
 class LanguagePack:
+    """Languagepack."""
+
     code: str
     name: str
     parser_model: str | None

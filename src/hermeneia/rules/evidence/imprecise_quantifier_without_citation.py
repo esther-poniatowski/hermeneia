@@ -17,6 +17,8 @@ from hermeneia.rules.common import iter_sentences, matched_sentence_markers
 
 
 class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
+    """Imprecisequantifierwithoutcitationrule."""
+
     metadata = RuleMetadata(
         rule_id="evidence.imprecise_quantifier_without_citation",
         label="Imprecise quantifier references should carry citation support",
@@ -33,6 +35,7 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         lookback = self.settings.int_option("lookback_sentences", 0)
         quantifiers = tuple(ctx.language_pack.lexicons.imprecise_quantifier_terms)
         violations: list[Violation] = []
@@ -46,7 +49,11 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
                 sentence.id,
                 max_sentences_back=max(0, lookback),
             )
-            citations = [signal for signal in signals if signal.kind == SupportSignalKind.CITATION]
+            citations = [
+                signal
+                for signal in signals
+                if signal.kind == SupportSignalKind.CITATION
+            ]
             if citations:
                 continue
             violations.append(
@@ -62,7 +69,9 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
                     evidence=RuleEvidence(
                         features={
                             "quantifiers": matched_quantifiers,
-                            "support_signals": tuple(signal.kind.value for signal in signals),
+                            "support_signals": tuple(
+                                signal.kind.value for signal in signals
+                            ),
                         },
                         score=0.0,
                         threshold=1.0,
@@ -81,4 +90,5 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ImpreciseQuantifierWithoutCitationRule)

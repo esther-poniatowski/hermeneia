@@ -16,6 +16,8 @@ from hermeneia.rules.base import (
 
 
 class HeadingLevelSkipRule(HeuristicSemanticRule):
+    """Headinglevelskiprule."""
+
     metadata = RuleMetadata(
         rule_id="structure.heading_level_skip",
         label="Heading levels should not skip depth",
@@ -28,6 +30,7 @@ class HeadingLevelSkipRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = ctx
         headings = [
             block
@@ -67,4 +70,5 @@ class HeadingLevelSkipRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(HeadingLevelSkipRule)

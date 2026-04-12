@@ -25,6 +25,8 @@ PUNCTUATION_BEFORE_LINEBREAK_RE = re.compile(r"[.,;:!?]\s*\\\\\s*$")
 
 
 class DisplayMathRule(SourcePatternRule):
+    """Displaymathrule."""
+
     metadata = RuleMetadata(
         rule_id="math.display_math",
         label="Display math must have a meaningful lead-in and no line-break punctuation",
@@ -38,6 +40,7 @@ class DisplayMathRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         violations: list[Violation] = []
         require_leadin = bool(self.settings.options.get("require_leadin", True))
         source_lines = doc.source_lines
@@ -64,7 +67,8 @@ class DisplayMathRule(SourcePatternRule):
                         layer=self.metadata.layer,
                         evidence=RuleEvidence(features={"check": punctuation_issue}),
                         rewrite_tactics=(
-                            "Move punctuation into the surrounding prose rather than leaving it inside the $$...$$ block.",
+                            "Move punctuation into the surrounding prose rather than "
+                            "leaving it inside the $$...$$ block.",
                         ),
                     )
                 )
@@ -93,6 +97,7 @@ class DisplayMathRule(SourcePatternRule):
 
 
 def _previous_nonempty_line(lines, before_line_number: int):
+    """Previous nonempty line."""
     for index in range(before_line_number - 1, -1, -1):
         if lines[index].text.strip():
             return lines[index]
@@ -100,6 +105,7 @@ def _previous_nonempty_line(lines, before_line_number: int):
 
 
 def _display_punctuation_issue(inner_lines: list[str]) -> str | None:
+    """Display punctuation issue."""
     for line in inner_lines:
         if PUNCTUATION_BEFORE_LINEBREAK_RE.search(line):
             return "punctuation_before_linebreak"
@@ -109,4 +115,5 @@ def _display_punctuation_issue(inner_lines: list[str]) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(DisplayMathRule)

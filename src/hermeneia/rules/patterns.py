@@ -10,6 +10,7 @@ _EMPTY_REGEX = re.compile(r"(?!x)x")
 
 
 def normalize_phrases(phrases: Iterable[str]) -> tuple[str, ...]:
+    """Normalize phrases."""
     normalized: list[str] = []
     seen: set[str] = set()
     for phrase in phrases:
@@ -23,6 +24,7 @@ def normalize_phrases(phrases: Iterable[str]) -> tuple[str, ...]:
 
 @lru_cache(maxsize=256)
 def compile_leading_phrase_regex(phrases: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile leading phrase regex."""
     normalized = normalize_phrases(phrases)
     if not normalized:
         return _EMPTY_REGEX
@@ -32,6 +34,7 @@ def compile_leading_phrase_regex(phrases: tuple[str, ...]) -> re.Pattern[str]:
 
 @lru_cache(maxsize=256)
 def compile_inline_phrase_regex(phrases: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile inline phrase regex."""
     normalized = normalize_phrases(phrases)
     if not normalized:
         return _EMPTY_REGEX
@@ -41,6 +44,7 @@ def compile_inline_phrase_regex(phrases: tuple[str, ...]) -> re.Pattern[str]:
 
 @lru_cache(maxsize=256)
 def compile_structured_leading_term_regex(terms: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile structured leading term regex."""
     normalized = normalize_phrases(terms)
     if not normalized:
         return _EMPTY_REGEX
@@ -57,6 +61,7 @@ def compile_prefixed_term_regex(
     terms: tuple[str, ...],
     anchored: bool = False,
 ) -> re.Pattern[str]:
+    """Compile prefixed term regex."""
     normalized_prefixes = normalize_phrases(prefixes)
     normalized_terms = normalize_phrases(terms)
     if not normalized_prefixes or not normalized_terms:
@@ -72,6 +77,7 @@ def compile_prefixed_term_regex(
 
 @lru_cache(maxsize=256)
 def compile_hyphen_suffix_regex(suffixes: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile hyphen suffix regex."""
     normalized = normalize_phrases(suffixes)
     if not normalized:
         return _EMPTY_REGEX

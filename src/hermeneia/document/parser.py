@@ -11,9 +11,13 @@ from hermeneia.document.model import Document
 
 @dataclass(frozen=True)
 class ParseRequest:
+    """Parserequest."""
+
     source: str
     path: Path | None = None
 
 
 class DocumentParser(Protocol):
+    """Documentparser."""
+
     def parse(self, request: ParseRequest) -> Document: ...

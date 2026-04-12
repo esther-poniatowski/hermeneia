@@ -10,6 +10,8 @@ from hermeneia.rules.base import Violation
 
 @dataclass(frozen=True)
 class AnnotatedLine:
+    """Annotatedline."""
+
     line_number: int
     line_text: str
     marker_line: str
@@ -17,10 +19,13 @@ class AnnotatedLine:
 
 @dataclass(frozen=True)
 class AnnotatedExcerpt:
+    """Annotatedexcerpt."""
+
     lines: tuple[AnnotatedLine, ...]
 
 
 def build_excerpt(source: str, span: Span) -> AnnotatedExcerpt:
+    """Build excerpt."""
     source_lines = source.splitlines()
     start_line = max(1, span.start_line)
     end_line = max(start_line, span.end_line)
@@ -50,6 +55,7 @@ def build_excerpt(source: str, span: Span) -> AnnotatedExcerpt:
 def annotate_violations(
     source: str, violations: tuple[Violation, ...]
 ) -> tuple[AnnotatedExcerpt, ...]:
+    """Annotate violations."""
     return tuple(build_excerpt(source, violation.span) for violation in violations)
 
 
@@ -61,6 +67,7 @@ def _build_line_marker(
     start_column: int,
     end_column: int,
 ) -> str:
+    """Build line marker."""
     line_length = len(line_text)
     if line_number == start_line:
         marker_start = _clamp_column(start_column, line_length)
@@ -78,4 +85,5 @@ def _build_line_marker(
 
 
 def _clamp_column(column: int, line_length: int) -> int:
+    """Clamp column."""
     return min(max(1, column), line_length + 1)

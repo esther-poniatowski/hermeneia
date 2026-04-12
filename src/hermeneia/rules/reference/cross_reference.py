@@ -20,6 +20,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex, normalize_phra
 
 
 class CrossReferenceRule(SourcePatternRule):
+    """Crossreferencerule."""
+
     metadata = RuleMetadata(
         rule_id="reference.cross_reference",
         label="Cross-reference should target an explicit object",
@@ -32,6 +34,7 @@ class CrossReferenceRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         ambiguous_pattern = _compile_ambiguous_reference_pattern(
             tuple(ctx.language_pack.lexicons.ambiguous_reference_verbs),
@@ -42,7 +45,10 @@ class CrossReferenceRule(SourcePatternRule):
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = ambiguous_pattern.search(probe)
@@ -70,6 +76,7 @@ class CrossReferenceRule(SourcePatternRule):
 def _compile_ambiguous_reference_pattern(
     verbs: tuple[str, ...], positions: tuple[str, ...]
 ) -> re.Pattern[str]:
+    """Compile ambiguous reference pattern."""
     normalized_positions = normalize_phrases(positions)
     if not normalized_positions:
         return re.compile(r"(?!x)x")
@@ -85,6 +92,7 @@ def _compile_ambiguous_reference_pattern(
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -96,4 +104,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(CrossReferenceRule)

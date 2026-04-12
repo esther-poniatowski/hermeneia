@@ -13,13 +13,18 @@ from hermeneia.rules.base import Violation
 
 @dataclass(frozen=True)
 class DiagnosticReport:
+    """Diagnosticreport."""
+
     path: Path | None
     violations: tuple[Violation, ...]
     scorecard: Scorecard | None
     revision_plan: RevisionPlan
-    scoring_output: frozenset[str] = frozenset({"layer_scores", "global_score", "violation_list"})
+    scoring_output: frozenset[str] = frozenset(
+        {"layer_scores", "global_score", "violation_list"}
+    )
 
     def to_dict(self) -> dict[str, object]:
+        """To dict."""
         payload: dict[str, object] = {
             "path": str(self.path) if self.path is not None else None,
             "revision_plan": asdict(self.revision_plan),
@@ -38,4 +43,5 @@ class DiagnosticReport:
         return payload
 
     def to_json(self) -> str:
+        """To json."""
         return json.dumps(self.to_dict(), indent=2, sort_keys=True)

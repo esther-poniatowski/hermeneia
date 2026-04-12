@@ -20,6 +20,8 @@ WORD_RE = re.compile(r"\b[A-Za-z]+\b")
 
 
 class PrepChainRule(AnnotatedRule):
+    """Prepchainrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.prep_chain",
         label="Sentence has dense prepositional chaining",
@@ -33,6 +35,7 @@ class PrepChainRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         max_prepositions = self.settings.int_option("max_prepositions", 4)
         preposition_set = ctx.language_pack.lexicons.prepositions
         violations: list[Violation] = []
@@ -67,10 +70,14 @@ class PrepChainRule(AnnotatedRule):
 
 
 def _words(sentence) -> list[str]:
+    """Words."""
     if sentence.tokens:
         return [token.lemma.lower() for token in sentence.tokens]
-    return [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
+    return [
+        match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)
+    ]
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(PrepChainRule)

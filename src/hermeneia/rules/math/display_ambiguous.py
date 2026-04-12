@@ -20,6 +20,8 @@ DISPLAY_DELIMITER_RE = re.compile(r"(?<!\\)\$\$")
 
 
 class DisplayAmbiguousRule(SourcePatternRule):
+    """Displayambiguousrule."""
+
     metadata = RuleMetadata(
         rule_id="math.display_ambiguous",
         label="Avoid ambiguous multiple display delimiters on one line",
@@ -32,6 +34,7 @@ class DisplayAmbiguousRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         violations: list[Violation] = []
         for line in lines:
@@ -50,7 +53,9 @@ class DisplayAmbiguousRule(SourcePatternRule):
                     span=span_from_lines(line),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"delimiter_count": delimiter_count}),
+                    evidence=RuleEvidence(
+                        features={"delimiter_count": delimiter_count}
+                    ),
                     rewrite_tactics=(
                         "Use one opening '$$' and one closing '$$' for each display equation.",
                     ),
@@ -60,4 +65,5 @@ class DisplayAmbiguousRule(SourcePatternRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(DisplayAmbiguousRule)

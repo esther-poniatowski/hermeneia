@@ -25,6 +25,8 @@ STACKED_COMPOUND_RE = re.compile(
 
 
 class AbstractCompoundModifierRule(SourcePatternRule):
+    """Abstractcompoundmodifierrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.abstract_compound_modifier",
         label="Replace abstract compound modifiers with explicit relations",
@@ -41,6 +43,7 @@ class AbstractCompoundModifierRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         suffixes = tuple(ctx.language_pack.lexicons.abstract_compound_suffixes)
         lexicalized = _resolve_lexicalized_set(
@@ -83,9 +86,14 @@ class AbstractCompoundModifierRule(SourcePatternRule):
                             severity=self.settings.severity,
                             layer=self.metadata.layer,
                             evidence=RuleEvidence(
-                                features={"compound": compound.lower(), "signal": signal}
+                                features={
+                                    "compound": compound.lower(),
+                                    "signal": signal,
+                                }
                             ),
-                            confidence=0.88 if signal != "stacked_compound_chain" else 0.92,
+                            confidence=(
+                                0.88 if signal != "stacked_compound_chain" else 0.92
+                            ),
                             rewrite_tactics=(
                                 "Rewrite the compound as a clause that states what depends on what, and how.",
                             ),
@@ -95,6 +103,7 @@ class AbstractCompoundModifierRule(SourcePatternRule):
 
 
 def _compile_spaced_suffix_pattern(suffixes: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile spaced suffix pattern."""
     normalized_suffixes = tuple(
         suffix.strip().lower() for suffix in suffixes if suffix and suffix.strip()
     )
@@ -108,6 +117,7 @@ def _compile_spaced_suffix_pattern(suffixes: tuple[str, ...]) -> re.Pattern[str]
 
 
 def _compile_stacked_spaced_pattern(suffixes: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile stacked spaced pattern."""
     normalized_suffixes = tuple(
         suffix.strip().lower() for suffix in suffixes if suffix and suffix.strip()
     )
@@ -126,6 +136,7 @@ def _resolve_lexicalized_set(
     extra: object,
     enabled: bool,
 ) -> frozenset[str]:
+    """Resolve lexicalized set."""
     if not enabled:
         return frozenset()
     values = {item.strip().lower() for item in base if item.strip()}
@@ -134,6 +145,7 @@ def _resolve_lexicalized_set(
 
 
 def _normalize_extra_terms(raw: object) -> set[str]:
+    """Normalize extra terms."""
     if raw is None:
         return set()
     if isinstance(raw, str):
@@ -150,6 +162,7 @@ def _normalize_extra_terms(raw: object) -> set[str]:
 
 
 def _is_lexicalized(compound: str, lexicalized: frozenset[str]) -> bool:
+    """Is lexicalized."""
     normalized = compound.strip().lower()
     if normalized in lexicalized:
         return True
@@ -158,6 +171,7 @@ def _is_lexicalized(compound: str, lexicalized: frozenset[str]) -> bool:
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -169,4 +183,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(AbstractCompoundModifierRule)

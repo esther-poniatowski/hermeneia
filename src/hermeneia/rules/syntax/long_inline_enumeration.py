@@ -20,6 +20,8 @@ SEPARATOR_RE = re.compile(r"(?:,\s+|;\s+)")
 
 
 class LongInlineEnumerationRule(AnnotatedRule):
+    """Longinlineenumerationrule."""
+
     metadata = RuleMetadata(
         rule_id="syntax.long_inline_enumeration",
         label="Long inline enumerations should be split into list format",
@@ -33,6 +35,7 @@ class LongInlineEnumerationRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = ctx
         max_items = self.settings.int_option("max_items", 4)
         violations: list[Violation] = []
@@ -67,6 +70,7 @@ class LongInlineEnumerationRule(AnnotatedRule):
 
 
 def _estimated_item_count(text: str) -> int:
+    """Estimated item count."""
     separators = len(SEPARATOR_RE.findall(text))
     if not separators:
         return 1
@@ -76,4 +80,5 @@ def _estimated_item_count(text: str) -> int:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(LongInlineEnumerationRule)

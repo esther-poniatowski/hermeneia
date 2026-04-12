@@ -21,6 +21,8 @@ WORD_RE = re.compile(r"[A-Za-z]+")
 
 
 class ParagraphParallelismRule(AnnotatedRule):
+    """Paragraphparallelismrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.parallelism",
         label="List items should be frame-parallel",
@@ -33,10 +35,15 @@ class ParagraphParallelismRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = ctx
         violations: list[Violation] = []
         for list_block in iter_blocks(doc, {BlockKind.LIST}):
-            items = [child for child in list_block.children if child.kind == BlockKind.LIST_ITEM]
+            items = [
+                child
+                for child in list_block.children
+                if child.kind == BlockKind.LIST_ITEM
+            ]
             if len(items) < 3:
                 continue
             frames = {item.id: _frame(_item_text(item)) for item in items}
@@ -72,6 +79,7 @@ class ParagraphParallelismRule(AnnotatedRule):
 
 
 def _item_text(block) -> str:
+    """Item text."""
     own = " ".join(sentence.projection.text for sentence in block.sentences).strip()
     if own:
         return own
@@ -83,6 +91,7 @@ def _item_text(block) -> str:
 
 
 def _frame(text: str) -> str:
+    """Frame."""
     text = text.strip().lower()
     words = WORD_RE.findall(text)
     if not words:
@@ -100,6 +109,7 @@ def _frame(text: str) -> str:
 
 
 def _majority(values: tuple[str, ...]) -> str | None:
+    """Majority."""
     if not values:
         return None
     counts: dict[str, int] = {}
@@ -112,4 +122,5 @@ def _majority(values: tuple[str, ...]) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ParagraphParallelismRule)

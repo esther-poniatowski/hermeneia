@@ -17,6 +17,8 @@ from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class ReformulationInflationRule(HeuristicSemanticRule):
+    """Reformulationinflationrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.reformulation_inflation",
         label="Avoid rhetorical reformulation when it adds no new contribution",
@@ -30,6 +32,7 @@ class ReformulationInflationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_overlap = self.settings.float_option("min_overlap", 0.62)
         marker_pattern = compile_leading_phrase_regex(
             tuple(ctx.language_pack.lexicons.reformulation_markers)
@@ -94,13 +97,18 @@ class ReformulationInflationRule(HeuristicSemanticRule):
 
 
 def _support_signals_by_sentence(doc) -> dict[str, frozenset[SupportSignalKind]]:
+    """Support signals by sentence."""
     signals: dict[str, set[SupportSignalKind]] = {}
     for signal in doc.indexes.support_signals:
         if signal.sentence_id is None:
             continue
         signals.setdefault(signal.sentence_id, set()).add(signal.kind)
-    return {sentence_id: frozenset(signal_kinds) for sentence_id, signal_kinds in signals.items()}
+    return {
+        sentence_id: frozenset(signal_kinds)
+        for sentence_id, signal_kinds in signals.items()
+    }
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ReformulationInflationRule)

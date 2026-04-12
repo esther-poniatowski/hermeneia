@@ -21,6 +21,8 @@ WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9-]*\b")
 
 
 class StressPositionRule(AnnotatedRule):
+    """Stresspositionrule."""
+
     metadata = RuleMetadata(
         rule_id="linkage.stress_position",
         label="Sentence stress position appears weak",
@@ -34,6 +36,7 @@ class StressPositionRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         weak_final_words = ctx.language_pack.lexicons.weak_final_words
         if not weak_final_words:
             return []
@@ -58,14 +61,20 @@ class StressPositionRule(AnnotatedRule):
                         upstream_limits=upstream_limits(sentence),
                     ),
                     confidence=0.58,
-                    rationale="Stress-position checks are heuristic and should be interpreted with local rhetorical context.",
-                    rewrite_tactics=("Move the key new information to the end of the sentence.",),
+                    rationale=(
+                        "Stress-position checks are heuristic and should be interpreted "
+                        "with local rhetorical context."
+                    ),
+                    rewrite_tactics=(
+                        "Move the key new information to the end of the sentence.",
+                    ),
                 )
             )
         return violations
 
 
 def _final_content_token(sentence: Sentence) -> str | None:
+    """Final content token."""
     if sentence.tokens:
         for token in reversed(sentence.tokens):
             if token.pos == "PUNCT":
@@ -79,4 +88,5 @@ def _final_content_token(sentence: Sentence) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(StressPositionRule)

@@ -20,10 +20,14 @@ ENUM_LABEL_RE = re.compile(
     r"(?:\(\s*(?:[ivx]+|\d+)\s*\)|\b(?:first|second|third|fourth)\b)",
     re.IGNORECASE,
 )
-FALLBACK_VERB_RE = re.compile(r"\b(?:is|are|was|were|be|been|being|has|have|had|\w+ed|\w+ing)\b")
+FALLBACK_VERB_RE = re.compile(
+    r"\b(?:is|are|was|were|be|been|being|has|have|had|\w+ed|\w+ing)\b"
+)
 
 
 class InlineEnumerationOverloadRule(HeuristicSemanticRule):
+    """Inlineenumerationoverloadrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.inline_enumeration_overload",
         label="Dense inline enumerations should be converted to lists",
@@ -37,6 +41,7 @@ class InlineEnumerationOverloadRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = ctx
         max_inline_commas = self.settings.int_option("max_inline_commas", 2)
         min_words = self.settings.int_option("min_words_for_clause_mode", 28)
@@ -89,10 +94,12 @@ class InlineEnumerationOverloadRule(HeuristicSemanticRule):
 
 
 def _verb_count(sentence) -> int:
+    """Verb count."""
     if sentence.tokens:
         return sum(1 for token in sentence.tokens if token.pos in {"VERB", "AUX"})
     return len(FALLBACK_VERB_RE.findall(sentence.projection.text))
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(InlineEnumerationOverloadRule)

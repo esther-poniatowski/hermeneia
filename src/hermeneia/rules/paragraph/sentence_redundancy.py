@@ -17,6 +17,8 @@ from hermeneia.rules.common import sentence_has_marker
 
 
 class SentenceRedundancyRule(HeuristicSemanticRule):
+    """Sentenceredundancyrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.sentence_redundancy",
         label="Adjacent sentences appear redundant",
@@ -30,6 +32,7 @@ class SentenceRedundancyRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_overlap = self.settings.float_option("min_overlap", 0.78)
         violations: list[Violation] = []
         sentence_refs = doc.indexes.sentences
@@ -89,10 +92,12 @@ def _introduces_citation_or_claim(
     signal_kind: SupportSignalKind | None,
     strong_claim_markers: tuple[str, ...],
 ) -> bool:
+    """Introduces citation or claim."""
     if signal_kind == SupportSignalKind.CITATION:
         return True
     return sentence_has_marker(sentence, strong_claim_markers)
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SentenceRedundancyRule)

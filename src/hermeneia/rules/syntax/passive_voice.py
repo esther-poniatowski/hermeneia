@@ -19,10 +19,14 @@ from hermeneia.rules.common import iter_sentences, upstream_limits
 PASSIVE_FALLBACK_RE = re.compile(
     r"\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b", re.IGNORECASE
 )
-BY_PHRASE_RE = re.compile(r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE)
+BY_PHRASE_RE = re.compile(
+    r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE
+)
 
 
 class PassiveVoiceRule(AnnotatedRule):
+    """Passivevoicerule."""
+
     metadata = RuleMetadata(
         rule_id="syntax.passive_voice",
         label="Prefer active voice in sentence openings",
@@ -36,6 +40,7 @@ class PassiveVoiceRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):
@@ -64,6 +69,7 @@ class PassiveVoiceRule(AnnotatedRule):
 
 
 def _detect_passive_signal(sentence) -> dict[str, object] | None:
+    """Detect passive signal."""
     tokens = sentence.tokens
     if tokens and any((token.dep or "").endswith("pass") for token in tokens):
         aux = next(
@@ -99,6 +105,7 @@ def _detect_passive_signal(sentence) -> dict[str, object] | None:
 
 
 def _actor_feature(sentence) -> dict[str, str]:
+    """Actor feature."""
     actor = _extract_actor_phrase(sentence)
     if actor is None:
         return {}
@@ -106,6 +113,7 @@ def _actor_feature(sentence) -> dict[str, str]:
 
 
 def _extract_actor_phrase(sentence) -> str | None:
+    """Extract actor phrase."""
     match = BY_PHRASE_RE.search(sentence.projection.text)
     if match is None:
         return None
@@ -116,4 +124,5 @@ def _extract_actor_phrase(sentence) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(PassiveVoiceRule)

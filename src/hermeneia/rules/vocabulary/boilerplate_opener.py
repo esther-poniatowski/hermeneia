@@ -17,6 +17,8 @@ from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class BoilerplateOpenerRule(AnnotatedRule):
+    """Boilerplateopenerrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.boilerplate_opener",
         label="Avoid boilerplate openers in declarative prose",
@@ -29,6 +31,7 @@ class BoilerplateOpenerRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         patterns = list(ctx.language_pack.lexicons.boilerplate_openers) + list(
             self.settings.extra_patterns
         )
@@ -65,4 +68,5 @@ class BoilerplateOpenerRule(AnnotatedRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(BoilerplateOpenerRule)

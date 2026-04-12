@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import re
 from typing import Any, Iterable
 
+import spacy
+
 from hermeneia.document.model import Document, Sentence, Span, Token
 from hermeneia.engine.runner import AnnotationResult
 from hermeneia.rules.base import ResolvedProfile
@@ -15,6 +17,8 @@ WORD_RE = re.compile(r"\b\w+\b")
 
 @dataclass(frozen=True)
 class AnnotationBackendStatus:
+    """Annotationbackendstatus."""
+
     backend: str
     diagnostics: tuple[str, ...] = ()
 
@@ -23,13 +27,17 @@ class SpaCyDocumentAnnotator:
     """Annotate sentences with spaCy when available, otherwise degrade explicitly."""
 
     def __init__(self, model_name: str | None) -> None:
+        """Init."""
         self._model_name = model_name
         self._nlp: Any | None = None
         self._status = AnnotationBackendStatus(
             backend="regex_fallback", diagnostics=("spaCy model unavailable",)
         )
 
-    def annotate(self, document: Document, profile: ResolvedProfile) -> AnnotationResult:
+    def annotate(
+        self, document: Document, profile: ResolvedProfile
+    ) -> AnnotationResult:
+        """Annotate."""
         _ = profile
         if self._try_load():
             self._annotate_with_spacy(document)
@@ -43,13 +51,10 @@ class SpaCyDocumentAnnotator:
         )
 
     def _try_load(self) -> bool:
+        """Try load."""
         if self._nlp is not None:
             return True
         if not self._model_name:
-            return False
-        try:
-            import spacy
-        except ImportError:
             return False
         try:
             self._nlp = spacy.load(self._model_name)
@@ -59,6 +64,7 @@ class SpaCyDocumentAnnotator:
         return True
 
     def _annotate_with_spacy(self, document: Document) -> None:
+        """Annotate with spacy."""
         nlp = self._nlp
         if nlp is None:
             return
@@ -71,7 +77,9 @@ class SpaCyDocumentAnnotator:
                     pos=token.pos_,
                     dep=token.dep_,
                     head_idx=None if token.head is token else token.head.i,
-                    source_span=_token_span(sentence, token.idx, token.idx + len(token.text)),
+                    source_span=_token_span(
+                        sentence, token.idx, token.idx + len(token.text)
+                    ),
                     projection_start=token.idx,
                     projection_end=token.idx + len(token.text),
                 )
@@ -79,6 +87,7 @@ class SpaCyDocumentAnnotator:
             ]
 
     def _annotate_fallback(self, document: Document) -> None:
+        """Annotate fallback."""
         for sentence in _iter_sentences(document):
             tokens: list[Token] = []
             for match in WORD_RE.finditer(sentence.projection.text):
@@ -99,11 +108,13 @@ class SpaCyDocumentAnnotator:
 
 
 def _iter_sentences(document: Document) -> Iterable[Sentence]:
+    """Iter sentences."""
     for block in document.iter_blocks():
         yield from block.sentences
 
 
 def _token_span(sentence: Sentence, start: int, end: int) -> Span:
+    """Token span."""
     source_start = sentence.projection.source_offset_for(start)
     source_end = sentence.projection.source_offset_for(max(start, end - 1))
     if source_start is None:

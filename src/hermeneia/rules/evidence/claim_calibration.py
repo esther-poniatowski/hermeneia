@@ -17,6 +17,8 @@ from hermeneia.rules.common import iter_sentences, matched_sentence_markers
 
 
 class ClaimCalibrationRule(HeuristicSemanticRule):
+    """Claimcalibrationrule."""
+
     metadata = RuleMetadata(
         rule_id="evidence.claim_calibration",
         label="Strong claim lacks nearby evidence cues",
@@ -33,6 +35,7 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         lookback = self.settings.int_option("lookback_sentences", 3)
         markers = tuple(
             marker.lower() for marker in ctx.language_pack.lexicons.strong_claim_markers
@@ -54,7 +57,9 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
             signals = ctx.features.support_signals_in_window(
                 sentence.id, max_sentences_back=lookback
             )
-            strong_support = [signal for signal in signals if signal.kind in evidence_kinds]
+            strong_support = [
+                signal for signal in signals if signal.kind in evidence_kinds
+            ]
             if strong_support:
                 continue
             violations.append(
@@ -67,7 +72,9 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
                     evidence=RuleEvidence(
                         features={
                             "claim_markers": matched_markers,
-                            "support_signals": tuple(signal.kind.value for signal in signals),
+                            "support_signals": tuple(
+                                signal.kind.value for signal in signals
+                            ),
                         },
                         score=0.0,
                         threshold=1.0,
@@ -75,7 +82,8 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
                     confidence=0.7,
                     rationale="Claim calibration uses bounded evidence lookback rather than full discourse judgment.",
                     rewrite_tactics=(
-                        "Add the supporting citation, result reference, displayed equation, or quantitative evidence near the claim.",
+                        "Add the supporting citation, result reference, displayed equation, "
+                        "or quantitative evidence near the claim.",
                     ),
                 )
             )
@@ -83,4 +91,5 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ClaimCalibrationRule)

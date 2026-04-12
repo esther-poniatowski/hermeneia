@@ -15,6 +15,8 @@ from hermeneia.rules.base import (
 
 
 class ParagraphRedundancyRule(HeuristicSemanticRule):
+    """Paragraphredundancyrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.paragraph_redundancy",
         label="Paragraph pair appears redundant",
@@ -28,10 +30,16 @@ class ParagraphRedundancyRule(HeuristicSemanticRule):
             "min_lexical_overlap": 0.35,
             "max_findings": 5,
         },
-        evidence_fields=("similarity", "lexical_overlap", "left_block_id", "right_block_id"),
+        evidence_fields=(
+            "similarity",
+            "lexical_overlap",
+            "left_block_id",
+            "right_block_id",
+        ),
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_similarity = self.settings.float_option("min_similarity", 0.88)
         min_lexical_overlap = self.settings.float_option("min_lexical_overlap", 0.35)
         max_findings = self.settings.int_option("max_findings", 5)
@@ -75,4 +83,5 @@ class ParagraphRedundancyRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ParagraphRedundancyRule)

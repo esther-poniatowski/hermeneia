@@ -19,6 +19,8 @@ from hermeneia.rules.common import line_text_outside_excluded
 
 
 class ConcreteSubjectRule(SourcePatternRule):
+    """Concretesubjectrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.concrete_subject",
         label="Use concrete technical subjects instead of document/tool subjects",
@@ -31,6 +33,7 @@ class ConcreteSubjectRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         subject_terms = tuple(ctx.language_pack.lexicons.concrete_subject_terms)
         action_verbs = tuple(ctx.language_pack.lexicons.concrete_subject_action_verbs)
@@ -39,7 +42,10 @@ class ConcreteSubjectRule(SourcePatternRule):
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = pattern.search(probe)
@@ -70,8 +76,13 @@ def _compile_subject_pattern(
     subjects: tuple[str, ...],
     verbs: tuple[str, ...],
 ) -> re.Pattern[str] | None:
-    normalized_subjects = tuple(sorted({item.strip().lower() for item in subjects if item.strip()}))
-    normalized_verbs = tuple(sorted({item.strip().lower() for item in verbs if item.strip()}))
+    """Compile subject pattern."""
+    normalized_subjects = tuple(
+        sorted({item.strip().lower() for item in subjects if item.strip()})
+    )
+    normalized_verbs = tuple(
+        sorted({item.strip().lower() for item in verbs if item.strip()})
+    )
     if not normalized_subjects or not normalized_verbs:
         return None
     subject_body = "|".join(re.escape(item) for item in normalized_subjects)
@@ -83,6 +94,7 @@ def _compile_subject_pattern(
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -94,4 +106,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ConcreteSubjectRule)

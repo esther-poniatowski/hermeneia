@@ -28,6 +28,8 @@ PROSE_BLOCK_KINDS = {
 
 
 class PersonalPronounRule(SourcePatternRule):
+    """Personalpronounrule."""
+
     metadata = RuleMetadata(
         rule_id="reference.personal_pronoun",
         label="Avoid first/second-person pronouns in technical prose",
@@ -40,6 +42,7 @@ class PersonalPronounRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.personal_pronoun_markers)
@@ -65,7 +68,8 @@ class PersonalPronounRule(SourcePatternRule):
                         layer=self.metadata.layer,
                         evidence=RuleEvidence(features={"pronoun": pronoun}),
                         rewrite_tactics=(
-                            "Name the object, claim, operation, or result directly instead of addressing the reader or writer.",
+                            "Name the object, claim, operation, or result directly "
+                            "instead of addressing the reader or writer.",
                         ),
                     )
                 )
@@ -73,14 +77,19 @@ class PersonalPronounRule(SourcePatternRule):
 
 
 def _is_prose_line(line) -> bool:
+    """Is prose line."""
     if not line.container_kinds:
         return True
-    if any(kind in {BlockKind.CODE_BLOCK, BlockKind.DISPLAY_MATH} for kind in line.container_kinds):
+    if any(
+        kind in {BlockKind.CODE_BLOCK, BlockKind.DISPLAY_MATH}
+        for kind in line.container_kinds
+    ):
         return False
     return any(kind in PROSE_BLOCK_KINDS for kind in line.container_kinds)
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -92,4 +101,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(PersonalPronounRule)

@@ -20,6 +20,8 @@ INPUT_MAG_SHORTHAND_RE = re.compile(r"\\rho\s*:?=\s*\\\|\\mathbf\{u\}\\\|")
 
 
 class ShorthandRule(SourcePatternRule):
+    """Shorthandrule."""
+
     metadata = RuleMetadata(
         rule_id="math.shorthand",
         label="Avoid unnecessary shorthand for input magnitude",
@@ -32,6 +34,7 @@ class ShorthandRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = ctx
         violations: list[Violation] = []
         for line in lines:
@@ -50,9 +53,12 @@ class ShorthandRule(SourcePatternRule):
                         span=span_from_lines(line),
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}),
+                        evidence=RuleEvidence(
+                            features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}
+                        ),
                         rewrite_tactics=(
-                            "Keep the original expression unless the shorthand is reused enough to justify a new symbol.",
+                            "Keep the original expression unless the shorthand is reused "
+                            "enough to justify a new symbol.",
                         ),
                     )
                 )
@@ -76,9 +82,12 @@ class ShorthandRule(SourcePatternRule):
                         span=span,
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}),
+                        evidence=RuleEvidence(
+                            features={"pattern": "\\rho := \\|\\mathbf{u}\\|"}
+                        ),
                         rewrite_tactics=(
-                            "Keep the original expression unless the shorthand is reused enough to justify a new symbol.",
+                            "Keep the original expression unless the shorthand is reused "
+                            "enough to justify a new symbol.",
                         ),
                     )
                 )
@@ -87,8 +96,10 @@ class ShorthandRule(SourcePatternRule):
 
 
 def _is_inline_math_fragment(text: str) -> bool:
+    """Is inline math fragment."""
     return text.startswith("$") and text.endswith("$") and not text.startswith("$$")
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ShorthandRule)

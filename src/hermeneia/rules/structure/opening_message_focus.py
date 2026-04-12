@@ -30,6 +30,8 @@ OPENING_PROSE_KINDS = {
 
 
 class OpeningMessageFocusRule(HeuristicSemanticRule):
+    """Openingmessagefocusrule."""
+
     metadata = RuleMetadata(
         rule_id="structure.opening_message_focus",
         label="Opening sentence should state one clear purpose before enumeration",
@@ -46,6 +48,7 @@ class OpeningMessageFocusRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_items = self.settings.int_option("min_enumeration_items", 4)
         min_words = self.settings.int_option("min_opening_words", 8)
         sentence = _first_opening_sentence(doc)
@@ -85,7 +88,8 @@ class OpeningMessageFocusRule(HeuristicSemanticRule):
                         "multi-item enumerations."
                     ),
                     rewrite_tactics=(
-                        "Start with one sentence that states the document purpose, then enumerate supporting dimensions afterward.",
+                        "Start with one sentence that states the document purpose, then "
+                        "enumerate supporting dimensions afterward.",
                     ),
                 )
             ]
@@ -113,13 +117,15 @@ class OpeningMessageFocusRule(HeuristicSemanticRule):
                     "Purpose-signal checks are lexical and should be interpreted as non-blocking guidance."
                 ),
                 rewrite_tactics=(
-                    "Rewrite the opening sentence with a direct purpose verb such as explains, defines, checks, or enforces.",
+                    "Rewrite the opening sentence with a direct purpose verb such as "
+                    "explains, defines, checks, or enforces.",
                 ),
             )
         ]
 
 
 def _first_opening_sentence(doc: Document) -> Sentence | None:
+    """First opening sentence."""
     for block in doc.iter_blocks():
         if block.kind not in OPENING_PROSE_KINDS:
             continue
@@ -129,6 +135,7 @@ def _first_opening_sentence(doc: Document) -> Sentence | None:
 
 
 def _estimate_enumeration_items(text: str) -> int:
+    """Estimate enumeration items."""
     stripped = text.strip()
     if not stripped:
         return 0
@@ -143,4 +150,5 @@ def _estimate_enumeration_items(text: str) -> int:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(OpeningMessageFocusRule)

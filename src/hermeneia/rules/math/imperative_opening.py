@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_structured_leading_term_regex
 
 
 class ImperativeOpeningRule(SourcePatternRule):
+    """Imperativeopeningrule."""
+
     metadata = RuleMetadata(
         rule_id="math.imperative_opening",
         label="Avoid imperative mathematical openings",
@@ -30,12 +32,16 @@ class ImperativeOpeningRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         pattern = compile_structured_leading_term_regex(
             tuple(ctx.language_pack.lexicons.imperative_opening_verbs)
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = pattern.search(probe)
@@ -59,6 +65,7 @@ class ImperativeOpeningRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -70,4 +77,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ImperativeOpeningRule)

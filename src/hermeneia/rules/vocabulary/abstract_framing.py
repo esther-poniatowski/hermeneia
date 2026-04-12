@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class AbstractFramingRule(SourcePatternRule):
+    """Abstractframingrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.abstract_framing",
         label="Avoid abstract framing before the operative statement",
@@ -30,6 +32,7 @@ class AbstractFramingRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         patterns = list(ctx.language_pack.lexicons.abstract_framing_phrases) + list(
             self.settings.extra_patterns
@@ -66,6 +69,7 @@ class AbstractFramingRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -77,4 +81,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(AbstractFramingRule)

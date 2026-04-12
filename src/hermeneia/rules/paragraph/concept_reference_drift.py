@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_prefixed_term_regex
 
 
 class ConceptReferenceDriftRule(HeuristicSemanticRule):
+    """Conceptreferencedriftrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.concept_reference_drift",
         label="Paragraph varies concept labels in ways that may obscure referential stability",
@@ -35,6 +37,7 @@ class ConceptReferenceDriftRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_distinct_labels = self.settings.int_option("min_distinct_labels", 3)
         min_sentence_count = self.settings.int_option("min_sentence_count", 3)
         min_average_overlap = self.settings.float_option("min_average_overlap", 0.35)
@@ -108,4 +111,5 @@ class ConceptReferenceDriftRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ConceptReferenceDriftRule)

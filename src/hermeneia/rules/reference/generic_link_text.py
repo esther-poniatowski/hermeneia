@@ -19,33 +19,45 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import line_text_outside_excluded
 from hermeneia.rules.patterns import normalize_phrases
 
-MARKDOWN_LINK_RE = re.compile(r"(?<!\!)\[(?P<link_text>[^\]\n]+)\]\((?P<link_target>[^)\n]*)\)")
+MARKDOWN_LINK_RE = re.compile(
+    r"(?<!\!)\[(?P<link_text>[^\]\n]+)\]\((?P<link_target>[^)\n]*)\)"
+)
+COMMA_SEPARATOR = ", "
 
 
 class _GenericLinkTextOptions:
+    """Genericlinktextoptions."""
+
     def __init__(
         self,
         *,
         reference_labels: tuple[str, ...] | None = None,
         procedural_terms: tuple[str, ...] | None = None,
     ) -> None:
+        """Init."""
         self.reference_labels = reference_labels
         self.procedural_terms = procedural_terms
 
     @classmethod
     def model_validate(cls, raw: object) -> "_GenericLinkTextOptions":
+        """Model validate."""
         if not isinstance(raw, Mapping):
             raise ValueError("options must be a mapping")
         allowed = frozenset({"reference_labels", "procedural_terms"})
         unknown = sorted(key for key in raw if key not in allowed)
         if unknown:
-            raise ValueError(f"unknown option keys: {', '.join(unknown)}")
+            raise ValueError(f"unknown option keys: {COMMA_SEPARATOR.join(unknown)}")
         return cls(
-            reference_labels=_as_string_tuple(raw.get("reference_labels"), "reference_labels"),
-            procedural_terms=_as_string_tuple(raw.get("procedural_terms"), "procedural_terms"),
+            reference_labels=_as_string_tuple(
+                raw.get("reference_labels"), "reference_labels"
+            ),
+            procedural_terms=_as_string_tuple(
+                raw.get("procedural_terms"), "procedural_terms"
+            ),
         )
 
     def model_dump(self) -> dict[str, object]:
+        """Model dump."""
         dumped: dict[str, object] = {}
         if self.reference_labels is not None:
             dumped["reference_labels"] = self.reference_labels
@@ -55,6 +67,8 @@ class _GenericLinkTextOptions:
 
 
 class GenericLinkTextRule(SourcePatternRule):
+    """Genericlinktextrule."""
+
     options_model = _GenericLinkTextOptions
 
     metadata = RuleMetadata(
@@ -69,6 +83,7 @@ class GenericLinkTextRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         silenced = {pattern.lower() for pattern in self.settings.silenced_patterns}
         configured_labels = _as_string_tuple(
@@ -143,6 +158,7 @@ class GenericLinkTextRule(SourcePatternRule):
 
 
 def _compile_generic_link_text_pattern(labels: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile generic link text pattern."""
     normalized_labels = normalize_phrases(labels)
     if not normalized_labels:
         return re.compile(r"(?!x)x")
@@ -154,6 +170,7 @@ def _compile_generic_link_text_pattern(labels: tuple[str, ...]) -> re.Pattern[st
 
 
 def _compile_procedural_link_pattern(terms: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile procedural link pattern."""
     normalized_terms = normalize_phrases(terms)
     if not normalized_terms:
         return re.compile(r"(?!x)x")
@@ -167,6 +184,7 @@ def _classify_link_text(
     citation_pattern: re.Pattern[str],
     procedural_pattern: re.Pattern[str],
 ) -> tuple[str | None, str | None]:
+    """Classify link text."""
     citation_match = citation_pattern.fullmatch(link_text)
     if citation_match is not None:
         label = citation_match.group("label")
@@ -179,6 +197,7 @@ def _classify_link_text(
 
 
 def _as_string_tuple(raw: object, field: str) -> tuple[str, ...] | None:
+    """As string tuple."""
     if raw is None:
         return None
     if isinstance(raw, str):
@@ -191,6 +210,7 @@ def _as_string_tuple(raw: object, field: str) -> tuple[str, ...] | None:
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -202,4 +222,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(GenericLinkTextRule)

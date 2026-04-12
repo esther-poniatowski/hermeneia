@@ -20,6 +20,8 @@ from hermeneia.rules.patterns import compile_leading_phrase_regex
 
 
 class SemicolonConnectorRule(HeuristicSemanticRule):
+    """Semicolonconnectorrule."""
+
     metadata = RuleMetadata(
         rule_id="linkage.semicolon_connector",
         label="Semicolon joins should include explicit connective framing",
@@ -32,11 +34,13 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         connectors = tuple(ctx.language_pack.lexicons.semicolon_connectors) + tuple(
             ctx.language_pack.lexicons.transition_connectors
         )
         parallel_starters = frozenset(
-            token.lower() for token in ctx.language_pack.lexicons.semicolon_parallel_starters
+            token.lower()
+            for token in ctx.language_pack.lexicons.semicolon_parallel_starters
         )
         connector_pattern = compile_leading_phrase_regex(connectors)
         violations: list[Violation] = []
@@ -85,7 +89,10 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         return violations
 
 
-def _strict_parallel_pair(left: str, right: str, parallel_starters: frozenset[str]) -> bool:
+def _strict_parallel_pair(
+    left: str, right: str, parallel_starters: frozenset[str]
+) -> bool:
+    """Strict parallel pair."""
     left_first = _first_token(left)
     right_first = _first_token(right)
     if left_first is None or right_first is None:
@@ -100,6 +107,7 @@ def _strict_parallel_pair(left: str, right: str, parallel_starters: frozenset[st
 
 
 def _first_token(text: str) -> str | None:
+    """First token."""
     match = re.search(r"\b[A-Za-z]+\b", text.lower())
     if match is None:
         return None
@@ -107,6 +115,7 @@ def _first_token(text: str) -> str | None:
 
 
 def _semicolon_offset(text: str, boundary_index: int) -> int:
+    """Semicolon offset."""
     seen = 0
     for index, char in enumerate(text):
         if char != ";":
@@ -118,6 +127,7 @@ def _semicolon_offset(text: str, boundary_index: int) -> int:
 
 
 def _semicolon_span(sentence, semicolon_offset: int) -> Span:
+    """Semicolon span."""
     return Span(
         start=sentence.span.start + semicolon_offset,
         end=sentence.span.start + semicolon_offset + 1,
@@ -129,4 +139,5 @@ def _semicolon_span(sentence, semicolon_offset: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SemicolonConnectorRule)

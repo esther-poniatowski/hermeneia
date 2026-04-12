@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class ContractionRule(SourcePatternRule):
+    """Contractionrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.contraction",
         label="Avoid contractions in formal technical prose",
@@ -30,6 +32,7 @@ class ContractionRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         contraction_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.contractions)
         )
@@ -49,7 +52,9 @@ class ContractionRule(SourcePatternRule):
                     span=span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"contraction": contraction.lower()}),
+                    evidence=RuleEvidence(
+                        features={"contraction": contraction.lower()}
+                    ),
                     rewrite_tactics=("Expand the contraction to its full form.",),
                 )
             )
@@ -57,6 +62,7 @@ class ContractionRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -68,4 +74,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ContractionRule)

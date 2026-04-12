@@ -29,17 +29,21 @@ DEFAULT_BLOCKED_OPENING_KINDS = (
 
 
 class _SectionOpenerBlockKindOptions:
+    """Sectionopenerblockkindoptions."""
+
     def __init__(
         self,
         *,
         blocked_block_kinds: tuple[str, ...] | None = None,
         apply_heading_levels: tuple[int, ...] | None = None,
     ) -> None:
+        """Init."""
         self.blocked_block_kinds = blocked_block_kinds
         self.apply_heading_levels = apply_heading_levels
 
     @classmethod
     def model_validate(cls, raw: object) -> "_SectionOpenerBlockKindOptions":
+        """Model validate."""
         mapping = mapping_with_allowed_keys(
             raw,
             allowed=frozenset({"blocked_block_kinds", "apply_heading_levels"}),
@@ -48,13 +52,16 @@ class _SectionOpenerBlockKindOptions:
         blocked_block_kinds = as_block_kind_name_tuple(
             mapping.get("blocked_block_kinds"), field="blocked_block_kinds"
         )
-        apply_heading_levels = _parse_heading_levels(mapping.get("apply_heading_levels"))
+        apply_heading_levels = _parse_heading_levels(
+            mapping.get("apply_heading_levels")
+        )
         return cls(
             blocked_block_kinds=blocked_block_kinds,
             apply_heading_levels=apply_heading_levels,
         )
 
     def model_dump(self) -> dict[str, object]:
+        """Model dump."""
         dumped: dict[str, object] = {}
         if self.blocked_block_kinds is not None:
             dumped["blocked_block_kinds"] = self.blocked_block_kinds
@@ -64,6 +71,8 @@ class _SectionOpenerBlockKindOptions:
 
 
 class SectionOpenerBlockKindRule(HeuristicSemanticRule):
+    """Sectionopenerblockkindrule."""
+
     options_model = _SectionOpenerBlockKindOptions
 
     metadata = RuleMetadata(
@@ -75,18 +84,23 @@ class SectionOpenerBlockKindRule(HeuristicSemanticRule):
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
         default_options={
-            "blocked_block_kinds": tuple(kind.value for kind in DEFAULT_BLOCKED_OPENING_KINDS),
+            "blocked_block_kinds": tuple(
+                kind.value for kind in DEFAULT_BLOCKED_OPENING_KINDS
+            ),
         },
         evidence_fields=("issue", "first_block_kind"),
     )
 
     def check(self, doc, ctx):
+        """Check."""
         blocked_opening_kinds = resolve_block_kinds(
             self.settings.options.get("blocked_block_kinds"),
             field="blocked_block_kinds",
             default=DEFAULT_BLOCKED_OPENING_KINDS,
         )
-        apply_levels = _resolve_heading_levels(self.settings.options.get("apply_heading_levels"))
+        apply_levels = _resolve_heading_levels(
+            self.settings.options.get("apply_heading_levels")
+        )
         definition_openers = tuple(ctx.language_pack.lexicons.definitional_markers) + (
             "definition",
         )
@@ -131,7 +145,8 @@ class SectionOpenerBlockKindRule(HeuristicSemanticRule):
                         "high-signal opener patterns, not full rhetorical intent."
                     ),
                     rewrite_tactics=(
-                        "Start the section with one prose sentence that states purpose before structured blocks or definitions.",
+                        "Start the section with one prose sentence that states purpose "
+                        "before structured blocks or definitions.",
                     ),
                 )
             )
@@ -144,6 +159,7 @@ def _section_opening_issue(
     definition_pattern,
     blocked_opening_kinds: frozenset[BlockKind],
 ) -> str | None:
+    """Section opening issue."""
     if first_content.kind in blocked_opening_kinds:
         return "blocked_block_kind_opening"
     if first_content.kind != BlockKind.PARAGRAPH:
@@ -159,6 +175,7 @@ def _section_opening_issue(
 
 
 def _parse_heading_levels(raw: object) -> tuple[int, ...] | None:
+    """Parse heading levels."""
     if raw is None:
         return None
     values: tuple[object, ...]
@@ -167,11 +184,15 @@ def _parse_heading_levels(raw: object) -> tuple[int, ...] | None:
     elif isinstance(raw, (list, tuple)):
         values = tuple(raw)
     else:
-        raise ValueError("apply_heading_levels must be an integer or sequence of integers")
+        raise ValueError(
+            "apply_heading_levels must be an integer or sequence of integers"
+        )
     levels: list[int] = []
     for value in values:
         if isinstance(value, bool) or not isinstance(value, int):
-            raise ValueError("apply_heading_levels must be an integer or sequence of integers")
+            raise ValueError(
+                "apply_heading_levels must be an integer or sequence of integers"
+            )
         if value < 1:
             raise ValueError("apply_heading_levels must contain levels >= 1")
         levels.append(value)
@@ -179,6 +200,7 @@ def _parse_heading_levels(raw: object) -> tuple[int, ...] | None:
 
 
 def _resolve_heading_levels(raw: object) -> frozenset[int] | None:
+    """Resolve heading levels."""
     parsed = _parse_heading_levels(raw)
     if parsed is None:
         return None
@@ -186,4 +208,5 @@ def _resolve_heading_levels(raw: object) -> frozenset[int] | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SectionOpenerBlockKindRule)

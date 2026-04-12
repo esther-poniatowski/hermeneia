@@ -22,10 +22,14 @@ class ConfigError(ValueError):
 
 
 class _ConfigModel(BaseModel):
+    """Configmodel."""
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class ProfileConfig(_ConfigModel):
+    """Profileconfig."""
+
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
     name: str = DEFAULT_PROFILE
@@ -38,20 +42,27 @@ class ProfileConfig(_ConfigModel):
 
     @property
     def register(self) -> str | None:
+        """Register."""
         return self.register_name
 
 
 class LanguageConfig(_ConfigModel):
+    """Languageconfig."""
+
     code: str = "en"
     pack: str | None = None
 
 
 class EmbeddingConfig(_ConfigModel):
+    """Embeddingconfig."""
+
     backend: Literal["none", "sentence_transformers"] = "none"
     model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 class RuntimeConfig(_ConfigModel):
+    """Runtimeconfig."""
+
     strict_validation: StrictBool = True
     experimental_rules: StrictBool = False
     debug: StrictBool = False
@@ -60,6 +71,8 @@ class RuntimeConfig(_ConfigModel):
 
 
 class RuleOverrideConfig(_ConfigModel):
+    """Ruleoverrideconfig."""
+
     enabled: StrictBool | None = None
     severity: Severity | None = None
     weight: float | None = None
@@ -70,6 +83,7 @@ class RuleOverrideConfig(_ConfigModel):
     @field_validator("weight", mode="before")
     @classmethod
     def _validate_weight_type(cls, raw: object) -> object:
+        """Validate weight type."""
         if raw is None:
             return None
         if isinstance(raw, bool) or not isinstance(raw, (int, float)):
@@ -78,27 +92,37 @@ class RuleOverrideConfig(_ConfigModel):
 
 
 class RulesConfig(_ConfigModel):
+    """Rulesconfig."""
+
     active: tuple[str, ...] | None = None
     disabled: tuple[str, ...] = ()
     overrides: dict[str, RuleOverrideConfig] = Field(default_factory=dict)
 
 
 class ScoringConfig(_ConfigModel):
+    """Scoringconfig."""
+
     aggregation: str = "hierarchical"
     output: tuple[str, ...] = ("layer_scores", "global_score", "violation_list")
 
 
 class SuggestionConfig(_ConfigModel):
+    """Suggestionconfig."""
+
     enabled: StrictBool = True
     default_mode: str = "tactic_only"
 
 
 class ReportingConfig(_ConfigModel):
+    """Reportingconfig."""
+
     format: str = "text"
     sort_by: str = "severity_desc"
 
 
 class ProjectConfig(_ConfigModel):
+    """Projectconfig."""
+
     profile: ProfileConfig = Field(default_factory=ProfileConfig)
     language: LanguageConfig = Field(default_factory=LanguageConfig)
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
@@ -122,11 +146,13 @@ def parse_project_config(raw: Mapping[str, object] | None) -> ProjectConfig:
 
 
 def _format_validation_error(exc: ValidationError) -> str:
+    """Format validation error."""
     errors = exc.errors(include_url=False)
     return "; ".join(_format_single_validation_error(error) for error in errors)
 
 
 def _format_single_validation_error(error: Mapping[str, Any]) -> str:
+    """Format single validation error."""
     loc = tuple(str(entry) for entry in error.get("loc", ()))
     if error.get("type") == "extra_forbidden" and loc:
         scope = ".".join(loc[:-1]) or "root"

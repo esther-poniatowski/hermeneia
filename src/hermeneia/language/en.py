@@ -285,7 +285,9 @@ ENGLISH_PACK = LanguagePack(
             "given by",
         ),
         assumption_hypothesis_terms=("assumption", "hypothesis"),
-        nominalization_linking_prepositions=frozenset({"of", "for", "to", "in", "with"}),
+        nominalization_linking_prepositions=frozenset(
+            {"of", "for", "to", "in", "with"}
+        ),
         prepositions=frozenset(
             {
                 "of",
@@ -747,7 +749,11 @@ ENGLISH_PACK = LanguagePack(
         "evidence.claim_calibration": {"options": {"lookback_sentences": 3}},
         "paragraph.sentence_redundancy": {"options": {"min_overlap": 0.78}},
         "paragraph.paragraph_redundancy": {
-            "options": {"min_similarity": 0.88, "min_lexical_overlap": 0.35, "max_findings": 5}
+            "options": {
+                "min_similarity": 0.88,
+                "min_lexical_overlap": 0.35,
+                "max_findings": 5,
+            }
         },
         "paragraph.topic_sentence": {"options": {"minimum_score": 0.45}},
         "structure.section_balance": {"options": {"max_ratio": 3.5}},
@@ -758,6 +764,8 @@ ENGLISH_PACK = LanguagePack(
             }
         },
         "structure.orphan_section": {"options": {"min_parent_words": 24}},
-        "evidence.imprecise_quantifier_without_citation": {"options": {"lookback_sentences": 0}},
+        "evidence.imprecise_quantifier_without_citation": {
+            "options": {"lookback_sentences": 0}
+        },
     },
 )

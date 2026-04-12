@@ -19,6 +19,8 @@ WORD_RE = re.compile(r"[A-Za-z]+")
 
 
 class HeadingCapitalizationRule(HeuristicSemanticRule):
+    """Headingcapitalizationrule."""
+
     metadata = RuleMetadata(
         rule_id="structure.heading_capitalization",
         label="Sibling headings should share capitalization convention",
@@ -31,6 +33,7 @@ class HeadingCapitalizationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = doc
         violations: list[Violation] = []
         for level in range(1, 7):
@@ -39,7 +42,9 @@ class HeadingCapitalizationRule(HeuristicSemanticRule):
                     continue
                 styles = {
                     heading.id: _style(
-                        " ".join(sentence.projection.text for sentence in heading.sentences)
+                        " ".join(
+                            sentence.projection.text for sentence in heading.sentences
+                        )
                     )
                     for heading in headings
                 }
@@ -53,7 +58,10 @@ class HeadingCapitalizationRule(HeuristicSemanticRule):
                     violations.append(
                         Violation(
                             rule_id=self.rule_id,
-                            message=f"Heading capitalization style '{actual}' diverges from sibling style '{expected}'.",
+                            message=(
+                                "Heading capitalization style "
+                                f"'{actual}' diverges from sibling style '{expected}'."
+                            ),
                             span=heading.span,
                             severity=self.settings.severity,
                             layer=self.metadata.layer,
@@ -66,7 +74,8 @@ class HeadingCapitalizationRule(HeuristicSemanticRule):
                             ),
                             confidence=0.8,
                             rewrite_tactics=(
-                                "Normalize heading capitalization across siblings at the same level.",
+                                "Normalize heading capitalization across siblings "
+                                "at the same level.",
                             ),
                         )
                     )
@@ -74,6 +83,7 @@ class HeadingCapitalizationRule(HeuristicSemanticRule):
 
 
 def _style(text: str) -> str:
+    """Style."""
     words = WORD_RE.findall(text)
     if not words:
         return "empty"
@@ -87,6 +97,7 @@ def _style(text: str) -> str:
 
 
 def _majority(values: tuple[str, ...]) -> str | None:
+    """Majority."""
     if len(values) == 2 and values[0] != values[1]:
         return values[0]
     counts: dict[str, int] = {}
@@ -99,4 +110,5 @@ def _majority(values: tuple[str, ...]) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(HeadingCapitalizationRule)

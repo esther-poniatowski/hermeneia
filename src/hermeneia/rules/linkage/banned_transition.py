@@ -19,6 +19,8 @@ from hermeneia.rules.common import line_text_outside_excluded
 
 
 class BannedTransitionRule(SourcePatternRule):
+    """Bannedtransitionrule."""
+
     metadata = RuleMetadata(
         rule_id="linkage.banned_transition",
         label="Avoid content-free transition scaffolding",
@@ -31,6 +33,7 @@ class BannedTransitionRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         patterns = list(ctx.language_pack.lexicons.banned_transitions) + list(
             self.settings.extra_patterns
         )
@@ -38,7 +41,9 @@ class BannedTransitionRule(SourcePatternRule):
         if not patterns:
             return []
         combined = "|".join(
-            re.escape(pattern) for pattern in patterns if pattern.lower() not in silenced
+            re.escape(pattern)
+            for pattern in patterns
+            if pattern.lower() not in silenced
         )
         if not combined:
             return []
@@ -47,7 +52,10 @@ class BannedTransitionRule(SourcePatternRule):
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = regex.search(probe)
@@ -71,6 +79,7 @@ class BannedTransitionRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -82,4 +91,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(BannedTransitionRule)

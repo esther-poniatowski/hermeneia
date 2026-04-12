@@ -22,6 +22,8 @@ STOP_CHARS = {".", ";", ":", "!", "?"}
 
 
 class VagueProceduralNominalizationRule(SourcePatternRule):
+    """Vagueproceduralnominalizationrule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.vague_procedural_nominalization",
         label="Procedural nominalization should name its arguments",
@@ -34,17 +36,22 @@ class VagueProceduralNominalizationRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         terms = tuple(ctx.language_pack.lexicons.procedural_nominalization_terms)
         argument_markers = frozenset(
-            marker.lower() for marker in ctx.language_pack.lexicons.procedural_argument_markers
+            marker.lower()
+            for marker in ctx.language_pack.lexicons.procedural_argument_markers
         )
         term_pattern = _compile_term_pattern(terms)
         if term_pattern is None:
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             for match in term_pattern.finditer(probe):
@@ -74,6 +81,7 @@ class VagueProceduralNominalizationRule(SourcePatternRule):
 
 
 def _compile_term_pattern(terms: tuple[str, ...]) -> re.Pattern[str] | None:
+    """Compile term pattern."""
     normalized = tuple(sorted({term.strip().lower() for term in terms if term.strip()}))
     if not normalized:
         return None
@@ -85,6 +93,7 @@ def _compile_term_pattern(terms: tuple[str, ...]) -> re.Pattern[str] | None:
 
 
 def _has_argument_specification(tail: str, markers: frozenset[str]) -> bool:
+    """Has argument specification."""
     window_chars: list[str] = []
     for char in tail:
         if char in STOP_CHARS:
@@ -98,6 +107,7 @@ def _has_argument_specification(tail: str, markers: frozenset[str]) -> bool:
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -109,4 +119,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(VagueProceduralNominalizationRule)

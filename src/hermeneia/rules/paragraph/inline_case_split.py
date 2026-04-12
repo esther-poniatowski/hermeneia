@@ -23,6 +23,8 @@ INLINE_CASE_SPLIT_RE = re.compile(
 
 
 class InlineCaseSplitRule(HeuristicSemanticRule):
+    """Inlinecasesplitrule."""
+
     metadata = RuleMetadata(
         rule_id="paragraph.inline_case_split",
         label="Inline semicolon case splits should be rendered as lists",
@@ -35,6 +37,7 @@ class InlineCaseSplitRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         _ = ctx
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -61,4 +64,5 @@ class InlineCaseSplitRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(InlineCaseSplitRule)

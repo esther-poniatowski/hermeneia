@@ -20,6 +20,8 @@ DISPLAY_DELIMITER_RE = re.compile(r"(?<!\\)\$\$")
 
 
 class DisplayUnclosedRule(SourcePatternRule):
+    """Displayunclosedrule."""
+
     metadata = RuleMetadata(
         rule_id="math.display_unclosed",
         label="Display math delimiters must be properly closed",
@@ -32,6 +34,7 @@ class DisplayUnclosedRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         violations: list[Violation] = []
         open_line = None
@@ -52,7 +55,9 @@ class DisplayUnclosedRule(SourcePatternRule):
                     span=span_from_lines(open_line),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(features={"opening_line": open_line.span.start_line}),
+                    evidence=RuleEvidence(
+                        features={"opening_line": open_line.span.start_line}
+                    ),
                     rewrite_tactics=(
                         "Add a closing '$$' delimiter for the opened display equation.",
                     ),
@@ -62,4 +67,5 @@ class DisplayUnclosedRule(SourcePatternRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(DisplayUnclosedRule)

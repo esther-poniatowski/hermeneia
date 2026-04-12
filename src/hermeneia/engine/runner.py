@@ -21,12 +21,16 @@ from hermeneia.rules.base import ResolvedProfile, SuggestionMode, Violation
 
 @dataclass(frozen=True)
 class AnalysisInput:
+    """Analysisinput."""
+
     path: Path | None
     source: str
 
 
 @dataclass(frozen=True)
 class OperationalDiagnostic:
+    """Operationaldiagnostic."""
+
     code: str
     message: str
     path: Path | None = None
@@ -34,6 +38,8 @@ class OperationalDiagnostic:
 
 @dataclass(frozen=True)
 class AnalysisResult:
+    """Analysisresult."""
+
     document: Document
     profile: ResolvedProfile
     violations: tuple[Violation, ...]
@@ -43,18 +49,24 @@ class AnalysisResult:
 
 @dataclass(frozen=True)
 class BatchAnalysisResult:
+    """Batchanalysisresult."""
+
     results: tuple[AnalysisResult, ...]
     diagnostics: tuple[OperationalDiagnostic, ...] = ()
 
 
 @dataclass(frozen=True)
 class AnnotationResult:
+    """Annotationresult."""
+
     document: Document
     diagnostics: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class AnalysisPolicy:
+    """Analysispolicy."""
+
     scoring_aggregation: str = "hierarchical"
     scoring_output: frozenset[str] = frozenset(
         {"layer_scores", "global_score", "violation_list"}
@@ -65,9 +77,13 @@ class AnalysisPolicy:
 
 
 class DocumentAnnotator(Protocol):
+    """Documentannotator."""
+
     def annotate(
         self, document: Document, profile: ResolvedProfile
-    ) -> AnnotationResult: ...
+    ) -> AnnotationResult:
+        """Annotate."""
+        raise NotImplementedError
 
 
 class AnalysisRunner:
@@ -82,6 +98,7 @@ class AnalysisRunner:
         embedding_backend: EmbeddingBackend | None,
         policy: AnalysisPolicy | None = None,
     ) -> None:
+        """Init."""
         self._parser = parser
         self._annotator = annotator
         self._registry = registry
@@ -100,6 +117,7 @@ class AnalysisRunner:
         inputs: tuple[AnalysisInput, ...],
         profile: ResolvedProfile,
     ) -> BatchAnalysisResult:
+        """Analyze."""
         results: list[AnalysisResult] = []
         diagnostics: list[OperationalDiagnostic] = []
         score_enabled = self._score_enabled()
@@ -171,6 +189,7 @@ class AnalysisRunner:
         analysis_input: AnalysisInput,
         diagnostics: list[OperationalDiagnostic],
     ) -> Document | None:
+        """Parse document."""
         try:
             return self._parser.parse(
                 ParseRequest(source=analysis_input.source, path=analysis_input.path)
@@ -192,6 +211,7 @@ class AnalysisRunner:
         document: Document,
         diagnostics: list[OperationalDiagnostic],
     ) -> AnnotationResult | None:
+        """Annotate document."""
         try:
             annotation = self._annotator.annotate(document, profile)
         except Exception as exc:  # pylint: disable=broad-exception-caught
@@ -214,10 +234,12 @@ class AnalysisRunner:
         return annotation
 
     def _score_enabled(self) -> bool:
+        """Score enabled."""
         requested = self._policy.scoring_output
         return "layer_scores" in requested or "global_score" in requested
 
     def _validate_policy(self, policy: AnalysisPolicy) -> None:
+        """Validate policy."""
         if policy.scoring_aggregation != "hierarchical":
             raise ValueError(
                 "Unsupported scoring aggregation "

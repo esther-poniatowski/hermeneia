@@ -17,6 +17,8 @@ from hermeneia.rules.base import (
 
 
 class HeadingParallelismRule(HeuristicSemanticRule):
+    """Headingparallelismrule."""
+
     metadata = RuleMetadata(
         rule_id="structure.heading_parallelism",
         label="Sibling headings are not frame-parallel",
@@ -29,6 +31,7 @@ class HeadingParallelismRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         violations: list[Violation] = []
         for level in range(1, 7):
             for headings in ctx.features.sibling_heading_groups(level):
@@ -36,7 +39,9 @@ class HeadingParallelismRule(HeuristicSemanticRule):
                     continue
                 frames = {
                     heading.id: _heading_frame(
-                        " ".join(sentence.projection.text for sentence in heading.sentences)
+                        " ".join(
+                            sentence.projection.text for sentence in heading.sentences
+                        )
                     )
                     for heading in headings
                 }
@@ -72,6 +77,7 @@ class HeadingParallelismRule(HeuristicSemanticRule):
 
 
 def _heading_frame(text: str) -> str:
+    """Heading frame."""
     probe = text.strip().lower()
     if probe.endswith("?"):
         return "question"
@@ -88,6 +94,7 @@ def _heading_frame(text: str) -> str:
 
 
 def _majority(values: tuple[str, ...]) -> str | None:
+    """Majority."""
     counts: dict[str, int] = {}
     for value in values:
         counts[value] = counts.get(value, 0) + 1
@@ -98,4 +105,5 @@ def _majority(values: tuple[str, ...]) -> str | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(HeadingParallelismRule)

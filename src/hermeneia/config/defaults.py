@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class ProfilePreset:
+    """Profilepreset."""
+
     name: str
     audience: str
     genre: str

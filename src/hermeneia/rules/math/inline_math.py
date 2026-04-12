@@ -24,6 +24,8 @@ INLINE_ALLOWED_RE = re.compile(r"[A-Za-z0-9\\_^{}()\[\]|,.'\s:/+-]+")
 
 
 class InlineMathRule(SourcePatternRule):
+    """Inlinemathrule."""
+
     metadata = RuleMetadata(
         rule_id="math.inline_math",
         label="Avoid equation-like inline math when display math is clearer",
@@ -37,6 +39,7 @@ class InlineMathRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = ctx
         max_inline_length = self.settings.int_option("max_inline_length", 40)
         violations: list[Violation] = []
@@ -87,6 +90,7 @@ class InlineMathRule(SourcePatternRule):
 
 
 def _is_inline_math_fragment(text: str) -> bool:
+    """Is inline math fragment."""
     if not text.startswith("$") or not text.endswith("$"):
         return False
     if text.startswith("$$") or text.endswith("$$"):
@@ -95,6 +99,7 @@ def _is_inline_math_fragment(text: str) -> bool:
 
 
 def _has_binary_minus(text: str) -> bool:
+    """Has binary minus."""
     for index, char in enumerate(text):
         if char != "-":
             continue
@@ -109,6 +114,7 @@ def _has_binary_minus(text: str) -> bool:
 
 
 def _is_simple_inline_expression(expression: str) -> bool:
+    """Is simple inline expression."""
     if len(expression) > 60:
         return False
     if "\\frac" in expression or "\\sum" in expression or "\\int" in expression:
@@ -121,6 +127,7 @@ def _is_simple_inline_expression(expression: str) -> bool:
 
 
 def _is_trivial_inline_equality(content: str) -> bool:
+    """Is trivial inline equality."""
     stripped = content.strip()
     eq_count = stripped.count("=")
     if not eq_count:
@@ -151,4 +158,5 @@ def _is_trivial_inline_equality(content: str) -> bool:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(InlineMathRule)

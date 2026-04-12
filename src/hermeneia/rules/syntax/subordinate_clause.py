@@ -19,6 +19,8 @@ SUBORDINATE_DEP_PREFIXES = ("advcl", "ccomp", "acl", "relcl", "mark")
 
 
 class SubordinateClauseRule(AnnotatedRule):
+    """Subordinateclauserule."""
+
     metadata = RuleMetadata(
         rule_id="syntax.subordinate_clause",
         label="Sentence carries too many subordinate clauses",
@@ -33,6 +35,7 @@ class SubordinateClauseRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         max_subordinates = self.settings.int_option("max_subordinate_clauses", 2)
         marker_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.subordinate_clause_markers)
@@ -69,15 +72,20 @@ class SubordinateClauseRule(AnnotatedRule):
 
 
 def _subordinate_count(sentence, marker_pattern) -> tuple[int, str]:
+    """Subordinate count."""
     if sentence.tokens and any(token.dep for token in sentence.tokens):
         count = sum(
             1
             for token in sentence.tokens
-            if any((token.dep or "").startswith(prefix) for prefix in SUBORDINATE_DEP_PREFIXES)
+            if any(
+                (token.dep or "").startswith(prefix)
+                for prefix in SUBORDINATE_DEP_PREFIXES
+            )
         )
         return count, "dependency"
     return sum(1 for _ in marker_pattern.finditer(sentence.projection.text)), "regex"
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SubordinateClauseRule)

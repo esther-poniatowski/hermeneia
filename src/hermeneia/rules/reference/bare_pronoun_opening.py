@@ -30,6 +30,8 @@ FIRST_WORD_RE = re.compile(r"^[A-Za-z]+")
 
 
 class BarePronounOpeningRule(AnnotatedRule):
+    """Barepronounopeningrule."""
+
     metadata = RuleMetadata(
         rule_id="reference.bare_pronoun_opening",
         label="Avoid bare pronoun sentence openings",
@@ -42,11 +44,13 @@ class BarePronounOpeningRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         openers = frozenset(
             word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_openers
         )
         predicate_starters = frozenset(
-            word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_predicate_starters
+            word.lower()
+            for word in ctx.language_pack.lexicons.bare_pronoun_predicate_starters
         )
         explicit_heads = frozenset(
             word.lower()
@@ -100,6 +104,7 @@ def _bare_pronoun_signal(
     predicate_starters: frozenset[str],
     explicit_heads: frozenset[str],
 ) -> str | None:
+    """Bare pronoun signal."""
     if sentence.tokens:
         return _token_signal(
             sentence.tokens,
@@ -122,6 +127,7 @@ def _token_signal(
     predicate_starters: frozenset[str],
     explicit_heads: frozenset[str],
 ) -> str | None:
+    """Token signal."""
     first = _token_word(tokens[0])
     if first not in openers:
         return None
@@ -154,6 +160,7 @@ def _text_signal(
     predicate_starters: frozenset[str],
     explicit_heads: frozenset[str],
 ) -> str | None:
+    """Text signal."""
     pronoun = _leading_pronoun(text, openers)
     if pronoun is None:
         return None
@@ -178,6 +185,7 @@ def _text_signal(
 
 
 def _leading_pronoun(text: str, openers: frozenset[str]) -> str | None:
+    """Leading pronoun."""
     match = FIRST_WORD_RE.search(text)
     if match is None:
         return None
@@ -186,8 +194,10 @@ def _leading_pronoun(text: str, openers: frozenset[str]) -> str | None:
 
 
 def _token_word(token) -> str:
+    """Token word."""
     return (token.text or token.lemma or "").lower()
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(BarePronounOpeningRule)

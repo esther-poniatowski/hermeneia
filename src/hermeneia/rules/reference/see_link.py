@@ -21,6 +21,8 @@ SEE_LINK_RE = re.compile(r"\bsee\b\s*:?\s*\[", re.IGNORECASE)
 
 
 class SeeLinkRule(SourcePatternRule):
+    """Seelinkrule."""
+
     metadata = RuleMetadata(
         rule_id="reference.see_link",
         label="Avoid 'See [link]' scaffolding",
@@ -33,10 +35,14 @@ class SeeLinkRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             match = SEE_LINK_RE.search(probe)
@@ -63,6 +69,7 @@ class SeeLinkRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -74,4 +81,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SeeLinkRule)

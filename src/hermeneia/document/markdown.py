@@ -31,6 +31,8 @@ SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(])")
 
 @dataclass(frozen=True)
 class VisibleBuffer:
+    """Visiblebuffer."""
+
     text: str
     source_offsets: tuple[int | None, ...]
     special_spans: tuple["InlineSpan", ...]
@@ -38,6 +40,8 @@ class VisibleBuffer:
 
 @dataclass(frozen=True)
 class InlineSpan:
+    """Inlinespan."""
+
     kind: InlineKind
     start: int
     end: int
@@ -49,6 +53,7 @@ class MarkdownDocumentParser(DocumentParser):
     """Parse markdown into the shared block/inline document IR."""
 
     def __init__(self, language_pack: LanguagePack) -> None:
+        """Init."""
         self._language_pack = language_pack
         self._projection_settings = ProjectionSettings(
             heavy_math_masking_ratio=language_pack.preprocessing.heavy_math_masking_ratio,
@@ -59,6 +64,7 @@ class MarkdownDocumentParser(DocumentParser):
         self._markdown = MarkdownIt("commonmark").enable("table")
 
     def parse(self, request: ParseRequest) -> Document:
+        """Parse."""
         source = request.source
         line_starts = _line_starts(source)
         tokens = self._markdown.parse(source)
@@ -213,6 +219,7 @@ class MarkdownDocumentParser(DocumentParser):
         metadata: dict[str, object] | None = None,
         container_kinds: tuple[BlockKind, ...] = (),
     ) -> Block:
+        """Build leaf block."""
         block_span = _token_span(open_token, source, line_starts)
         raw_segment = source[block_span.start : block_span.end]
         buffer = _visible_buffer(
@@ -265,6 +272,7 @@ class MarkdownDocumentParser(DocumentParser):
         block_counter: count[int],
         sentence_counter: count[int],
     ) -> Block:
+        """Build table cell."""
         row_map = inline_token.map or token.map
         line_index = (row_map or [0, 1])[0]
         row_text = source.splitlines(keepends=True)[line_index]
@@ -293,6 +301,7 @@ class MarkdownDocumentParser(DocumentParser):
         )
 
     def _normalize_container(self, block: Block, stack: list[Block]) -> None:
+        """Normalize container."""
         if not stack:
             return
         parent = stack[-1]
@@ -313,6 +322,7 @@ def _visible_buffer(
     _source: str,
     line_starts: list[int],
 ) -> VisibleBuffer:
+    """Visible buffer."""
     children = inline_token.children or []
     if not children:
         source_offsets = tuple(
@@ -411,6 +421,7 @@ def _visible_buffer(
 
 
 def _inject_math_spans(buffer: VisibleBuffer, line_starts: list[int]) -> VisibleBuffer:
+    """Inject math spans."""
     special_spans = list(buffer.special_spans)
     for match in INLINE_MATH_RE.finditer(buffer.text):
         if any(
@@ -443,6 +454,7 @@ def _inject_math_spans(buffer: VisibleBuffer, line_starts: list[int]) -> Visible
 def _inline_nodes_from_buffer(
     buffer: VisibleBuffer, line_starts: list[int]
 ) -> list[InlineNode]:
+    """Inline nodes from buffer."""
     return _inline_nodes_for_range(buffer, 0, len(buffer.text), line_starts)
 
 
@@ -452,6 +464,7 @@ def _inline_nodes_for_range(
     end: int,
     line_starts: list[int],
 ) -> list[InlineNode]:
+    """Inline nodes for range."""
     nodes: list[InlineNode] = []
     cursor = start
     for span in buffer.special_spans:
@@ -472,6 +485,7 @@ def _inline_nodes_for_range(
 def _text_node(
     buffer: VisibleBuffer, start: int, end: int, line_starts: list[int]
 ) -> InlineNode:
+    """Text node."""
     source_start = next(
         (offset for offset in buffer.source_offsets[start:end] if offset is not None),
         None,
@@ -499,6 +513,7 @@ def _build_sentences(
     projection_settings: ProjectionSettings,
     container_kinds: tuple[BlockKind, ...] = (),
 ) -> list[Sentence]:
+    """Build sentences."""
     segments = _segment_ranges(block_kind, buffer.text)
     sentences: list[Sentence] = []
     for start, end, extra_flags in segments:
@@ -561,6 +576,7 @@ def _build_sentences(
 def _segment_ranges(
     block_kind: BlockKind, text: str
 ) -> list[tuple[int, int, set[str]]]:
+    """Segment ranges."""
     stripped = text.strip()
     if not stripped:
         return []
@@ -582,6 +598,7 @@ def _segment_ranges(
 
 
 def _append_block(roots: list[Block], stack: list[Block], block: Block) -> None:
+    """Append block."""
     if stack:
         stack[-1].children.append(block)
     else:
@@ -589,6 +606,7 @@ def _append_block(roots: list[Block], stack: list[Block], block: Block) -> None:
 
 
 def _container_kind(token: MarkdownToken) -> tuple[BlockKind, dict[str, object]]:
+    """Container kind."""
     if token.type in {"bullet_list_open", "ordered_list_open"}:
         return BlockKind.LIST, {"ordered": token.type == "ordered_list_open"}
     if token.type == "blockquote_open":
@@ -601,11 +619,13 @@ def _container_kind(token: MarkdownToken) -> tuple[BlockKind, dict[str, object]]
 
 
 def _is_display_math(text: str) -> bool:
+    """Is display math."""
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     return len(lines) >= 2 and lines[0] == "$$" and lines[-1] == "$$"
 
 
 def _strip_prefix(buffer: VisibleBuffer, character_count: int) -> VisibleBuffer:
+    """Strip prefix."""
     return VisibleBuffer(
         text=buffer.text[character_count:],
         source_offsets=buffer.source_offsets[character_count:],
@@ -624,14 +644,17 @@ def _strip_prefix(buffer: VisibleBuffer, character_count: int) -> VisibleBuffer:
 
 
 def _block_id(counter: count[int]) -> str:
+    """Block id."""
     return f"b{next(counter):03d}"
 
 
 def _sentence_id(counter: count[int]) -> str:
+    """Sentence id."""
     return f"s{next(counter):03d}"
 
 
 def _token_span(token: MarkdownToken, source: str, line_starts: list[int]) -> Span:
+    """Token span."""
     line_map = token.map or [0, 1]
     start_line = line_map[0]
     end_line = max(start_line + 1, line_map[1])
@@ -658,6 +681,7 @@ def _token_span(token: MarkdownToken, source: str, line_starts: list[int]) -> Sp
 
 
 def _span_from_offsets(start: int, end: int, line_starts: list[int]) -> Span:
+    """Span from offsets."""
     start_line, start_column = _line_col(start, line_starts)
     end_line, end_column = _line_col(end, line_starts)
     return Span(
@@ -671,6 +695,7 @@ def _span_from_offsets(start: int, end: int, line_starts: list[int]) -> Span:
 
 
 def _line_col(offset: int, line_starts: list[int]) -> tuple[int, int]:
+    """Line col."""
     line_index = 0
     for index, start in enumerate(line_starts):
         if start > offset:
@@ -680,6 +705,7 @@ def _line_col(offset: int, line_starts: list[int]) -> tuple[int, int]:
 
 
 def _line_starts(source: str) -> list[int]:
+    """Line starts."""
     starts = [0]
     for index, char in enumerate(source):
         if char == "\n":

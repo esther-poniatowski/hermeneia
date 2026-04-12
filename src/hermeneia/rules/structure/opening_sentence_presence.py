@@ -37,17 +37,21 @@ PROSE_KINDS = {
 
 
 class _OpeningSentencePresenceOptions:
+    """Openingsentencepresenceoptions."""
+
     def __init__(
         self,
         *,
         min_opening_words: int | None = None,
         forbidden_block_kinds: tuple[str, ...] | None = None,
     ) -> None:
+        """Init."""
         self.min_opening_words = min_opening_words
         self.forbidden_block_kinds = forbidden_block_kinds
 
     @classmethod
     def model_validate(cls, raw: object) -> "_OpeningSentencePresenceOptions":
+        """Model validate."""
         mapping = mapping_with_allowed_keys(
             raw,
             allowed=frozenset({"min_opening_words", "forbidden_block_kinds"}),
@@ -65,6 +69,7 @@ class _OpeningSentencePresenceOptions:
         )
 
     def model_dump(self) -> dict[str, object]:
+        """Model dump."""
         dumped: dict[str, object] = {}
         if self.min_opening_words is not None:
             dumped["min_opening_words"] = self.min_opening_words
@@ -74,6 +79,8 @@ class _OpeningSentencePresenceOptions:
 
 
 class OpeningSentencePresenceRule(HeuristicSemanticRule):
+    """Openingsentencepresencerule."""
+
     options_model = _OpeningSentencePresenceOptions
 
     metadata = RuleMetadata(
@@ -86,12 +93,15 @@ class OpeningSentencePresenceRule(HeuristicSemanticRule):
         supported_languages=frozenset({"en"}),
         default_options={
             "min_opening_words": 8,
-            "forbidden_block_kinds": tuple(kind.value for kind in DEFAULT_FORBIDDEN_BLOCK_KINDS),
+            "forbidden_block_kinds": tuple(
+                kind.value for kind in DEFAULT_FORBIDDEN_BLOCK_KINDS
+            ),
         },
         evidence_fields=("first_structured_kind",),
     )
 
     def check(self, doc, ctx):
+        """Check."""
         min_opening_words = self.settings.int_option("min_opening_words", 8)
         forbidden_block_kinds = resolve_block_kinds(
             self.settings.options.get("forbidden_block_kinds"),
@@ -144,6 +154,7 @@ def _first_structured_index(
     *,
     forbidden_block_kinds: frozenset[BlockKind],
 ) -> int | None:
+    """First structured index."""
     for index, block in enumerate(blocks):
         if block.kind in forbidden_block_kinds:
             return index
@@ -151,6 +162,7 @@ def _first_structured_index(
 
 
 def _opening_sentence(blocks, *, before_index: int | None, min_words: int):
+    """Opening sentence."""
     limit = before_index if before_index is not None else len(blocks)
     for block in blocks[:limit]:
         if block.kind not in PROSE_KINDS:
@@ -162,6 +174,7 @@ def _opening_sentence(blocks, *, before_index: int | None, min_words: int):
 
 
 def _parse_positive_int(raw: object, *, field: str) -> int | None:
+    """Parse positive int."""
     if raw is None:
         return None
     if isinstance(raw, bool) or not isinstance(raw, int):
@@ -172,4 +185,5 @@ def _parse_positive_int(raw: object, *, field: str) -> int | None:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(OpeningSentencePresenceRule)

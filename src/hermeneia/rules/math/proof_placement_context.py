@@ -22,6 +22,8 @@ PROOF_OPENER_RE = re.compile(r"^\s*proof\.?\s*$", re.IGNORECASE)
 
 
 class ProofPlacementContextRule(HeuristicSemanticRule):
+    """Proofplacementcontextrule."""
+
     metadata = RuleMetadata(
         rule_id="math.proof_placement_context",
         label="Proof opener should follow interpretive context",
@@ -34,7 +36,10 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        interpretation_markers = tuple(ctx.language_pack.lexicons.formula_interpretation_markers)
+        """Check."""
+        interpretation_markers = tuple(
+            ctx.language_pack.lexicons.formula_interpretation_markers
+        )
         formal_statement_pattern = compile_leading_phrase_regex(
             tuple(ctx.language_pack.lexicons.proof_context_formal_openers)
         )
@@ -49,7 +54,9 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
             previous = previous_prose_block(flat_blocks, index)
             if previous is None or not previous.sentences:
                 continue
-            previous_text = " ".join(sentence.source_text for sentence in previous.sentences)
+            previous_text = " ".join(
+                sentence.source_text for sentence in previous.sentences
+            )
             if formal_statement_pattern.search(previous_text) is None:
                 continue
             if text_has_marker(previous_text, interpretation_markers):
@@ -85,4 +92,5 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(ProofPlacementContextRule)

@@ -25,6 +25,8 @@ AUDIENCE_THRESHOLDS = {
 
 
 class JargonDensityRule(HeuristicSemanticRule):
+    """Jargondensityrule."""
+
     metadata = RuleMetadata(
         rule_id="terminology.jargon_density",
         label="Jargon density exceeds audience target",
@@ -37,6 +39,7 @@ class JargonDensityRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         threshold = self.settings.options.get("max_density")
         jargon_terms = ctx.language_pack.lexicons.jargon_terms
         if isinstance(threshold, (int, float)) and not isinstance(threshold, bool):
@@ -45,7 +48,10 @@ class JargonDensityRule(HeuristicSemanticRule):
             max_density = AUDIENCE_THRESHOLDS.get(ctx.profile.audience, 0.18)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
-            words = [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
+            words = [
+                match.group(0).lower()
+                for match in WORD_RE.finditer(sentence.projection.text)
+            ]
             if len(words) < 6:
                 continue
             jargon = [word for word in words if _is_jargon(word, jargon_terms)]
@@ -71,7 +77,8 @@ class JargonDensityRule(HeuristicSemanticRule):
                     confidence=0.64,
                     rationale="Jargon density uses a bounded lexical proxy and audience-specific thresholds.",
                     rewrite_tactics=(
-                        "Introduce technical terms with brief glosses and reduce dense clusters of specialized terminology.",
+                        "Introduce technical terms with brief glosses and reduce dense "
+                        "clusters of specialized terminology.",
                     ),
                 )
             )
@@ -79,6 +86,7 @@ class JargonDensityRule(HeuristicSemanticRule):
 
 
 def _is_jargon(word: str, jargon_terms: frozenset[str]) -> bool:
+    """Is jargon."""
     if word in jargon_terms:
         return True
     return len(word) >= 12 and word.endswith(
@@ -87,4 +95,5 @@ def _is_jargon(word: str, jargon_terms: frozenset[str]) -> bool:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(JargonDensityRule)

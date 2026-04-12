@@ -42,6 +42,8 @@ CASE_PATTERNS: tuple[re.Pattern[str], ...] = (
 
 
 class CaseScaffoldingRule(SourcePatternRule):
+    """Casescaffoldingrule."""
+
     metadata = RuleMetadata(
         rule_id="linkage.case_scaffolding",
         label="Avoid noun-phrase case scaffolding",
@@ -54,11 +56,15 @@ class CaseScaffoldingRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         violations: list[Violation] = []
         seen_spans: list[tuple[int, int, int]] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             for pattern in CASE_PATTERNS:
@@ -86,6 +92,7 @@ class CaseScaffoldingRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -100,6 +107,7 @@ def _is_span_covered(
     seen_spans: list[tuple[int, int, int]],
     candidate: tuple[int, int, int],
 ) -> bool:
+    """Is span covered."""
     line, start, end = candidate
     for seen_line, seen_start, seen_end in seen_spans:
         if seen_line != line:
@@ -110,4 +118,5 @@ def _is_span_covered(
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(CaseScaffoldingRule)

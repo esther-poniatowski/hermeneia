@@ -16,6 +16,8 @@ from hermeneia.rules.common import iter_sentences, upstream_limits
 
 
 class SubjectVerbDistanceRule(AnnotatedRule):
+    """Subjectverbdistancerule."""
+
     metadata = RuleMetadata(
         rule_id="syntax.subject_verb_distance",
         label="Subject and main verb are too far apart",
@@ -32,6 +34,7 @@ class SubjectVerbDistanceRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         max_distance = self.settings.int_option("max_distance", 8)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -40,7 +43,12 @@ class SubjectVerbDistanceRule(AnnotatedRule):
             if not sentence.tokens or not any(token.dep for token in sentence.tokens):
                 continue
             root_index = next(
-                (index for index, token in enumerate(sentence.tokens) if token.dep == "ROOT"), None
+                (
+                    index
+                    for index, token in enumerate(sentence.tokens)
+                    if token.dep == "ROOT"
+                ),
+                None,
             )
             subject_index = next(
                 (
@@ -73,7 +81,8 @@ class SubjectVerbDistanceRule(AnnotatedRule):
                     ),
                     confidence=0.85,
                     rewrite_tactics=(
-                        "Move the main verb earlier or postpone parenthetical material until after the clause core is established.",
+                        "Move the main verb earlier or postpone parenthetical material "
+                        "until after the clause core is established.",
                     ),
                 )
             )
@@ -81,4 +90,5 @@ class SubjectVerbDistanceRule(AnnotatedRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SubjectVerbDistanceRule)

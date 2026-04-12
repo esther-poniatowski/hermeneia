@@ -21,6 +21,8 @@ ANCHOR_TOKEN_RE = re.compile(r"\^[a-z][a-z0-9]*-[a-z0-9-]+")
 
 
 class RawAnchorRule(SourcePatternRule):
+    """Rawanchorrule."""
+
     metadata = RuleMetadata(
         rule_id="reference.raw_anchor",
         label="Avoid raw anchor tokens in running prose",
@@ -33,10 +35,14 @@ class RawAnchorRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc, ctx
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             for match in ANCHOR_TOKEN_RE.finditer(probe):
@@ -64,6 +70,7 @@ class RawAnchorRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -75,4 +82,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(RawAnchorRule)

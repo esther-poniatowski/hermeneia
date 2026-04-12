@@ -16,10 +16,16 @@ from hermeneia.suggest.template import (
 
 
 class RevisionPlanner:
-    def __init__(self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY) -> None:
+    """Revisionplanner."""
+
+    def __init__(
+        self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
+    ) -> None:
+        """Init."""
         self._default_mode = default_mode
 
     def build(self, violations: list[Violation]) -> RevisionPlan:
+        """Build."""
         operations = [self._operation_for(violation) for violation in violations]
         ordered = tuple(
             sorted(
@@ -36,6 +42,7 @@ class RevisionPlanner:
         return RevisionPlan(operations=ordered)
 
     def _operation_for(self, violation: Violation) -> RevisionOperation:
+        """Operation for."""
         candidate = self._candidate_for(violation)
         return RevisionOperation(
             layer=violation.layer,
@@ -47,6 +54,7 @@ class RevisionPlanner:
         )
 
     def _candidate_for(self, violation: Violation) -> RewriteCandidate:
+        """Candidate for."""
         if violation.rule_id == "vocabulary.contraction":
             contraction = _evidence_str(violation, "contraction")
             return rewrite_for_contraction(contraction)
@@ -76,6 +84,7 @@ class RevisionPlanner:
 
 
 def _severity_rank(severity) -> int:
+    """Severity rank."""
     return {
         Severity.ERROR: 3,
         Severity.WARNING: 2,
@@ -84,6 +93,7 @@ def _severity_rank(severity) -> int:
 
 
 def _layer_rank(layer: Layer) -> int:
+    """Layer rank."""
     return {
         Layer.DOCUMENT_STRUCTURE: 0,
         Layer.PARAGRAPH_RHETORIC: 1,
@@ -94,6 +104,7 @@ def _layer_rank(layer: Layer) -> int:
 
 
 def _evidence_str(violation: Violation, field: str) -> str | None:
+    """Evidence str."""
     if violation.evidence is None:
         return None
     raw = violation.evidence.features.get(field)

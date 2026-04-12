@@ -18,6 +18,8 @@ from hermeneia.rules.patterns import compile_inline_phrase_regex
 
 
 class IndefiniteReferenceRule(SourcePatternRule):
+    """Indefinitereferencerule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.indefinite_reference",
         label="Avoid broad indefinite references in technical claims",
@@ -30,13 +32,17 @@ class IndefiniteReferenceRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.indefinite_reference_terms)
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             match = match_allowed(line, pattern)
             if match is None:
@@ -62,6 +68,7 @@ class IndefiniteReferenceRule(SourcePatternRule):
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -73,4 +80,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(IndefiniteReferenceRule)

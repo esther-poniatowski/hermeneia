@@ -10,6 +10,8 @@ from hermeneia.rules.base import Layer, Severity
 
 @dataclass(frozen=True)
 class RevisionOperation:
+    """Revisionoperation."""
+
     layer: Layer
     rule_id: str
     severity: Severity
@@ -20,4 +22,6 @@ class RevisionOperation:
 
 @dataclass(frozen=True)
 class RevisionPlan:
+    """Revisionplan."""
+
     operations: tuple[RevisionOperation, ...]

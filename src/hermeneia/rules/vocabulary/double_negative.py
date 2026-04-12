@@ -20,6 +20,8 @@ from hermeneia.rules.patterns import normalize_phrases
 
 
 class DoubleNegativeRule(SourcePatternRule):
+    """Doublenegativerule."""
+
     metadata = RuleMetadata(
         rule_id="vocabulary.double_negative",
         label="Avoid double-negative scaffolding",
@@ -33,6 +35,7 @@ class DoubleNegativeRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
+        """Check source."""
         _ = doc
         max_gap_tokens = self.settings.int_option("max_gap_tokens", 5)
         pattern = _compile_double_negative_pattern(
@@ -43,7 +46,10 @@ class DoubleNegativeRule(SourcePatternRule):
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
+            if any(
+                kind.value in {"code_block", "display_math"}
+                for kind in line.container_kinds
+            ):
                 continue
             probe = line_text_outside_excluded(line)
             for match in pattern.finditer(probe):
@@ -60,7 +66,9 @@ class DoubleNegativeRule(SourcePatternRule):
                         span=_match_span(line, match.start(), match.end()),
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(features={"matched_text": matched.lower()}),
+                        evidence=RuleEvidence(
+                            features={"matched_text": matched.lower()}
+                        ),
                         rewrite_tactics=(
                             "Rewrite with a single negative or a direct positive statement.",
                         ),
@@ -74,6 +82,7 @@ def _compile_double_negative_pattern(
     *,
     max_gap_tokens: int,
 ) -> re.Pattern[str] | None:
+    """Compile double negative pattern."""
     normalized = normalize_phrases(markers)
     if len(normalized) < 2:
         return None
@@ -85,6 +94,7 @@ def _compile_double_negative_pattern(
 
 
 def _is_allowed_negative_pair(matched: str) -> bool:
+    """Is allowed negative pair."""
     lowered = matched.lower()
     if lowered.startswith("not only"):
         return True
@@ -94,6 +104,7 @@ def _is_allowed_negative_pair(matched: str) -> bool:
 
 
 def _match_span(line, start: int, end: int) -> Span:
+    """Match span."""
     return Span(
         start=line.span.start + start,
         end=line.span.start + end,
@@ -105,4 +116,5 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(DoubleNegativeRule)

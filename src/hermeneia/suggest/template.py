@@ -8,6 +8,8 @@ from typing import Mapping
 
 @dataclass(frozen=True)
 class RewriteCandidate:
+    """Rewritecandidate."""
+
     tactic: str
     candidate_rewrite: str | None = None
 
@@ -61,6 +63,7 @@ NOMINALIZATION_VERB_MAP: Mapping[str, str] = {
 
 
 def rewrite_for_contraction(contraction: str | None) -> RewriteCandidate:
+    """Rewrite for contraction."""
     if contraction is None:
         return RewriteCandidate(tactic="Expand contractions in technical prose")
     normalized = contraction.lower()
@@ -74,6 +77,7 @@ def rewrite_for_contraction(contraction: str | None) -> RewriteCandidate:
 
 
 def rewrite_for_proof_marker() -> RewriteCandidate:
+    """Rewrite for proof marker."""
     return RewriteCandidate(
         tactic="Introduce an explicit proof opener before the proof body.",
         candidate_rewrite="*Proof.*",
@@ -84,6 +88,7 @@ def rewrite_for_nominalization(
     nominalization: str | None,
     support_verb: str | None,
 ) -> RewriteCandidate | None:
+    """Rewrite for nominalization."""
     if nominalization is None:
         return None
     verb = NOMINALIZATION_VERB_MAP.get(nominalization.lower())
@@ -103,13 +108,16 @@ def rewrite_for_passive_voice(
     actor: str | None,
     participle: str | None,
 ) -> RewriteCandidate | None:
+    """Rewrite for passive voice."""
     if actor is None:
         return None
     cleaned_actor = actor.strip()
     if not cleaned_actor:
         return None
     capitalized_actor = cleaned_actor[0].upper() + cleaned_actor[1:]
-    tactic = f"Rewrite in active voice with '{cleaned_actor}' as the grammatical subject."
+    tactic = (
+        f"Rewrite in active voice with '{cleaned_actor}' as the grammatical subject."
+    )
     if participle and participle.lower().endswith("ed"):
         return RewriteCandidate(
             tactic=tactic,
@@ -119,10 +127,15 @@ def rewrite_for_passive_voice(
 
 
 def tactic_only(message: str) -> RewriteCandidate:
+    """Tactic only."""
     return RewriteCandidate(tactic=message)
 
 
 def no_deterministic_rewrite_available() -> RewriteCandidate:
+    """No deterministic rewrite available."""
     return RewriteCandidate(
-        tactic="No deterministic rewrite candidate is available for this rule; revise manually using the reported evidence."
+        tactic=(
+            "No deterministic rewrite candidate is available for this rule; "
+            "revise manually using the reported evidence."
+        )
     )

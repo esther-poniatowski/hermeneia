@@ -16,6 +16,8 @@ from hermeneia.rules.common import iter_sentences, sentence_word_count
 
 
 class SentenceLengthRule(AnnotatedRule):
+    """Sentencelengthrule."""
+
     metadata = RuleMetadata(
         rule_id="syntax.sentence_length",
         label="Sentence exceeds the profile target length",
@@ -29,6 +31,7 @@ class SentenceLengthRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
+        """Check."""
         violations: list[Violation] = []
         max_words = self.settings.int_option("max_words", 28)
         for sentence in iter_sentences(doc):
@@ -38,7 +41,10 @@ class SentenceLengthRule(AnnotatedRule):
             violations.append(
                 Violation(
                     rule_id=self.rule_id,
-                    message=f"Sentence contains {count} words; the {ctx.profile.profile_name} profile target is {max_words}.",
+                    message=(
+                        f"Sentence contains {count} words; the "
+                        f"{ctx.profile.profile_name} profile target is {max_words}."
+                    ),
                     span=sentence.span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
@@ -54,4 +60,5 @@ class SentenceLengthRule(AnnotatedRule):
 
 
 def register(registry) -> None:
+    """Register."""
     registry.add(SentenceLengthRule)

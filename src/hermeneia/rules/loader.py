@@ -28,5 +28,7 @@ def load_external_rules(module_name: str, registry: RuleRegistry) -> None:
     module = importlib.import_module(module_name)
     register = getattr(module, "register", None)
     if not callable(register):
-        raise TypeError(f"External rule module '{module_name}' does not export register(registry)")
+        raise TypeError(
+            f"External rule module '{module_name}' does not export register(registry)"
+        )
     register(registry)
