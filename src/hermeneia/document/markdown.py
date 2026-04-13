@@ -35,7 +35,9 @@ from hermeneia.language.base import LanguagePack
 
 INLINE_MATH_RE = re.compile(r"(?<!\\)\$(?!\$)(.+?)(?<!\\)\$")
 FOOTNOTE_RE = re.compile(r"^\s*\[\^([^\]]+)\]:\s*")
-ADMONITION_RE = re.compile(r"^\s*\[!([A-Z]+)\]\s*$")
+ADMONITION_PREFIX_RE = re.compile(
+    r"^\s*\[!(?P<label>[A-Z][A-Z0-9_-]*)\]\s*(?P<title>.*)$"
+)
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(])")
 
 
@@ -94,6 +96,7 @@ class MarkdownDocumentParser(DocumentParser):
         """
         source = request.source
         line_starts = _line_starts(source)
+        front_matter_lines = _front_matter_line_range(source)
         tokens = self._markdown.parse(source)
         block_counter = count()
         sentence_counter = count()
@@ -103,6 +106,9 @@ class MarkdownDocumentParser(DocumentParser):
 
         while cursor < len(tokens):
             token = tokens[cursor]
+            if _token_in_line_range(token, front_matter_lines):
+                cursor += 1
+                continue
             if token.type in {
                 "bullet_list_open",
                 "ordered_list_open",
@@ -255,6 +261,14 @@ class MarkdownDocumentParser(DocumentParser):
         block_metadata = dict(metadata or {})
         block_kind = kind
 
+        if kind == BlockKind.PARAGRAPH and BlockKind.BLOCK_QUOTE in container_kinds:
+            admonition_match = ADMONITION_PREFIX_RE.match(buffer.text)
+            if admonition_match is not None:
+                block_metadata["admonition_label"] = admonition_match.group(
+                    "label"
+                ).lower()
+                buffer = _strip_prefix(buffer, admonition_match.start("title"))
+
         raw_stripped = raw_segment.strip()
         if kind == BlockKind.PARAGRAPH and _is_display_math(raw_stripped):
             block_kind = BlockKind.DISPLAY_MATH
@@ -332,14 +346,16 @@ class MarkdownDocumentParser(DocumentParser):
         if not stack:
             return
         parent = stack[-1]
-        if parent.kind == BlockKind.BLOCK_QUOTE and block.sentences:
-            match = ADMONITION_RE.match(block.sentences[0].source_text.strip())
-            if match is not None:
+        if parent.kind == BlockKind.BLOCK_QUOTE:
+            label = block.metadata.get("admonition_label")
+            if isinstance(label, str) and label:
                 parent.kind = BlockKind.ADMONITION
-                block.sentences = (
-                    block.sentences[1:] if len(block.sentences) > 1 else []
-                )
-                parent.metadata = {"label": match.group(1).lower()}
+                parent.metadata = {"label": label}
+                block.metadata = {
+                    key: value
+                    for key, value in block.metadata.items()
+                    if key != "admonition_label"
+                }
 
 
 def _visible_buffer(
@@ -738,3 +754,27 @@ def _line_starts(source: str) -> list[int]:
         if char == "\n":
             starts.append(index + 1)
     return starts
+
+
+def _front_matter_line_range(source: str) -> tuple[int, int] | None:
+    """Front matter line range."""
+    lines = source.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return 0, index + 1
+    return None
+
+
+def _token_in_line_range(
+    token: MarkdownToken, line_range: tuple[int, int] | None
+) -> bool:
+    """Token in line range."""
+    if line_range is None:
+        return False
+    token_map = token.map
+    if token_map is None:
+        return False
+    start, end = line_range
+    return start <= token_map[0] and token_map[1] <= end

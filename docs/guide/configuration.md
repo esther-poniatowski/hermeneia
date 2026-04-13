@@ -52,6 +52,11 @@ rules:
       options:
         reference_labels: [lemma, theorem, corollary]
         procedural_terms: [note, analysis, specialization, derivation]
+    terminology.acronym_burden:
+      options:
+        ignore_sentence_patterns:
+          - '^\\s*\\[![A-Z][A-Z0-9_-]*\\](?:\\s+.*)?$'
+        ignore_acronym_tokens: [TODO]
     structure.opening_sentence_presence:
       options:
         min_opening_words: 10
@@ -204,8 +209,10 @@ These checks prevent silent policy drift and keep rule behavior auditable across
 - Unknown override fields are errors.
 - Options model validation errors are surfaced with rule id context.
 - `reference.generic_link_text` options accept only `reference_labels` and `procedural_terms`.
+- `terminology.acronym_burden` options accept `min_acronym_mentions_for_overuse`, `max_acronym_to_full_form_ratio`, `ignore_sentence_patterns`, and `ignore_acronym_tokens`.
 - `structure.opening_sentence_presence` options accept `min_opening_words` and `forbidden_block_kinds`.
 - `structure.section_opener_block_kind` options accept `blocked_block_kinds` and `apply_heading_levels`.
+- `math.display_math` options accept `require_leadin` and `require_leadin_colon`.
 - Language-pack `supported_rules` (when declared) is enforced as a rule allowlist.
 
 ## Heuristic Sensitivity Tuning

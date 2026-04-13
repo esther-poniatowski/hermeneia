@@ -26,7 +26,9 @@ $$
     assert any(kind == BlockKind.LIST for _, kind in flat_blocks)
     assert any(kind == BlockKind.LIST_ITEM for _, kind in flat_blocks)
     assert any(kind == BlockKind.DISPLAY_MATH for _, kind in flat_blocks)
-    sentence_ids = [sentence.id for block in document.iter_blocks() for sentence in block.sentences]
+    sentence_ids = [
+        sentence.id for block in document.iter_blocks() for sentence in block.sentences
+    ]
     assert sentence_ids[:3] == ["s000", "s001", "s002"]
     paragraph_sentence = next(
         sentence
@@ -76,3 +78,46 @@ def test_markdown_parser_emits_link_target_masked_segments(language_pack) -> Non
         segment.kind == MaskedSegmentKind.LINK_TARGET
         for segment in sentence.projection.masked_segments
     )
+
+
+def test_markdown_parser_strips_callout_marker_from_admonition_title(
+    language_pack,
+) -> None:
+    source = "> [!TODO] Goal\n> Body sentence.\n"
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    admonition = next(
+        block for block in document.iter_blocks() if block.kind == BlockKind.ADMONITION
+    )
+    sentence_texts = [
+        sentence.source_text
+        for block in admonition.iter_blocks()
+        for sentence in block.sentences
+    ]
+    assert sentence_texts
+    assert all("[!TODO]" not in text for text in sentence_texts)
+    assert any("Goal" in text for text in sentence_texts)
+    assert any("Body sentence." in text for text in sentence_texts)
+
+
+def test_markdown_parser_skips_yaml_front_matter(language_pack) -> None:
+    source = (
+        "---\n"
+        "title: Sample title\n"
+        "status: draft\n"
+        "---\n\n"
+        "# Heading\n\n"
+        "Paragraph body.\n"
+    )
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    sentence_texts = [
+        sentence.source_text
+        for block in document.iter_blocks()
+        for sentence in block.sentences
+    ]
+    assert all(not text.startswith("title:") for text in sentence_texts)
+    assert all(not text.startswith("status:") for text in sentence_texts)
+    assert "Paragraph body." in sentence_texts

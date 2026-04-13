@@ -22,6 +22,7 @@ CONTENT_FREE_LEADIN_RE = re.compile(
 )
 TRAILING_PUNCTUATION_RE = re.compile(r"[.,;:!?]\s*$")
 PUNCTUATION_BEFORE_LINEBREAK_RE = re.compile(r"[.,;:!?]\s*\\\\\s*$")
+LEADIN_COLON_RE = re.compile(r":\s*$")
 
 
 class DisplayMathRule(SourcePatternRule):
@@ -35,7 +36,7 @@ class DisplayMathRule(SourcePatternRule):
         kind=RuleKind.HARD_CONSTRAINT,
         default_severity=Severity.ERROR,
         supported_languages=frozenset({"en"}),
-        default_options={"require_leadin": True},
+        default_options={"require_leadin": True, "require_leadin_colon": True},
         evidence_fields=("check",),
     )
 
@@ -58,6 +59,9 @@ class DisplayMathRule(SourcePatternRule):
         """
         violations: list[Violation] = []
         require_leadin = bool(self.settings.options.get("require_leadin", True))
+        require_leadin_colon = bool(
+            self.settings.options.get("require_leadin_colon", True)
+        )
         source_lines = doc.source_lines
         for block in doc.iter_blocks():
             if block.kind != BlockKind.DISPLAY_MATH:
@@ -105,6 +109,24 @@ class DisplayMathRule(SourcePatternRule):
                             ),
                             rewrite_tactics=(
                                 "Name the quantity, operation, or argumentative role before the display equation.",
+                            ),
+                        )
+                    )
+                elif require_leadin_colon and not LEADIN_COLON_RE.search(
+                    leadin.text.strip()
+                ):
+                    violations.append(
+                        Violation(
+                            rule_id=self.rule_id,
+                            message="Display math lead-in should end with ':' to announce the equation.",
+                            span=leadin.span,
+                            severity=self.settings.severity,
+                            layer=self.metadata.layer,
+                            evidence=RuleEvidence(
+                                features={"check": "missing_leadin_colon"}
+                            ),
+                            rewrite_tactics=(
+                                "End the lead-in sentence with ':' before the $$...$$ block.",
                             ),
                         )
                     )

@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import re
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from hermeneia.document.model import Sentence
 from hermeneia.rules.base import (
     AnnotatedRule,
@@ -28,6 +30,17 @@ ACRONYM_THEN_FULL_FORM_RE = re.compile(
     r"\((?P<full>[A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){1,7})\)"
 )
 WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9-]*")
+
+
+class _AcronymBurdenOptions(BaseModel):
+    """Validated options for the acronym burden rule."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    min_acronym_mentions_for_overuse: int = Field(default=4, ge=1)
+    max_acronym_to_full_form_ratio: float = Field(default=2.0, gt=0)
+    ignore_sentence_patterns: tuple[str, ...] = ()
+    ignore_acronym_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -54,6 +67,8 @@ class AcronymBurdenRule(AnnotatedRule):
         default_options={
             "min_acronym_mentions_for_overuse": 4,
             "max_acronym_to_full_form_ratio": 2.0,
+            "ignore_sentence_patterns": (r"^\s*\[![A-Z][A-Z0-9_-]*\](?:\s+.*)?$",),
+            "ignore_acronym_tokens": (),
         },
         evidence_fields=(
             "issue",
@@ -63,6 +78,7 @@ class AcronymBurdenRule(AnnotatedRule):
             "full_form_mentions",
         ),
     )
+    options_model = _AcronymBurdenOptions
 
     def check(self, doc, ctx):
         """Check.
@@ -83,13 +99,32 @@ class AcronymBurdenRule(AnnotatedRule):
             "min_acronym_mentions_for_overuse", 4
         )
         max_ratio = self.settings.float_option("max_acronym_to_full_form_ratio", 2.0)
+        ignore_sentence_patterns = tuple(
+            self.settings.options.get("ignore_sentence_patterns", ())
+        )
+        ignore_patterns = _compile_ignore_patterns(ignore_sentence_patterns)
+        ignore_acronym_tokens = frozenset(
+            token.upper()
+            for token in self.settings.options.get("ignore_acronym_tokens", ())
+        )
         allowlist = ctx.language_pack.lexicons.acronym_allowlist
         definition_stopwords = ctx.language_pack.lexicons.acronym_definition_stopwords
         ordinal_by_sentence_id = {ref.id: ref.ordinal for ref in doc.indexes.sentences}
         definitions = _collect_definitions(
-            doc, allowlist, ordinal_by_sentence_id, definition_stopwords
+            doc,
+            allowlist,
+            ordinal_by_sentence_id,
+            definition_stopwords,
+            ignore_patterns,
+            ignore_acronym_tokens,
         )
-        mentions = _collect_mentions(doc, allowlist, ordinal_by_sentence_id)
+        mentions = _collect_mentions(
+            doc,
+            allowlist,
+            ordinal_by_sentence_id,
+            ignore_patterns,
+            ignore_acronym_tokens,
+        )
         violations: list[Violation] = []
 
         for acronym, sentence_mentions in sorted(mentions.items()):
@@ -129,7 +164,9 @@ class AcronymBurdenRule(AnnotatedRule):
                 continue
 
             acronym_mentions = len(sentence_mentions)
-            full_form_mentions = _count_full_form_mentions(doc, definition.full_form)
+            full_form_mentions = _count_full_form_mentions(
+                doc, definition.full_form, ignore_patterns
+            )
             if acronym_mentions < min_mentions_for_overuse:
                 continue
             ratio = (
@@ -178,14 +215,18 @@ def _collect_mentions(
     doc,
     allowlist: frozenset[str],
     ordinal_by_sentence_id: dict[str, int],
+    ignore_patterns: tuple[re.Pattern[str], ...],
+    ignore_acronym_tokens: frozenset[str],
 ) -> dict[str, list[tuple[int, Sentence]]]:
     """Collect mentions."""
     mentions: dict[str, list[tuple[int, Sentence]]] = {}
     for sentence in iter_sentences(doc):
+        if _sentence_is_ignored(sentence.source_text, ignore_patterns):
+            continue
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
         for match in ACRONYM_RE.finditer(sentence.source_text):
             acronym = _normalize_acronym(match.group(0))
-            if acronym in allowlist:
+            if acronym in allowlist or acronym in ignore_acronym_tokens:
                 continue
             mentions.setdefault(acronym, []).append((ordinal, sentence))
     for acronym, rows in mentions.items():
@@ -199,10 +240,14 @@ def _collect_definitions(
     allowlist: frozenset[str],
     ordinal_by_sentence_id: dict[str, int],
     definition_stopwords: frozenset[str],
+    ignore_patterns: tuple[re.Pattern[str], ...],
+    ignore_acronym_tokens: frozenset[str],
 ) -> dict[str, AcronymDefinition]:
     """Collect definitions."""
     definitions: dict[str, AcronymDefinition] = {}
     for sentence in iter_sentences(doc):
+        if _sentence_is_ignored(sentence.source_text, ignore_patterns):
+            continue
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
         for match in FULL_FORM_THEN_ACRONYM_RE.finditer(sentence.source_text):
             definition = _definition_from_match(
@@ -212,7 +257,11 @@ def _collect_definitions(
                 ordinal,
                 definition_stopwords,
             )
-            if definition is None or definition.acronym in allowlist:
+            if (
+                definition is None
+                or definition.acronym in allowlist
+                or definition.acronym in ignore_acronym_tokens
+            ):
                 continue
             _store_definition(definitions, definition)
         for match in ACRONYM_THEN_FULL_FORM_RE.finditer(sentence.source_text):
@@ -223,7 +272,11 @@ def _collect_definitions(
                 ordinal,
                 definition_stopwords,
             )
-            if definition is None or definition.acronym in allowlist:
+            if (
+                definition is None
+                or definition.acronym in allowlist
+                or definition.acronym in ignore_acronym_tokens
+            ):
                 continue
             _store_definition(definitions, definition)
     return definitions
@@ -298,13 +351,34 @@ def _initials_align(
     return shared_prefix >= max(2, int(len(acronym) * 0.6))
 
 
-def _count_full_form_mentions(doc, full_form: str) -> int:
+def _count_full_form_mentions(
+    doc, full_form: str, ignore_patterns: tuple[re.Pattern[str], ...]
+) -> int:
     """Count full form mentions."""
     pattern = re.compile(rf"\b{re.escape(full_form)}\b", re.IGNORECASE)
     count = 0
     for sentence in iter_sentences(doc):
+        if _sentence_is_ignored(sentence.source_text, ignore_patterns):
+            continue
         count += len(pattern.findall(sentence.source_text))
     return count
+
+
+def _compile_ignore_patterns(patterns: tuple[str, ...]) -> tuple[re.Pattern[str], ...]:
+    """Compile ignore patterns."""
+    compiled: list[re.Pattern[str]] = []
+    for pattern in patterns:
+        if not pattern.strip():
+            continue
+        compiled.append(re.compile(pattern))
+    return tuple(compiled)
+
+
+def _sentence_is_ignored(
+    sentence_text: str, ignore_patterns: tuple[re.Pattern[str], ...]
+) -> bool:
+    """Sentence is ignored."""
+    return any(pattern.search(sentence_text) is not None for pattern in ignore_patterns)
 
 
 def register(registry) -> None:

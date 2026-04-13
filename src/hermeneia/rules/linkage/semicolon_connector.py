@@ -48,8 +48,10 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         object
             Resulting value produced by this call.
         """
-        connectors = tuple(ctx.language_pack.lexicons.semicolon_connectors) + tuple(
-            ctx.language_pack.lexicons.transition_connectors
+        connectors = (
+            tuple(ctx.language_pack.lexicons.semicolon_connectors)
+            + tuple(ctx.language_pack.lexicons.transition_connectors)
+            + tuple(ctx.language_pack.lexicons.explicit_contrast_markers)
         )
         parallel_starters = frozenset(
             token.lower()
