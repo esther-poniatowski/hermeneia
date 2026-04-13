@@ -34,7 +34,20 @@ class SubjectVerbDistanceRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         max_distance = self.settings.int_option("max_distance", 8)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -90,5 +103,11 @@ class SubjectVerbDistanceRule(AnnotatedRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(SubjectVerbDistanceRule)

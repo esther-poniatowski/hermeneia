@@ -32,7 +32,20 @@ class ConsecutiveDisplayBlocksWithoutBridgeRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_chain_length = self.settings.int_option("min_chain_length", 2)
         motivation_markers = tuple(
             ctx.language_pack.lexicons.assumption_purpose_markers
@@ -128,5 +141,11 @@ def _has_preceding_motivation(
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ConsecutiveDisplayBlocksWithoutBridgeRule)

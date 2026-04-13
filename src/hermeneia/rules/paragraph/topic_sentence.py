@@ -33,7 +33,20 @@ class TopicSentenceRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         threshold = self.settings.float_option("minimum_score", 0.45)
         transitional_openers = tuple(ctx.language_pack.lexicons.topic_sentence_openers)
         opener_pattern = compile_leading_phrase_regex(transitional_openers)
@@ -104,5 +117,11 @@ class TopicSentenceRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(TopicSentenceRule)

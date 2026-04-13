@@ -1,4 +1,16 @@
-"""Shared option parsing helpers for structure rules."""
+"""Shared option parsing helpers for structure rules.
+
+Functions
+---------
+as_block_kind_name_tuple
+    Public API symbol.
+resolve_block_kinds
+    Public API symbol.
+mapping_with_allowed_keys
+    Public API symbol.
+parse_block_kind_name
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +22,20 @@ COMMA_SEPARATOR = ", "
 
 
 def as_block_kind_name_tuple(raw: object, *, field: str) -> tuple[str, ...] | None:
-    """Validate and normalize block-kind option values."""
+    """Validate and normalize block-kind option values.
+
+    Parameters
+    ----------
+    raw : object
+        Raw value before validation.
+    field : str
+        Input value for ``field``.
+
+    Returns
+    -------
+    tuple[str, ...] | None
+        Resulting value produced by this call.
+    """
 
     if raw is None:
         return None
@@ -32,7 +57,22 @@ def as_block_kind_name_tuple(raw: object, *, field: str) -> tuple[str, ...] | No
 def resolve_block_kinds(
     raw: object, *, field: str, default: tuple[BlockKind, ...]
 ) -> frozenset[BlockKind]:
-    """Resolve configured block-kind names to domain enums."""
+    """Resolve configured block-kind names to domain enums.
+
+    Parameters
+    ----------
+    raw : object
+        Raw value before validation.
+    field : str
+        Input value for ``field``.
+    default : tuple[BlockKind, ...]
+        Input value for ``default``.
+
+    Returns
+    -------
+    frozenset[BlockKind]
+        Resulting value produced by this call.
+    """
 
     if raw is None:
         return frozenset(default)
@@ -49,7 +89,22 @@ def resolve_block_kinds(
 def mapping_with_allowed_keys(
     raw: object, *, allowed: frozenset[str], scope: str
 ) -> Mapping[str, object]:
-    """Validate that options payload is a mapping with known keys only."""
+    """Validate that options payload is a mapping with known keys only.
+
+    Parameters
+    ----------
+    raw : object
+        Raw value before validation.
+    allowed : frozenset[str]
+        Input value for ``allowed``.
+    scope : str
+        Input value for ``scope``.
+
+    Returns
+    -------
+    Mapping[str, object]
+        Resulting value produced by this call.
+    """
 
     if not isinstance(raw, Mapping):
         raise ValueError("options must be a mapping")
@@ -62,7 +117,20 @@ def mapping_with_allowed_keys(
 
 
 def parse_block_kind_name(value: str, *, field: str) -> BlockKind:
-    """Parse block kind name."""
+    """Parse block kind name.
+
+    Parameters
+    ----------
+    value : str
+        Input value for ``value``.
+    field : str
+        Input value for ``field``.
+
+    Returns
+    -------
+    BlockKind
+        Resulting value produced by this call.
+    """
     normalized = value.strip().lower()
     try:
         return BlockKind(normalized)

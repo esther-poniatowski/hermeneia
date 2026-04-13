@@ -48,7 +48,20 @@ class DefinitionBeforeUseRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         definitional_markers = tuple(
             marker.lower() for marker in ctx.language_pack.lexicons.definitional_markers
         )
@@ -204,5 +217,11 @@ def _definition_signal_for_symbol(
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(DefinitionBeforeUseRule)

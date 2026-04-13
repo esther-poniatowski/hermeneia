@@ -65,7 +65,20 @@ class AcronymBurdenRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_mentions_for_overuse = self.settings.int_option(
             "min_acronym_mentions_for_overuse", 4
         )
@@ -295,5 +308,11 @@ def _count_full_form_mentions(doc, full_form: str) -> int:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(AcronymBurdenRule)

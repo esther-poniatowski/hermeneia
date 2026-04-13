@@ -39,7 +39,20 @@ class JargonDensityRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         threshold = self.settings.options.get("max_density")
         jargon_terms = ctx.language_pack.lexicons.jargon_terms
         if isinstance(threshold, (int, float)) and not isinstance(threshold, bool):
@@ -95,5 +108,11 @@ def _is_jargon(word: str, jargon_terms: frozenset[str]) -> bool:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(JargonDensityRule)

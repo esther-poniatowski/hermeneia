@@ -8,7 +8,20 @@ from hermeneia.document.model import Block, Document, InlineKind, SourceLine, Sp
 
 
 def build_source_lines(source: str, blocks: list[Block]) -> list[SourceLine]:
-    """Build line-oriented source views tagged with parser-derived context."""
+    """Build line-oriented source views tagged with parser-derived context.
+
+    Parameters
+    ----------
+    source : str
+        Source text to parse or analyze.
+    blocks : list[Block]
+        Input value for ``blocks``.
+
+    Returns
+    -------
+    list[SourceLine]
+        Resulting value produced by this call.
+    """
 
     lines = source.splitlines(keepends=True)
     line_starts: list[int] = []
@@ -61,7 +74,18 @@ def build_source_lines(source: str, blocks: list[Block]) -> list[SourceLine]:
 
 
 def rebind_source_view(doc: Document) -> Document:
-    """Return the document with its source-line view rebuilt from current blocks."""
+    """Return the document with its source-line view rebuilt from current blocks.
+
+    Parameters
+    ----------
+    doc : Document
+        Document instance to inspect.
+
+    Returns
+    -------
+    Document
+        Resulting value produced by this call.
+    """
 
     doc.source_lines = build_source_lines(doc.source, doc.blocks)
     return doc

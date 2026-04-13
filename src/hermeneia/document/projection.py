@@ -39,7 +39,18 @@ class ProjectionResult:
 
 
 def classify_math_placeholder(raw_text: str) -> str:
-    """Return the placeholder that best approximates the masked math slot."""
+    """Return the placeholder that best approximates the masked math slot.
+
+    Parameters
+    ----------
+    raw_text : str
+        Input value for ``raw_text``.
+
+    Returns
+    -------
+    str
+        Resulting value produced by this call.
+    """
 
     content = raw_text.strip()
     if content.startswith("$") and content.endswith("$"):
@@ -57,7 +68,24 @@ def build_projection(
     inline_nodes: list[InlineNode],
     settings: ProjectionSettings,
 ) -> ProjectionResult:
-    """Build a normalized projection and populate reliability flags."""
+    """Build a normalized projection and populate reliability flags.
+
+    Parameters
+    ----------
+    text : str
+        Text content to process.
+    source_offsets : tuple[int | None, ...]
+        Input value for ``source_offsets``.
+    inline_nodes : list[InlineNode]
+        Input value for ``inline_nodes``.
+    settings : ProjectionSettings
+        Input value for ``settings``.
+
+    Returns
+    -------
+    ProjectionResult
+        Resulting value produced by this call.
+    """
 
     if len(text) != len(source_offsets):
         raise ValueError(

@@ -41,7 +41,20 @@ class InlineEnumerationOverloadRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = ctx
         max_inline_commas = self.settings.int_option("max_inline_commas", 2)
         min_words = self.settings.int_option("min_words_for_clause_mode", 28)
@@ -101,5 +114,11 @@ def _verb_count(sentence) -> int:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(InlineEnumerationOverloadRule)

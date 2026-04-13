@@ -24,7 +24,13 @@ class DiagnosticReport:
     )
 
     def to_dict(self) -> dict[str, object]:
-        """To dict."""
+        """To dict.
+
+        Returns
+        -------
+        dict[str, object]
+            Resulting value produced by this call.
+        """
         payload: dict[str, object] = {
             "path": str(self.path) if self.path is not None else None,
             "revision_plan": asdict(self.revision_plan),
@@ -43,5 +49,11 @@ class DiagnosticReport:
         return payload
 
     def to_json(self) -> str:
-        """To json."""
+        """To json.
+
+        Returns
+        -------
+        str
+            Resulting value produced by this call.
+        """
         return json.dumps(self.to_dict(), indent=2, sort_keys=True)

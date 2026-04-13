@@ -31,7 +31,20 @@ class BoilerplateOpenerRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         patterns = list(ctx.language_pack.lexicons.boilerplate_openers) + list(
             self.settings.extra_patterns
         )
@@ -68,5 +81,11 @@ class BoilerplateOpenerRule(AnnotatedRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(BoilerplateOpenerRule)

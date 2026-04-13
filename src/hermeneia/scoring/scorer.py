@@ -1,4 +1,14 @@
-"""Hierarchical scoring over violation sets."""
+"""Hierarchical scoring over violation sets.
+
+Classes
+-------
+LayerScore
+    Public API symbol.
+Scorecard
+    Public API symbol.
+HierarchicalScorer
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -40,7 +50,20 @@ class HierarchicalScorer:
         violations: Sequence[Violation],
         rule_weights: Mapping[str, float],
     ) -> Scorecard:
-        """Score."""
+        """Score.
+
+        Parameters
+        ----------
+        violations : Sequence[Violation]
+            Input value for ``violations``.
+        rule_weights : Mapping[str, float]
+            Input value for ``rule_weights``.
+
+        Returns
+        -------
+        Scorecard
+            Resulting value produced by this call.
+        """
         per_layer: dict[Layer, list[Violation]] = {layer: [] for layer in Layer}
         for violation in violations:
             per_layer[violation.layer].append(violation)

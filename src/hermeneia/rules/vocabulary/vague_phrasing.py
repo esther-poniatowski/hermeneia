@@ -32,7 +32,22 @@ class VaguePhrasingRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : object
+            Source lines involved in this computation.
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = doc
         vague_phrase_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.vague_mechanism_phrases)
@@ -77,5 +92,11 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(VaguePhrasingRule)

@@ -35,7 +35,20 @@ class LongInlineEnumerationRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = ctx
         max_items = self.settings.int_option("max_items", 4)
         violations: list[Violation] = []
@@ -80,5 +93,11 @@ def _estimated_item_count(text: str) -> int:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(LongInlineEnumerationRule)

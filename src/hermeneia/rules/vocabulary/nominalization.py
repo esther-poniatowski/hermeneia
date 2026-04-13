@@ -45,7 +45,20 @@ class NominalizationRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         allow_adjective_position_exception = self.settings.bool_option(
             "allow_adjective_position_exception",
             True,
@@ -140,7 +153,13 @@ class NominalizationRule(AnnotatedRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(NominalizationRule)
 
 

@@ -26,10 +26,16 @@ class CliOverrides:
 
 
 class ProfileResolver:
-    """Merge rule defaults, language defaults, profile defaults, and overrides."""
+    """Merge rule defaults, language defaults, profile defaults, and overrides.
+
+    Parameters
+    ----------
+    registry : RuleRegistry
+        Rule registry used to resolve implementations.
+    """
 
     def __init__(self, registry: RuleRegistry) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._registry = registry
 
     def resolve(
@@ -38,7 +44,22 @@ class ProfileResolver:
         language_pack: LanguagePack,
         cli: CliOverrides | None = None,
     ) -> ResolvedProfile:
-        """Resolve."""
+        """Resolve.
+
+        Parameters
+        ----------
+        config : ProjectConfig
+            Resolved configuration used by this operation.
+        language_pack : LanguagePack
+            Input value for ``language_pack``.
+        cli : CliOverrides | None
+            Input value for ``cli``.
+
+        Returns
+        -------
+        ResolvedProfile
+            Resulting value produced by this call.
+        """
         cli = cli or CliOverrides()
         preset = self._resolve_preset(cli.profile_name or config.profile.name)
         self._validate_rule_id_references(config, cli, preset, language_pack)

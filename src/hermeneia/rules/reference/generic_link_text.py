@@ -34,13 +34,24 @@ class _GenericLinkTextOptions:
         reference_labels: tuple[str, ...] | None = None,
         procedural_terms: tuple[str, ...] | None = None,
     ) -> None:
-        """Init."""
+        """Initialize the instance."""
         self.reference_labels = reference_labels
         self.procedural_terms = procedural_terms
 
     @classmethod
     def model_validate(cls, raw: object) -> "_GenericLinkTextOptions":
-        """Model validate."""
+        """Validate and normalize raw options.
+
+        Parameters
+        ----------
+        raw : object
+            Raw value before validation.
+
+        Returns
+        -------
+        _GenericLinkTextOptions
+            Resulting value produced by this call.
+        """
         if not isinstance(raw, Mapping):
             raise ValueError("options must be a mapping")
         allowed = frozenset({"reference_labels", "procedural_terms"})
@@ -57,7 +68,13 @@ class _GenericLinkTextOptions:
         )
 
     def model_dump(self) -> dict[str, object]:
-        """Model dump."""
+        """Serialize options into a plain mapping.
+
+        Returns
+        -------
+        dict[str, object]
+            Resulting value produced by this call.
+        """
         dumped: dict[str, object] = {}
         if self.reference_labels is not None:
             dumped["reference_labels"] = self.reference_labels
@@ -83,7 +100,22 @@ class GenericLinkTextRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : object
+            Source lines involved in this computation.
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = doc
         silenced = {pattern.lower() for pattern in self.settings.silenced_patterns}
         configured_labels = _as_string_tuple(
@@ -222,5 +254,11 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(GenericLinkTextRule)

@@ -35,7 +35,20 @@ class SubordinateClauseRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         max_subordinates = self.settings.int_option("max_subordinate_clauses", 2)
         marker_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.subordinate_clause_markers)
@@ -87,5 +100,11 @@ def _subordinate_count(sentence, marker_pattern) -> tuple[int, str]:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(SubordinateClauseRule)

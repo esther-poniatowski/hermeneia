@@ -10,7 +10,18 @@ from hermeneia.config.schema import ProjectConfig, parse_project_config
 
 
 def load_project_config(path: Path | None) -> ProjectConfig:
-    """Load project config."""
+    """Load project config.
+
+    Parameters
+    ----------
+    path : Path | None
+        Filesystem path used by this operation.
+
+    Returns
+    -------
+    ProjectConfig
+        Resulting value produced by this call.
+    """
     if path is None:
         return ProjectConfig()
     with path.open("r", encoding="utf-8") as handle:

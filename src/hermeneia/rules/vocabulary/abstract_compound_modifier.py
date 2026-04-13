@@ -43,7 +43,22 @@ class AbstractCompoundModifierRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : object
+            Source lines involved in this computation.
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = doc, ctx
         suffixes = tuple(ctx.language_pack.lexicons.abstract_compound_suffixes)
         lexicalized = _resolve_lexicalized_set(
@@ -183,5 +198,11 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(AbstractCompoundModifierRule)

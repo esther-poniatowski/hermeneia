@@ -37,7 +37,20 @@ class InlineCaseSplitRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = ctx
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -64,5 +77,11 @@ class InlineCaseSplitRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(InlineCaseSplitRule)

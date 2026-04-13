@@ -44,7 +44,20 @@ class BarePronounOpeningRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         openers = frozenset(
             word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_openers
         )
@@ -199,5 +212,11 @@ def _token_word(token) -> str:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(BarePronounOpeningRule)

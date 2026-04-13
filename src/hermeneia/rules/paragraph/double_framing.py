@@ -31,7 +31,20 @@ class DoubleFramingRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         framing_markers = tuple(ctx.language_pack.lexicons.list_framing_markers)
         flat_blocks = list(doc.iter_blocks())
         violations: list[Violation] = []
@@ -127,5 +140,11 @@ def _first_sentence_text(block: Block) -> str | None:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(DoubleFramingRule)

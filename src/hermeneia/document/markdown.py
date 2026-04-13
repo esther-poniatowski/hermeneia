@@ -1,4 +1,14 @@
-"""Markdown-it-backed parser into the Hermeneia document IR."""
+"""Markdown-it-backed parser into the Hermeneia document IR.
+
+Classes
+-------
+VisibleBuffer
+    Public API symbol.
+InlineSpan
+    Public API symbol.
+MarkdownDocumentParser
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -50,10 +60,16 @@ class InlineSpan:
 
 
 class MarkdownDocumentParser(DocumentParser):
-    """Parse markdown into the shared block/inline document IR."""
+    """Parse markdown into the shared block/inline document IR.
+
+    Parameters
+    ----------
+    language_pack : LanguagePack
+        Input value for ``language_pack``.
+    """
 
     def __init__(self, language_pack: LanguagePack) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._language_pack = language_pack
         self._projection_settings = ProjectionSettings(
             heavy_math_masking_ratio=language_pack.preprocessing.heavy_math_masking_ratio,
@@ -64,7 +80,18 @@ class MarkdownDocumentParser(DocumentParser):
         self._markdown = MarkdownIt("commonmark").enable("table")
 
     def parse(self, request: ParseRequest) -> Document:
-        """Parse."""
+        """Parse.
+
+        Parameters
+        ----------
+        request : ParseRequest
+            Structured request object for this operation.
+
+        Returns
+        -------
+        Document
+            Resulting value produced by this call.
+        """
         source = request.source
         line_starts = _line_starts(source)
         tokens = self._markdown.parse(source)

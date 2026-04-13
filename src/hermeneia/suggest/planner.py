@@ -16,16 +16,33 @@ from hermeneia.suggest.template import (
 
 
 class RevisionPlanner:
-    """Revisionplanner."""
+    """Revisionplanner.
+
+    Parameters
+    ----------
+    default_mode : SuggestionMode
+        Input value for ``default_mode``.
+    """
 
     def __init__(
         self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
     ) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._default_mode = default_mode
 
     def build(self, violations: list[Violation]) -> RevisionPlan:
-        """Build."""
+        """Build.
+
+        Parameters
+        ----------
+        violations : list[Violation]
+            Input value for ``violations``.
+
+        Returns
+        -------
+        RevisionPlan
+            Resulting value produced by this call.
+        """
         operations = [self._operation_for(violation) for violation in violations]
         ordered = tuple(
             sorted(

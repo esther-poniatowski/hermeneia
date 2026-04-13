@@ -37,7 +37,20 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_overlap = self.settings.float_option("min_nonadjacent_overlap", 0.7)
         min_redundant_pairs = self.settings.int_option("min_redundant_pairs", 1)
         min_sentence_count = self.settings.int_option("min_sentence_count", 3)
@@ -143,5 +156,11 @@ def _introduces_new_support(
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(LexicalRepetitionRule)

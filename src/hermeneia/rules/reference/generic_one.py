@@ -44,7 +44,20 @@ class GenericOneRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         markers = tuple(ctx.language_pack.lexicons.generic_one_markers)
         phrase_markers = tuple(marker for marker in markers if " " in marker)
         phrase_pattern = compile_inline_phrase_regex(phrase_markers)
@@ -159,5 +172,11 @@ def _seen(seen: set[tuple[int, int]], span: Span) -> bool:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(GenericOneRule)

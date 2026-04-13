@@ -37,13 +37,24 @@ class _SectionOpenerBlockKindOptions:
         blocked_block_kinds: tuple[str, ...] | None = None,
         apply_heading_levels: tuple[int, ...] | None = None,
     ) -> None:
-        """Init."""
+        """Initialize the instance."""
         self.blocked_block_kinds = blocked_block_kinds
         self.apply_heading_levels = apply_heading_levels
 
     @classmethod
     def model_validate(cls, raw: object) -> "_SectionOpenerBlockKindOptions":
-        """Model validate."""
+        """Validate and normalize raw options.
+
+        Parameters
+        ----------
+        raw : object
+            Raw value before validation.
+
+        Returns
+        -------
+        _SectionOpenerBlockKindOptions
+            Resulting value produced by this call.
+        """
         mapping = mapping_with_allowed_keys(
             raw,
             allowed=frozenset({"blocked_block_kinds", "apply_heading_levels"}),
@@ -61,7 +72,13 @@ class _SectionOpenerBlockKindOptions:
         )
 
     def model_dump(self) -> dict[str, object]:
-        """Model dump."""
+        """Serialize options into a plain mapping.
+
+        Returns
+        -------
+        dict[str, object]
+            Resulting value produced by this call.
+        """
         dumped: dict[str, object] = {}
         if self.blocked_block_kinds is not None:
             dumped["blocked_block_kinds"] = self.blocked_block_kinds
@@ -92,7 +109,20 @@ class SectionOpenerBlockKindRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         blocked_opening_kinds = resolve_block_kinds(
             self.settings.options.get("blocked_block_kinds"),
             field="blocked_block_kinds",
@@ -208,5 +238,11 @@ def _resolve_heading_levels(raw: object) -> frozenset[int] | None:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(SectionOpenerBlockKindRule)

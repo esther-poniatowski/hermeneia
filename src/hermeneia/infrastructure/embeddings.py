@@ -10,15 +10,32 @@ from hermeneia.document.indexes import EmbeddingBackend
 
 
 class SentenceTransformerEmbeddingBackend:
-    """Lazy sentence-transformers backend bound to a specific model id."""
+    """Lazy sentence-transformers backend bound to a specific model id.
+
+    Parameters
+    ----------
+    model_name : str
+        Input value for ``model_name``.
+    """
 
     def __init__(self, model_name: str) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._model_name = model_name
         self._model: Any | None = None
 
     def embed_text(self, text: str) -> tuple[float, ...]:
-        """Embed text."""
+        """Embed text.
+
+        Parameters
+        ----------
+        text : str
+            Text content to process.
+
+        Returns
+        -------
+        tuple[float, ...]
+            Resulting value produced by this call.
+        """
         model = self._get_model()
         raw = model.encode(text, normalize_embeddings=True)
         return _coerce_vector(raw)
@@ -47,7 +64,23 @@ class SentenceTransformerEmbeddingBackend:
 
 
 def build_embedding_backend(config: EmbeddingConfig) -> EmbeddingBackend | None:
-    """Create the configured embedding backend for pipeline injection."""
+    """Create the configured embedding backend for pipeline injection.
+
+    Parameters
+    ----------
+    config : EmbeddingConfig
+        Resolved configuration used by this operation.
+
+    Returns
+    -------
+    EmbeddingBackend | None
+        Resulting value produced by this call.
+
+    Raises
+    ------
+    ValueError
+        Raised under documented error conditions.
+    """
 
     if config.backend == "none":
         return None

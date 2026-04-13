@@ -1,4 +1,24 @@
-"""Application-level analysis orchestration."""
+"""Application-level analysis orchestration.
+
+Classes
+-------
+AnalysisInput
+    Public API symbol.
+OperationalDiagnostic
+    Public API symbol.
+AnalysisResult
+    Public API symbol.
+BatchAnalysisResult
+    Public API symbol.
+AnnotationResult
+    Public API symbol.
+AnalysisPolicy
+    Public API symbol.
+DocumentAnnotator
+    Public API symbol.
+AnalysisRunner
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -82,12 +102,41 @@ class DocumentAnnotator(Protocol):
     def annotate(
         self, document: Document, profile: ResolvedProfile
     ) -> AnnotationResult:
-        """Annotate."""
+        """Annotate.
+
+        Parameters
+        ----------
+        document : Document
+            Document instance to inspect.
+        profile : ResolvedProfile
+            Resolved profile controlling rule behavior.
+
+        Raises
+        ------
+        NotImplementedError
+            Raised under documented error conditions.
+        """
         raise NotImplementedError
 
 
 class AnalysisRunner:
-    """Concrete orchestration for parse -> annotate -> feature -> detect -> score -> report."""
+    """Concrete orchestration for parse -> annotate -> feature -> detect -> score -> report.
+
+    Parameters
+    ----------
+    parser : DocumentParser
+        Input value for ``parser``.
+    annotator : DocumentAnnotator
+        Input value for ``annotator``.
+    registry : RuleRegistry
+        Rule registry used to resolve implementations.
+    language_pack : LanguagePack
+        Input value for ``language_pack``.
+    embedding_backend : EmbeddingBackend | None
+        Input value for ``embedding_backend``.
+    policy : AnalysisPolicy | None
+        Input value for ``policy``.
+    """
 
     def __init__(
         self,
@@ -98,7 +147,7 @@ class AnalysisRunner:
         embedding_backend: EmbeddingBackend | None,
         policy: AnalysisPolicy | None = None,
     ) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._parser = parser
         self._annotator = annotator
         self._registry = registry
@@ -117,7 +166,20 @@ class AnalysisRunner:
         inputs: tuple[AnalysisInput, ...],
         profile: ResolvedProfile,
     ) -> BatchAnalysisResult:
-        """Analyze."""
+        """Analyze.
+
+        Parameters
+        ----------
+        inputs : tuple[AnalysisInput, ...]
+            Input value for ``inputs``.
+        profile : ResolvedProfile
+            Resolved profile controlling rule behavior.
+
+        Returns
+        -------
+        BatchAnalysisResult
+            Resulting value produced by this call.
+        """
         results: list[AnalysisResult] = []
         diagnostics: list[OperationalDiagnostic] = []
         score_enabled = self._score_enabled()

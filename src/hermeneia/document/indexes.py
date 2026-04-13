@@ -1,4 +1,27 @@
-"""Document indexes and shared feature computations."""
+"""Document indexes and shared feature computations.
+
+Classes
+-------
+SectionView
+    Public API symbol.
+SentenceRef
+    Public API symbol.
+SupportSignalKind
+    Public API symbol.
+SupportSignal
+    Public API symbol.
+DocumentIndexes
+    Public API symbol.
+EmbeddingBackend
+    Public API symbol.
+FeatureStore
+    Public API symbol.
+
+Functions
+---------
+build_document_indexes
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -47,7 +70,7 @@ class SentenceRef:
 
 
 class SupportSignalKind(StrEnum):
-    """Supportsignalkind."""
+    """Kinds of parser-derived support signals."""
 
     CITATION = "citation"
     THEOREM_REF = "theorem_ref"
@@ -71,7 +94,7 @@ class SupportSignal:
 
 @dataclass
 class DocumentIndexes:
-    """Documentindexes."""
+    """Precomputed indexes derived from a parsed document."""
 
     sections: list[SectionView]
     sentences: tuple[SentenceRef, ...]
@@ -83,13 +106,35 @@ class DocumentIndexes:
 
 
 class EmbeddingBackend(Protocol):
-    """Embeddingbackend."""
+    """Protocol for embedding backend implementations."""
 
-    def embed_text(self, text: str) -> tuple[float, ...]: ...
+    def embed_text(self, text: str) -> tuple[float, ...]:
+        """Embed text.
+
+        Parameters
+        ----------
+        text : str
+            Text content to process.
+
+        Returns
+        -------
+        tuple[float, ...]
+            Resulting value produced by this call.
+        """
 
 
 class FeatureStore:
-    """Precomputed document-level features shared across rules."""
+    """Precomputed document-level features shared across rules.
+
+    Parameters
+    ----------
+    doc : Document
+        Document instance to inspect.
+    indexes : DocumentIndexes
+        Input value for ``indexes``.
+    embedding_backend : EmbeddingBackend | None
+        Input value for ``embedding_backend``.
+    """
 
     def __init__(
         self,
@@ -97,7 +142,7 @@ class FeatureStore:
         indexes: DocumentIndexes,
         embedding_backend: EmbeddingBackend | None = None,
     ) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._doc = doc
         self._indexes = indexes
         self._embedding_backend = embedding_backend
@@ -125,11 +170,33 @@ class FeatureStore:
         self._block_sections = _block_section_map(indexes.sections)
 
     def term_first_use(self, term: str) -> Span | None:
-        """Term first use."""
+        """Term first use.
+
+        Parameters
+        ----------
+        term : str
+            Input value for ``term``.
+
+        Returns
+        -------
+        Span | None
+            Resulting value produced by this call.
+        """
         return self._indexes.term_first_use.get(term.lower())
 
     def symbol_first_use(self, symbol: str) -> Span | None:
-        """Symbol first use."""
+        """Symbol first use.
+
+        Parameters
+        ----------
+        symbol : str
+            Input value for ``symbol``.
+
+        Returns
+        -------
+        Span | None
+            Resulting value produced by this call.
+        """
         return self._indexes.symbol_first_use.get(symbol)
 
     def support_signals_in_window(
@@ -137,7 +204,20 @@ class FeatureStore:
         anchor_sentence_id: str,
         max_sentences_back: int = 3,
     ) -> list[SupportSignal]:
-        """Support signals in window."""
+        """Support signals in window.
+
+        Parameters
+        ----------
+        anchor_sentence_id : str
+            Input value for ``anchor_sentence_id``.
+        max_sentences_back : int
+            Input value for ``max_sentences_back``.
+
+        Returns
+        -------
+        list[SupportSignal]
+            Resulting value produced by this call.
+        """
         anchor = self._sentence_ordinals.get(anchor_sentence_id)
         anchor_ref = self._sentence_index.get(anchor_sentence_id)
         if anchor is None or anchor_ref is None:
@@ -160,7 +240,20 @@ class FeatureStore:
         return results
 
     def sentence_overlap(self, sent_a_id: str, sent_b_id: str) -> float:
-        """Sentence overlap."""
+        """Sentence overlap.
+
+        Parameters
+        ----------
+        sent_a_id : str
+            Input value for ``sent_a_id``.
+        sent_b_id : str
+            Input value for ``sent_b_id``.
+
+        Returns
+        -------
+        float
+            Resulting value produced by this call.
+        """
         key = (
             (sent_a_id, sent_b_id) if sent_a_id <= sent_b_id else (sent_b_id, sent_a_id)
         )
@@ -173,7 +266,20 @@ class FeatureStore:
         return self._sentence_overlap_cache[key]
 
     def paragraph_overlap(self, block_id_a: str, block_id_b: str) -> float:
-        """Paragraph overlap."""
+        """Paragraph overlap.
+
+        Parameters
+        ----------
+        block_id_a : str
+            Input value for ``block_id_a``.
+        block_id_b : str
+            Input value for ``block_id_b``.
+
+        Returns
+        -------
+        float
+            Resulting value produced by this call.
+        """
         key = (
             (block_id_a, block_id_b)
             if block_id_a <= block_id_b
@@ -192,11 +298,28 @@ class FeatureStore:
 
     @property
     def embeddings_available(self) -> bool:
-        """Embeddings available."""
+        """Embeddings available.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         return self._embedding_backend is not None
 
     def sentence_embedding(self, sent_id: str) -> tuple[float, ...] | None:
-        """Sentence embedding."""
+        """Sentence embedding.
+
+        Parameters
+        ----------
+        sent_id : str
+            Input value for ``sent_id``.
+
+        Returns
+        -------
+        tuple[float, ...] | None
+            Resulting value produced by this call.
+        """
         backend = self._embedding_backend
         if backend is None:
             return None
@@ -210,7 +333,18 @@ class FeatureStore:
         return self._sentence_embedding_cache[sent_id]
 
     def paragraph_embedding(self, block_id: str) -> tuple[float, ...] | None:
-        """Paragraph embedding."""
+        """Paragraph embedding.
+
+        Parameters
+        ----------
+        block_id : str
+            Input value for ``block_id``.
+
+        Returns
+        -------
+        tuple[float, ...] | None
+            Resulting value produced by this call.
+        """
         backend = self._embedding_backend
         if backend is None:
             return None
@@ -227,7 +361,18 @@ class FeatureStore:
         self,
         similarity_threshold: float = 0.85,
     ) -> list[tuple[str, str, float]]:
-        """Redundancy candidates."""
+        """Redundancy candidates.
+
+        Parameters
+        ----------
+        similarity_threshold : float
+            Input value for ``similarity_threshold``.
+
+        Returns
+        -------
+        list[tuple[str, str, float]]
+            Resulting value produced by this call.
+        """
         cache_key = round(similarity_threshold, 6)
         cached = self._redundancy_candidate_cache.get(cache_key)
         if cached is not None:
@@ -306,17 +451,45 @@ class FeatureStore:
 
     @property
     def sections(self) -> list[SectionView]:
-        """Sections."""
+        """Sections.
+
+        Returns
+        -------
+        list[SectionView]
+            Resulting value produced by this call.
+        """
         return self._indexes.sections
 
     def sibling_headings(self, level: int) -> list[Block]:
-        """Sibling headings."""
+        """Return sibling headings.
+
+        Parameters
+        ----------
+        level : int
+            Input value for ``level``.
+
+        Returns
+        -------
+        list[Block]
+            Resulting value produced by this call.
+        """
         return [
             heading for group in self.sibling_heading_groups(level) for heading in group
         ]
 
     def sibling_heading_groups(self, level: int) -> tuple[tuple[Block, ...], ...]:
-        """Sibling heading groups."""
+        """Return sibling heading groups.
+
+        Parameters
+        ----------
+        level : int
+            Input value for ``level``.
+
+        Returns
+        -------
+        tuple[tuple[Block, ...], ...]
+            Resulting value produced by this call.
+        """
         grouped: dict[str | None, list[Block]] = {}
         for block in self._doc.iter_blocks():
             if block.kind != BlockKind.HEADING:
@@ -338,7 +511,22 @@ def build_document_indexes(
     contrast_markers: Iterable[str],
     definitional_markers: Iterable[str],
 ) -> DocumentIndexes:
-    """Compute canonical derived indexes for a parsed document."""
+    """Compute canonical derived indexes for a parsed document.
+
+    Parameters
+    ----------
+    doc : Document
+        Document instance to inspect.
+    contrast_markers : Iterable[str]
+        Input value for ``contrast_markers``.
+    definitional_markers : Iterable[str]
+        Input value for ``definitional_markers``.
+
+    Returns
+    -------
+    DocumentIndexes
+        Resulting value produced by this call.
+    """
 
     sentence_refs: list[SentenceRef] = []
     math_block_ids: list[str] = []

@@ -35,7 +35,22 @@ class SeeLinkRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : object
+            Source lines involved in this computation.
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = doc, ctx
         violations: list[Violation] = []
         for line in lines:
@@ -81,5 +96,11 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(SeeLinkRule)

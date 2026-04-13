@@ -32,7 +32,20 @@ class SentenceRedundancyRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_overlap = self.settings.float_option("min_overlap", 0.78)
         violations: list[Violation] = []
         sentence_refs = doc.indexes.sentences
@@ -99,5 +112,11 @@ def _introduces_citation_or_claim(
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(SentenceRedundancyRule)

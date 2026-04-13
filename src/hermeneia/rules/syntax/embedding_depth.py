@@ -41,7 +41,20 @@ class EmbeddingDepthRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         max_dependency_depth = self.settings.int_option("max_dependency_depth", 5)
         max_embedding_markers = self.settings.int_option("max_embedding_markers", 4)
         min_sentence_words = self.settings.int_option("min_sentence_words", 14)
@@ -134,5 +147,11 @@ def _embedding_markers(text: str, subordinate_pattern: re.Pattern[str]) -> int:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(EmbeddingDepthRule)

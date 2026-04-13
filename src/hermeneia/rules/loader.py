@@ -10,7 +10,13 @@ import hermeneia.rules as rules_package
 
 
 def load_builtin_rules(registry: RuleRegistry) -> None:
-    """Walk the built-in rule packages and call register(registry) where present."""
+    """Walk the built-in rule packages and call register(registry) where present.
+
+    Parameters
+    ----------
+    registry : RuleRegistry
+        Rule registry used to resolve implementations.
+    """
 
     prefix = f"{rules_package.__name__}."
     for module_info in pkgutil.walk_packages(rules_package.__path__, prefix):
@@ -23,7 +29,15 @@ def load_builtin_rules(registry: RuleRegistry) -> None:
 
 
 def load_external_rules(module_name: str, registry: RuleRegistry) -> None:
-    """Load a plugin module exposing the same register(registry) protocol."""
+    """Load a plugin module exposing the same register(registry) protocol.
+
+    Parameters
+    ----------
+    module_name : str
+        Input value for ``module_name``.
+    registry : RuleRegistry
+        Rule registry used to resolve implementations.
+    """
 
     module = importlib.import_module(module_name)
     register = getattr(module, "register", None)

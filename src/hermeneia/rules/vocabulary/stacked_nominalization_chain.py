@@ -38,7 +38,20 @@ class StackedNominalizationChainRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_chain = self.settings.int_option("min_chain", 3)
         suffixes = tuple(
             suffix.lower()
@@ -155,5 +168,11 @@ def _token_word(token: Token) -> str:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(StackedNominalizationChainRule)

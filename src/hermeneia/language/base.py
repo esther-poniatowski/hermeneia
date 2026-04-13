@@ -1,4 +1,14 @@
-"""Language-pack contracts and shared settings."""
+"""Language-pack contracts and shared settings.
+
+Classes
+-------
+PreprocessingPolicy
+    Public API symbol.
+LanguageLexicons
+    Public API symbol.
+LanguagePack
+    Public API symbol.
+"""
 
 from __future__ import annotations
 

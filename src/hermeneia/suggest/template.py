@@ -1,4 +1,25 @@
-"""Guarded candidate rewrites."""
+"""Guarded candidate rewrites.
+
+Classes
+-------
+RewriteCandidate
+    Public API symbol.
+
+Functions
+---------
+rewrite_for_contraction
+    Public API symbol.
+rewrite_for_proof_marker
+    Public API symbol.
+rewrite_for_nominalization
+    Public API symbol.
+rewrite_for_passive_voice
+    Public API symbol.
+tactic_only
+    Public API symbol.
+no_deterministic_rewrite_available
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -63,7 +84,18 @@ NOMINALIZATION_VERB_MAP: Mapping[str, str] = {
 
 
 def rewrite_for_contraction(contraction: str | None) -> RewriteCandidate:
-    """Rewrite for contraction."""
+    """Rewrite for contraction.
+
+    Parameters
+    ----------
+    contraction : str | None
+        Input value for ``contraction``.
+
+    Returns
+    -------
+    RewriteCandidate
+        Resulting value produced by this call.
+    """
     if contraction is None:
         return RewriteCandidate(tactic="Expand contractions in technical prose")
     normalized = contraction.lower()
@@ -77,7 +109,13 @@ def rewrite_for_contraction(contraction: str | None) -> RewriteCandidate:
 
 
 def rewrite_for_proof_marker() -> RewriteCandidate:
-    """Rewrite for proof marker."""
+    """Rewrite for proof marker.
+
+    Returns
+    -------
+    RewriteCandidate
+        Resulting value produced by this call.
+    """
     return RewriteCandidate(
         tactic="Introduce an explicit proof opener before the proof body.",
         candidate_rewrite="*Proof.*",
@@ -88,7 +126,20 @@ def rewrite_for_nominalization(
     nominalization: str | None,
     support_verb: str | None,
 ) -> RewriteCandidate | None:
-    """Rewrite for nominalization."""
+    """Rewrite for nominalization.
+
+    Parameters
+    ----------
+    nominalization : str | None
+        Input value for ``nominalization``.
+    support_verb : str | None
+        Input value for ``support_verb``.
+
+    Returns
+    -------
+    RewriteCandidate | None
+        Resulting value produced by this call.
+    """
     if nominalization is None:
         return None
     verb = NOMINALIZATION_VERB_MAP.get(nominalization.lower())
@@ -108,7 +159,20 @@ def rewrite_for_passive_voice(
     actor: str | None,
     participle: str | None,
 ) -> RewriteCandidate | None:
-    """Rewrite for passive voice."""
+    """Rewrite for passive voice.
+
+    Parameters
+    ----------
+    actor : str | None
+        Input value for ``actor``.
+    participle : str | None
+        Input value for ``participle``.
+
+    Returns
+    -------
+    RewriteCandidate | None
+        Resulting value produced by this call.
+    """
     if actor is None:
         return None
     cleaned_actor = actor.strip()
@@ -127,12 +191,29 @@ def rewrite_for_passive_voice(
 
 
 def tactic_only(message: str) -> RewriteCandidate:
-    """Tactic only."""
+    """Tactic only.
+
+    Parameters
+    ----------
+    message : str
+        Input value for ``message``.
+
+    Returns
+    -------
+    RewriteCandidate
+        Resulting value produced by this call.
+    """
     return RewriteCandidate(tactic=message)
 
 
 def no_deterministic_rewrite_available() -> RewriteCandidate:
-    """No deterministic rewrite available."""
+    """No deterministic rewrite available.
+
+    Returns
+    -------
+    RewriteCandidate
+        Resulting value produced by this call.
+    """
     return RewriteCandidate(
         tactic=(
             "No deterministic rewrite candidate is available for this rule; "

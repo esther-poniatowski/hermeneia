@@ -35,7 +35,20 @@ class VagueRhetoricalOpenerRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         patterns = _resolve_patterns(
             base=tuple(ctx.language_pack.lexicons.vague_rhetorical_openers),
             extra=self.settings.extra_patterns,
@@ -110,5 +123,11 @@ def _token_boundary_after_pattern(text: str, pattern: str) -> bool:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(VagueRhetoricalOpenerRule)

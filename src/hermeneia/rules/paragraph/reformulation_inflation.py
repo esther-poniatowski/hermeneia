@@ -32,7 +32,20 @@ class ReformulationInflationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_overlap = self.settings.float_option("min_overlap", 0.62)
         marker_pattern = compile_leading_phrase_regex(
             tuple(ctx.language_pack.lexicons.reformulation_markers)
@@ -110,5 +123,11 @@ def _support_signals_by_sentence(doc) -> dict[str, frozenset[SupportSignalKind]]
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ReformulationInflationRule)

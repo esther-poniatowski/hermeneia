@@ -36,7 +36,20 @@ class StressPositionRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         weak_final_words = ctx.language_pack.lexicons.weak_final_words
         if not weak_final_words:
             return []
@@ -88,5 +101,11 @@ def _final_content_token(sentence: Sentence) -> str | None:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(StressPositionRule)

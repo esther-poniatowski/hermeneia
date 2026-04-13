@@ -39,7 +39,20 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         lookback = self.settings.int_option("lookback_sentences", 2)
         markers = tuple(
             marker.lower()
@@ -103,5 +116,11 @@ class QualitativeClaimWithoutQuantSupportRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(QualitativeClaimWithoutQuantSupportRule)

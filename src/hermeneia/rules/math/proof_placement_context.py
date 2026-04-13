@@ -36,7 +36,20 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         interpretation_markers = tuple(
             ctx.language_pack.lexicons.formula_interpretation_markers
         )
@@ -92,5 +105,11 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ProofPlacementContextRule)

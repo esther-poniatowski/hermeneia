@@ -45,13 +45,24 @@ class _OpeningSentencePresenceOptions:
         min_opening_words: int | None = None,
         forbidden_block_kinds: tuple[str, ...] | None = None,
     ) -> None:
-        """Init."""
+        """Initialize the instance."""
         self.min_opening_words = min_opening_words
         self.forbidden_block_kinds = forbidden_block_kinds
 
     @classmethod
     def model_validate(cls, raw: object) -> "_OpeningSentencePresenceOptions":
-        """Model validate."""
+        """Validate and normalize raw options.
+
+        Parameters
+        ----------
+        raw : object
+            Raw value before validation.
+
+        Returns
+        -------
+        _OpeningSentencePresenceOptions
+            Resulting value produced by this call.
+        """
         mapping = mapping_with_allowed_keys(
             raw,
             allowed=frozenset({"min_opening_words", "forbidden_block_kinds"}),
@@ -69,7 +80,13 @@ class _OpeningSentencePresenceOptions:
         )
 
     def model_dump(self) -> dict[str, object]:
-        """Model dump."""
+        """Serialize options into a plain mapping.
+
+        Returns
+        -------
+        dict[str, object]
+            Resulting value produced by this call.
+        """
         dumped: dict[str, object] = {}
         if self.min_opening_words is not None:
             dumped["min_opening_words"] = self.min_opening_words
@@ -101,7 +118,20 @@ class OpeningSentencePresenceRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_opening_words = self.settings.int_option("min_opening_words", 8)
         forbidden_block_kinds = resolve_block_kinds(
             self.settings.options.get("forbidden_block_kinds"),
@@ -185,5 +215,11 @@ def _parse_positive_int(raw: object, *, field: str) -> int | None:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(OpeningSentencePresenceRule)

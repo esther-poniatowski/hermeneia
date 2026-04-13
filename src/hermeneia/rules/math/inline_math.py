@@ -39,7 +39,22 @@ class InlineMathRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : object
+            Source lines involved in this computation.
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = ctx
         max_inline_length = self.settings.int_option("max_inline_length", 40)
         violations: list[Violation] = []
@@ -158,5 +173,11 @@ def _is_trivial_inline_equality(content: str) -> bool:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(InlineMathRule)

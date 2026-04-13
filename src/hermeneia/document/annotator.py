@@ -24,10 +24,16 @@ class AnnotationBackendStatus:
 
 
 class SpaCyDocumentAnnotator:
-    """Annotate sentences with spaCy when available, otherwise degrade explicitly."""
+    """Annotate sentences with spaCy when available, otherwise degrade explicitly.
+
+    Parameters
+    ----------
+    model_name : str | None
+        Input value for ``model_name``.
+    """
 
     def __init__(self, model_name: str | None) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._model_name = model_name
         self._nlp: Any | None = None
         self._status = AnnotationBackendStatus(
@@ -37,7 +43,20 @@ class SpaCyDocumentAnnotator:
     def annotate(
         self, document: Document, profile: ResolvedProfile
     ) -> AnnotationResult:
-        """Annotate."""
+        """Annotate.
+
+        Parameters
+        ----------
+        document : Document
+            Document instance to inspect.
+        profile : ResolvedProfile
+            Resolved profile controlling rule behavior.
+
+        Returns
+        -------
+        AnnotationResult
+            Resulting value produced by this call.
+        """
         _ = profile
         if self._try_load():
             self._annotate_with_spacy(document)

@@ -35,7 +35,20 @@ class ParagraphParallelismRule(AnnotatedRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = ctx
         violations: list[Violation] = []
         for list_block in iter_blocks(doc, {BlockKind.LIST}):
@@ -122,5 +135,11 @@ def _majority(values: tuple[str, ...]) -> str | None:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ParagraphParallelismRule)

@@ -48,7 +48,20 @@ class OpeningMessageFocusRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_items = self.settings.int_option("min_enumeration_items", 4)
         min_words = self.settings.int_option("min_opening_words", 8)
         sentence = _first_opening_sentence(doc)
@@ -150,5 +163,11 @@ def _estimate_enumeration_items(text: str) -> int:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(OpeningMessageFocusRule)

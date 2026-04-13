@@ -1,4 +1,40 @@
-"""Rule-domain types and base classes."""
+"""Rule-domain types and base classes.
+
+Classes
+-------
+Layer
+    Public API symbol.
+Tractability
+    Public API symbol.
+Severity
+    Public API symbol.
+RuleKind
+    Public API symbol.
+SuggestionMode
+    Public API symbol.
+RuleMetadata
+    Public API symbol.
+RuleEvidence
+    Public API symbol.
+Violation
+    Public API symbol.
+ResolvedRuleSettings
+    Public API symbol.
+ResolvedProfile
+    Public API symbol.
+RuntimeCapabilities
+    Public API symbol.
+RuleContext
+    Public API symbol.
+BaseRule
+    Public API symbol.
+SourcePatternRule
+    Public API symbol.
+AnnotatedRule
+    Public API symbol.
+HeuristicSemanticRule
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -40,7 +76,7 @@ class Severity(StrEnum):
 
 
 class RuleKind(StrEnum):
-    """Rulekind."""
+    """Execution contracts available for rules."""
 
     HARD_CONSTRAINT = "hard_constraint"
     SOFT_HEURISTIC = "soft_heuristic"
@@ -115,21 +151,65 @@ class ResolvedRuleSettings:
     silenced_patterns: tuple[str, ...] = ()
 
     def int_option(self, key: str, default: int) -> int:
-        """Int option."""
+        """Int option.
+
+        Parameters
+        ----------
+        key : str
+            Input value for ``key``.
+        default : int
+            Input value for ``default``.
+
+        Returns
+        -------
+        int
+            Resulting value produced by this call.
+        """
         value = self.options.get(key, default)
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise ValueError(f"Rule option '{key}' must be convertible to int")
         return int(value)
 
     def float_option(self, key: str, default: float) -> float:
-        """Float option."""
+        """Float option.
+
+        Parameters
+        ----------
+        key : str
+            Input value for ``key``.
+        default : float
+            Input value for ``default``.
+
+        Returns
+        -------
+        float
+            Resulting value produced by this call.
+        """
         value = self.options.get(key, default)
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise ValueError(f"Rule option '{key}' must be convertible to float")
         return float(value)
 
     def bool_option(self, key: str, default: bool) -> bool:
-        """Bool option."""
+        """Bool option.
+
+        Parameters
+        ----------
+        key : str
+            Input value for ``key``.
+        default : bool
+            Input value for ``default``.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+
+        Raises
+        ------
+        ValueError
+            Raised under documented error conditions.
+        """
         value = self.options.get(key, default)
         if isinstance(value, bool):
             return value
@@ -157,13 +237,19 @@ class ResolvedProfile:
     rules: Mapping[str, ResolvedRuleSettings]
 
     def active_rules(self) -> tuple[ResolvedRuleSettings, ...]:
-        """Active rules."""
+        """Active rules.
+
+        Returns
+        -------
+        tuple[ResolvedRuleSettings, ...]
+            Resulting value produced by this call.
+        """
         return tuple(settings for settings in self.rules.values() if settings.enabled)
 
 
 @dataclass(frozen=True)
 class RuntimeCapabilities:
-    """Runtimecapabilities."""
+    """Runtime capability flags available during rule execution."""
 
     embeddings_available: bool
     debug_mode: bool
@@ -171,7 +257,13 @@ class RuntimeCapabilities:
 
     @classmethod
     def defaults(cls) -> "RuntimeCapabilities":
-        """Defaults."""
+        """Defaults.
+
+        Returns
+        -------
+        RuntimeCapabilities
+            Resulting value produced by this call.
+        """
         return cls(
             embeddings_available=False,
             debug_mode=False,
@@ -181,7 +273,7 @@ class RuntimeCapabilities:
 
 @dataclass(frozen=True)
 class RuleContext:
-    """Rulecontext."""
+    """Shared runtime context passed to rule evaluations."""
 
     profile: ResolvedProfile
     language_pack: LanguagePack
@@ -192,44 +284,102 @@ class RuleContext:
 
     @property
     def embeddings_available(self) -> bool:
-        """Embeddings available."""
+        """Embeddings available.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         return self.capabilities.embeddings_available
 
     @property
     def debug_mode(self) -> bool:
-        """Debug mode."""
+        """Debug mode.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         return self.capabilities.debug_mode
 
     @property
     def enable_experimental(self) -> bool:
-        """Enable experimental."""
+        """Enable experimental.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         return self.capabilities.experimental_rules_enabled
 
 
 class BaseRule(ABC):
-    """Baserule."""
+    """Abstract base class for all Hermeneia rules.
+
+    Parameters
+    ----------
+    settings : ResolvedRuleSettings
+        Input value for ``settings``.
+
+    Attributes
+    ----------
+    metadata : ClassVar[RuleMetadata]
+        Configured value for ``metadata``.
+    options_model : ClassVar[type[object] | None]
+        Configured value for ``options_model``.
+    settings : object
+        Configured value for ``settings``.
+    """
 
     metadata: ClassVar[RuleMetadata]
     options_model: ClassVar[type[object] | None] = None
 
     def __init__(self, settings: ResolvedRuleSettings) -> None:
-        """Init."""
+        """Initialize the instance."""
         self.settings = settings
 
     @property
     def rule_id(self) -> str:
-        """Rule id."""
+        """Rule id.
+
+        Returns
+        -------
+        str
+            Resulting value produced by this call.
+        """
         return self.metadata.rule_id
 
     def should_abstain(self, annotation_flags: frozenset[str]) -> bool:
-        """Should abstain."""
+        """Should abstain.
+
+        Parameters
+        ----------
+        annotation_flags : frozenset[str]
+            Input value for ``annotation_flags``.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         if not self.metadata.abstain_when_flags:
             return False
         return bool(annotation_flags & self.metadata.abstain_when_flags)
 
     @abstractmethod
     def check(self, doc: Document, ctx: RuleContext) -> list[Violation]:
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : Document
+            Document instance to inspect.
+        ctx : RuleContext
+            Rule evaluation context.
+        """
         raise NotImplementedError
 
 
@@ -243,11 +393,34 @@ class SourcePatternRule(BaseRule):
         doc: Document,
         ctx: RuleContext,
     ) -> list[Violation]:
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : list[SourceLine]
+            Source lines involved in this computation.
+        doc : Document
+            Document instance to inspect.
+        ctx : RuleContext
+            Rule evaluation context.
+        """
         raise NotImplementedError
 
     def check(self, doc: Document, ctx: RuleContext) -> list[Violation]:
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : Document
+            Document instance to inspect.
+        ctx : RuleContext
+            Rule evaluation context.
+
+        Returns
+        -------
+        list[Violation]
+            Resulting value produced by this call.
+        """
         return self.check_source(doc.source_lines, doc, ctx)
 
 

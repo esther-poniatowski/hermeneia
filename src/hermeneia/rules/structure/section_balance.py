@@ -30,7 +30,20 @@ class SectionBalanceRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         max_ratio = self.settings.float_option("max_ratio", 3.5)
         sections = [
             section
@@ -99,5 +112,11 @@ def _section_word_count(doc, block_ids: tuple[str, ...]) -> int:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(SectionBalanceRule)

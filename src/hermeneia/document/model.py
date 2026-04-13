@@ -1,4 +1,32 @@
-"""Pure document-domain models for Hermeneia."""
+"""Pure document-domain models for Hermeneia.
+
+Classes
+-------
+Span
+    Public API symbol.
+MaskedSegmentKind
+    Public API symbol.
+MaskedSegment
+    Public API symbol.
+TextProjection
+    Public API symbol.
+Token
+    Public API symbol.
+BlockKind
+    Public API symbol.
+InlineKind
+    Public API symbol.
+InlineNode
+    Public API symbol.
+Sentence
+    Public API symbol.
+Block
+    Public API symbol.
+SourceLine
+    Public API symbol.
+Document
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -23,20 +51,48 @@ class Span:
     end_column: int
 
     def contains_offset(self, offset: int) -> bool:
-        """Contains offset."""
+        """Return whether the span contains the offset.
+
+        Parameters
+        ----------
+        offset : int
+            Input value for ``offset``.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         return self.start <= offset < self.end
 
     def overlaps(self, other: "Span") -> bool:
-        """Overlaps."""
+        """Overlaps.
+
+        Parameters
+        ----------
+        other : Span
+            Input value for ``other``.
+
+        Returns
+        -------
+        bool
+            Resulting value produced by this call.
+        """
         return self.start < other.end and other.start < self.end
 
     def line_tuple(self) -> tuple[int, int]:
-        """Line tuple."""
+        """Line tuple.
+
+        Returns
+        -------
+        tuple[int, int]
+            Resulting value produced by this call.
+        """
         return self.start_line, self.end_line
 
 
 class MaskedSegmentKind(StrEnum):
-    """Maskedsegmentkind."""
+    """Kinds of segments masked during text projection."""
 
     INLINE_MATH = "inline_math"
     INLINE_CODE = "inline_code"
@@ -61,7 +117,18 @@ class TextProjection:
     masked_segments: tuple[MaskedSegment, ...] = ()
 
     def source_offset_for(self, projection_offset: int) -> int | None:
-        """Source offset for."""
+        """Source offset for.
+
+        Parameters
+        ----------
+        projection_offset : int
+            Input value for ``projection_offset``.
+
+        Returns
+        -------
+        int | None
+            Resulting value produced by this call.
+        """
         if projection_offset < 0 or projection_offset >= len(self.normalized_to_source):
             return None
         return self.normalized_to_source[projection_offset]
@@ -82,7 +149,7 @@ class Token:
 
 
 class BlockKind(StrEnum):
-    """Blockkind."""
+    """Kinds of block-level nodes in the document IR."""
 
     HEADING = "heading"
     PARAGRAPH = "paragraph"
@@ -99,7 +166,7 @@ class BlockKind(StrEnum):
 
 
 class InlineKind(StrEnum):
-    """Inlinekind."""
+    """Kinds of inline nodes captured in the document IR."""
 
     TEXT = "text"
     INLINE_MATH = "inline_math"
@@ -129,7 +196,13 @@ class Sentence:
     annotation_flags: frozenset[str] = frozenset()
 
     def token_text(self) -> str:
-        """Token text."""
+        """Token text.
+
+        Returns
+        -------
+        str
+            Resulting value produced by this call.
+        """
         return " ".join(token.text for token in self.tokens)
 
 
@@ -146,7 +219,13 @@ class Block:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def iter_blocks(self) -> Iterable["Block"]:
-        """Iter blocks."""
+        """Iter blocks.
+
+        Yields
+        ------
+        Iterable[Block]
+            Items yielded by this iterator.
+        """
         yield self
         for child in self.children:
             yield from child.iter_blocks()
@@ -174,19 +253,47 @@ class Document:
     path: Path | None = None
 
     def iter_blocks(self) -> Iterable[Block]:
-        """Iter blocks."""
+        """Iter blocks.
+
+        Yields
+        ------
+        Iterable[Block]
+            Items yielded by this iterator.
+        """
         for block in self.blocks:
             yield from block.iter_blocks()
 
     def block_by_id(self, block_id: str) -> Block | None:
-        """Block by id."""
+        """Block by id.
+
+        Parameters
+        ----------
+        block_id : str
+            Input value for ``block_id``.
+
+        Returns
+        -------
+        Block | None
+            Resulting value produced by this call.
+        """
         for block in self.iter_blocks():
             if block.id == block_id:
                 return block
         return None
 
     def sentence_by_id(self, sentence_id: str) -> Sentence | None:
-        """Sentence by id."""
+        """Sentence by id.
+
+        Parameters
+        ----------
+        sentence_id : str
+            Input value for ``sentence_id``.
+
+        Returns
+        -------
+        Sentence | None
+            Resulting value produced by this call.
+        """
         for block in self.iter_blocks():
             for sentence in block.sentences:
                 if sentence.id == sentence_id:
@@ -194,7 +301,13 @@ class Document:
         return None
 
     def prose_blocks(self) -> Iterable[Block]:
-        """Prose blocks."""
+        """Prose blocks.
+
+        Yields
+        ------
+        Iterable[Block]
+            Items yielded by this iterator.
+        """
         annotatable = {
             BlockKind.HEADING,
             BlockKind.PARAGRAPH,

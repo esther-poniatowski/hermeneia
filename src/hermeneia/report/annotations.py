@@ -25,7 +25,20 @@ class AnnotatedExcerpt:
 
 
 def build_excerpt(source: str, span: Span) -> AnnotatedExcerpt:
-    """Build excerpt."""
+    """Build excerpt.
+
+    Parameters
+    ----------
+    source : str
+        Source text to parse or analyze.
+    span : Span
+        Input value for ``span``.
+
+    Returns
+    -------
+    AnnotatedExcerpt
+        Resulting value produced by this call.
+    """
     source_lines = source.splitlines()
     start_line = max(1, span.start_line)
     end_line = max(start_line, span.end_line)
@@ -55,7 +68,20 @@ def build_excerpt(source: str, span: Span) -> AnnotatedExcerpt:
 def annotate_violations(
     source: str, violations: tuple[Violation, ...]
 ) -> tuple[AnnotatedExcerpt, ...]:
-    """Annotate violations."""
+    """Annotate violations.
+
+    Parameters
+    ----------
+    source : str
+        Source text to parse or analyze.
+    violations : tuple[Violation, ...]
+        Input value for ``violations``.
+
+    Returns
+    -------
+    tuple[AnnotatedExcerpt, ...]
+        Resulting value produced by this call.
+    """
     return tuple(build_excerpt(source, violation.span) for violation in violations)
 
 

@@ -35,7 +35,20 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         lookback = self.settings.int_option("lookback_sentences", 0)
         quantifiers = tuple(ctx.language_pack.lexicons.imprecise_quantifier_terms)
         violations: list[Violation] = []
@@ -90,5 +103,11 @@ class ImpreciseQuantifierWithoutCitationRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ImpreciseQuantifierWithoutCitationRule)

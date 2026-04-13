@@ -41,7 +41,20 @@ class TransitionQualityRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_overlap = self.settings.float_option("min_overlap_without_connector", 0.18)
         max_shift_findings = self.settings.int_option("max_shift_findings", 3)
         min_paragraph_sentences = self.settings.int_option("min_paragraph_sentences", 4)
@@ -166,5 +179,11 @@ def _starts_with_linking_reference(text: str, reference_pattern) -> bool:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(TransitionQualityRule)

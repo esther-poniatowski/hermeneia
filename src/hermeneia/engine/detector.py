@@ -1,4 +1,14 @@
-"""Rule dispatch over a parsed, annotated document."""
+"""Rule dispatch over a parsed, annotated document.
+
+Classes
+-------
+RuleDiagnostic
+    Public API symbol.
+DetectionResult
+    Public API symbol.
+RuleDetector
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -39,10 +49,16 @@ class DetectionResult:
 
 
 class RuleDetector:
-    """Ruledetector."""
+    """Ruledetector.
+
+    Parameters
+    ----------
+    registry : RuleRegistry
+        Rule registry used to resolve implementations.
+    """
 
     def __init__(self, registry: RuleRegistry) -> None:
-        """Init."""
+        """Initialize the instance."""
         self._registry = registry
 
     def detect(
@@ -53,7 +69,26 @@ class RuleDetector:
         features: FeatureStore,
         debug_mode: bool = False,
     ) -> DetectionResult:
-        """Detect."""
+        """Detect.
+
+        Parameters
+        ----------
+        document : Document
+            Document instance to inspect.
+        profile : ResolvedProfile
+            Resolved profile controlling rule behavior.
+        language_pack : LanguagePack
+            Input value for ``language_pack``.
+        features : FeatureStore
+            Input value for ``features``.
+        debug_mode : bool
+            Input value for ``debug_mode``.
+
+        Returns
+        -------
+        DetectionResult
+            Resulting value produced by this call.
+        """
         context = RuleContext(
             profile=profile,
             language_pack=language_pack,

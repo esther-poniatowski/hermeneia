@@ -39,7 +39,20 @@ class ParagraphRedundancyRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_similarity = self.settings.float_option("min_similarity", 0.88)
         min_lexical_overlap = self.settings.float_option("min_lexical_overlap", 0.35)
         max_findings = self.settings.int_option("max_findings", 5)
@@ -83,5 +96,11 @@ class ParagraphRedundancyRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ParagraphRedundancyRule)

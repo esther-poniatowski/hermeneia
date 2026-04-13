@@ -1,4 +1,34 @@
-"""Shared helper logic for built-in rules."""
+"""Shared helper logic for built-in rules.
+
+Functions
+---------
+iter_sentences
+    Public API symbol.
+iter_blocks
+    Public API symbol.
+sentence_word_count
+    Public API symbol.
+sentence_lemmas
+    Public API symbol.
+matched_sentence_markers
+    Public API symbol.
+sentence_has_marker
+    Public API symbol.
+text_has_marker
+    Public API symbol.
+line_text_outside_excluded
+    Public API symbol.
+match_allowed
+    Public API symbol.
+block_text
+    Public API symbol.
+previous_prose_block
+    Public API symbol.
+upstream_limits
+    Public API symbol.
+span_from_lines
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -18,25 +48,71 @@ WORD_RE = re.compile(r"\b\w+\b")
 
 
 def iter_sentences(doc: Document) -> Iterable[Sentence]:
-    """Iter sentences."""
+    """Iter sentences.
+
+    Parameters
+    ----------
+    doc : Document
+        Document instance to inspect.
+
+    Yields
+    ------
+    Iterable[Sentence]
+        Items yielded by this iterator.
+    """
     for block in doc.iter_blocks():
         yield from block.sentences
 
 
 def iter_blocks(doc: Document, kinds: set[BlockKind] | None = None) -> Iterable[Block]:
-    """Iter blocks."""
+    """Iter blocks.
+
+    Parameters
+    ----------
+    doc : Document
+        Document instance to inspect.
+    kinds : set[BlockKind] | None
+        Input value for ``kinds``.
+
+    Yields
+    ------
+    Iterable[Block]
+        Items yielded by this iterator.
+    """
     for block in doc.iter_blocks():
         if kinds is None or block.kind in kinds:
             yield block
 
 
 def sentence_word_count(sentence: Sentence) -> int:
-    """Sentence word count."""
+    """Sentence word count.
+
+    Parameters
+    ----------
+    sentence : Sentence
+        Input value for ``sentence``.
+
+    Returns
+    -------
+    int
+        Resulting value produced by this call.
+    """
     return len(WORD_RE.findall(sentence.projection.text))
 
 
 def sentence_lemmas(sentence: Sentence) -> set[str]:
-    """Sentence lemmas."""
+    """Sentence lemmas.
+
+    Parameters
+    ----------
+    sentence : Sentence
+        Input value for ``sentence``.
+
+    Returns
+    -------
+    set[str]
+        Resulting value produced by this call.
+    """
     if sentence.tokens:
         lemmas = {
             token.lemma.lower()
@@ -54,7 +130,20 @@ def matched_sentence_markers(
     sentence: Sentence,
     markers: Iterable[str],
 ) -> tuple[str, ...]:
-    """Matched sentence markers."""
+    """Matched sentence markers.
+
+    Parameters
+    ----------
+    sentence : Sentence
+        Input value for ``sentence``.
+    markers : Iterable[str]
+        Input value for ``markers``.
+
+    Returns
+    -------
+    tuple[str, ...]
+        Resulting value produced by this call.
+    """
     normalized: list[str] = []
     seen: set[str] = set()
     for marker in markers:
@@ -96,12 +185,38 @@ def matched_sentence_markers(
 
 
 def sentence_has_marker(sentence: Sentence, markers: Iterable[str]) -> bool:
-    """Sentence has marker."""
+    """Sentence has marker.
+
+    Parameters
+    ----------
+    sentence : Sentence
+        Input value for ``sentence``.
+    markers : Iterable[str]
+        Input value for ``markers``.
+
+    Returns
+    -------
+    bool
+        Resulting value produced by this call.
+    """
     return bool(matched_sentence_markers(sentence, markers))
 
 
 def text_has_marker(text: str, markers: Iterable[str]) -> bool:
-    """Text has marker."""
+    """Text has marker.
+
+    Parameters
+    ----------
+    text : str
+        Text content to process.
+    markers : Iterable[str]
+        Input value for ``markers``.
+
+    Returns
+    -------
+    bool
+        Resulting value produced by this call.
+    """
     normalized = text.lower()
     for marker in markers:
         value = marker.strip().lower()
@@ -117,7 +232,18 @@ def text_has_marker(text: str, markers: Iterable[str]) -> bool:
 
 
 def line_text_outside_excluded(line: SourceLine) -> str:
-    """Line text outside excluded."""
+    """Line text outside excluded.
+
+    Parameters
+    ----------
+    line : SourceLine
+        Input value for ``line``.
+
+    Returns
+    -------
+    str
+        Resulting value produced by this call.
+    """
     if not line.excluded_spans:
         return line.text
     chars = list(line.text)
@@ -134,17 +260,54 @@ def match_allowed(
     line: SourceLine,
     pattern: re.Pattern[str],
 ) -> re.Match[str] | None:
-    """Match allowed."""
+    """Match allowed.
+
+    Parameters
+    ----------
+    line : SourceLine
+        Input value for ``line``.
+    pattern : re.Pattern[str]
+        Input value for ``pattern``.
+
+    Returns
+    -------
+    re.Match[str] | None
+        Resulting value produced by this call.
+    """
     return pattern.search(line_text_outside_excluded(line))
 
 
 def block_text(block: Block) -> str:
-    """Block text."""
+    """Block text.
+
+    Parameters
+    ----------
+    block : Block
+        Input value for ``block``.
+
+    Returns
+    -------
+    str
+        Resulting value produced by this call.
+    """
     return " ".join(sentence.projection.text for sentence in block.sentences)
 
 
 def previous_prose_block(blocks: Sequence[Block], before_index: int) -> Block | None:
-    """Previous prose block."""
+    """Previous prose block.
+
+    Parameters
+    ----------
+    blocks : Sequence[Block]
+        Input value for ``blocks``.
+    before_index : int
+        Input value for ``before_index``.
+
+    Returns
+    -------
+    Block | None
+        Resulting value produced by this call.
+    """
     prose_kinds = {BlockKind.PARAGRAPH, BlockKind.BLOCK_QUOTE, BlockKind.LIST_ITEM}
     for offset in range(before_index - 1, -1, -1):
         candidate = blocks[offset]
@@ -156,7 +319,18 @@ def previous_prose_block(blocks: Sequence[Block], before_index: int) -> Block | 
 
 
 def upstream_limits(sentence: Sentence) -> tuple[str, ...]:
-    """Upstream limits."""
+    """Upstream limits.
+
+    Parameters
+    ----------
+    sentence : Sentence
+        Input value for ``sentence``.
+
+    Returns
+    -------
+    tuple[str, ...]
+        Resulting value produced by this call.
+    """
     return tuple(
         sorted(
             flag for flag in sentence.annotation_flags if flag != "table_cell_context"
@@ -165,7 +339,20 @@ def upstream_limits(sentence: Sentence) -> tuple[str, ...]:
 
 
 def span_from_lines(start_line: SourceLine, end_line: SourceLine | None = None) -> Span:
-    """Span from lines."""
+    """Span from lines.
+
+    Parameters
+    ----------
+    start_line : SourceLine
+        Input value for ``start_line``.
+    end_line : SourceLine | None
+        Input value for ``end_line``.
+
+    Returns
+    -------
+    Span
+        Resulting value produced by this call.
+    """
     if end_line is None:
         end_line = start_line
     return Span(

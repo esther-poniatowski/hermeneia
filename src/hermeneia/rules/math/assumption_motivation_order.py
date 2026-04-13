@@ -36,7 +36,20 @@ class AssumptionMotivationOrderRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         lookback = self.settings.int_option("lookback_sentences", 1)
         assumption_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.assumption_markers)
@@ -90,5 +103,11 @@ class AssumptionMotivationOrderRule(HeuristicSemanticRule):
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(AssumptionMotivationOrderRule)

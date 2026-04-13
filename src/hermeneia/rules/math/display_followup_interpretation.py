@@ -49,7 +49,20 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         min_display_chars = self.settings.int_option("min_display_chars", 12)
         interpretation_markers = tuple(
             ctx.language_pack.lexicons.formula_interpretation_markers
@@ -207,5 +220,11 @@ def _is_bare_pronoun_followup(sentence) -> bool:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(DisplayFollowupInterpretationRule)

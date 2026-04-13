@@ -33,7 +33,22 @@ class ConcreteSubjectRule(SourcePatternRule):
     )
 
     def check_source(self, lines, doc, ctx):
-        """Check source."""
+        """Check source.
+
+        Parameters
+        ----------
+        lines : object
+            Source lines involved in this computation.
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         _ = doc
         subject_terms = tuple(ctx.language_pack.lexicons.concrete_subject_terms)
         action_verbs = tuple(ctx.language_pack.lexicons.concrete_subject_action_verbs)
@@ -106,5 +121,11 @@ def _match_span(line, start: int, end: int) -> Span:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(ConcreteSubjectRule)

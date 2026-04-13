@@ -31,7 +31,20 @@ class HeadingParallelismRule(HeuristicSemanticRule):
     )
 
     def check(self, doc, ctx):
-        """Check."""
+        """Check.
+
+        Parameters
+        ----------
+        doc : object
+            Document instance to inspect.
+        ctx : object
+            Rule evaluation context.
+
+        Returns
+        -------
+        object
+            Resulting value produced by this call.
+        """
         violations: list[Violation] = []
         for level in range(1, 7):
             for headings in ctx.features.sibling_heading_groups(level):
@@ -105,5 +118,11 @@ def _majority(values: tuple[str, ...]) -> str | None:
 
 
 def register(registry) -> None:
-    """Register."""
+    """Register.
+
+    Parameters
+    ----------
+    registry : object
+        Rule registry used to resolve implementations.
+    """
     registry.add(HeadingParallelismRule)

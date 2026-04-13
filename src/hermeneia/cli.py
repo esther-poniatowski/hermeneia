@@ -1,4 +1,14 @@
-"""CLI adapter for the Hermeneia analysis pipeline."""
+"""CLI adapter for the Hermeneia analysis pipeline.
+
+Functions
+---------
+cli_info
+    Public API symbol.
+cli_lint
+    Public API symbol.
+main_callback
+    Public API symbol.
+"""
 
 from __future__ import annotations
 
@@ -70,7 +80,29 @@ def cli_lint(
         help="Exit non-zero when this severity or higher is present.",
     ),
 ) -> None:
-    """Lint a markdown file or directory."""
+    """Lint a markdown file or directory.
+
+    Parameters
+    ----------
+    target : Path
+        Input value for ``target``.
+    profile : str
+        Resolved profile controlling rule behavior.
+    config : Path | None
+        Resolved configuration used by this operation.
+    output_format : str | None
+        Input value for ``output_format``.
+    rule : list[str]
+        Input value for ``rule``.
+    disable_rule : list[str]
+        Input value for ``disable_rule``.
+    load_rules : list[str]
+        Input value for ``load_rules``.
+    experimental : bool
+        Input value for ``experimental``.
+    fail_on : Severity
+        Input value for ``fail_on``.
+    """
 
     try:
         project_config = load_project_config(config)
@@ -131,7 +163,13 @@ def main_callback(
         False, "--version", "-v", help="Show the package version and exit."
     )
 ) -> None:
-    """Root command for the Hermeneia command-line interface."""
+    """Root command for the Hermeneia command-line interface.
+
+    Parameters
+    ----------
+    version : bool
+        Input value for ``version``.
+    """
 
     if version:
         typer.echo(__version__)
