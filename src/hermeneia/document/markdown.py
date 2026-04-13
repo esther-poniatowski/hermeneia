@@ -39,6 +39,7 @@ ADMONITION_PREFIX_RE = re.compile(
     r"^\s*\[!(?P<label>[A-Z][A-Z0-9_-]*)\]\s*(?P<title>.*)$"
 )
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(])")
+HTML_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -625,18 +626,43 @@ def _segment_ranges(
         return []
     if block_kind == BlockKind.HEADING:
         return [(0, len(text), set())]
-    if block_kind in {BlockKind.LIST_ITEM, BlockKind.TABLE_CELL} and not re.search(
-        r"[.!?]\s*$", stripped
-    ):
-        extra = {"list_item_fragment"} if block_kind == BlockKind.LIST_ITEM else set()
-        return [(0, len(text), extra)]
-
     segments: list[tuple[int, int, set[str]]] = []
+    segment_ranges = (
+        _split_on_html_breaks(text)
+        if block_kind == BlockKind.TABLE_CELL
+        else [(0, len(text))]
+    )
+    for segment_start, segment_end in segment_ranges:
+        unit = text[segment_start:segment_end]
+        unit_stripped = unit.strip()
+        if not unit_stripped:
+            continue
+        if block_kind in {BlockKind.LIST_ITEM, BlockKind.TABLE_CELL} and not re.search(
+            r"[.!?]\s*$", unit_stripped
+        ):
+            extra = (
+                {"list_item_fragment"}
+                if block_kind == BlockKind.LIST_ITEM
+                else {"table_cell_fragment"}
+            )
+            segments.append((segment_start, segment_end, extra))
+            continue
+        cursor = segment_start
+        for match in SENTENCE_SPLIT_RE.finditer(text, segment_start, segment_end):
+            segments.append((cursor, match.start(), set()))
+            cursor = match.end()
+        segments.append((cursor, segment_end, set()))
+    return segments
+
+
+def _split_on_html_breaks(text: str) -> list[tuple[int, int]]:
+    """Split text ranges on inline HTML break tags."""
+    segments: list[tuple[int, int]] = []
     cursor = 0
-    for match in SENTENCE_SPLIT_RE.finditer(text):
-        segments.append((cursor, match.start(), set()))
+    for match in HTML_BREAK_RE.finditer(text):
+        segments.append((cursor, match.start()))
         cursor = match.end()
-    segments.append((cursor, len(text), set()))
+    segments.append((cursor, len(text)))
     return segments
 
 

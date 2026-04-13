@@ -18,17 +18,20 @@ from hermeneia.engine.registry import RuleRegistry
 from hermeneia.rules.base import (
     BaseRule,
     ResolvedProfile,
+    ResolvedRuleSettings,
     RuntimeCapabilities,
     RuleContext,
     SuggestionMode,
     Tractability,
     Violation,
 )
-from hermeneia.document.model import Document
+from hermeneia.document.model import Block, BlockKind, Document, Span
 from hermeneia.document.indexes import FeatureStore
 from hermeneia.language.base import LanguagePack
 
 COMMA_SEPARATOR = ", "
+APPLY_BLOCK_KINDS_OPTION = "apply_block_kinds"
+EXCLUDE_BLOCK_KINDS_OPTION = "exclude_block_kinds"
 
 
 @dataclass(frozen=True)
@@ -46,6 +49,14 @@ class DetectionResult:
 
     violations: tuple[Violation, ...]
     diagnostics: tuple[RuleDiagnostic, ...] = ()
+
+
+@dataclass(frozen=True)
+class _BlockKindGate:
+    """Per-rule block-kind include/exclude filters."""
+
+    include: frozenset[BlockKind]
+    exclude: frozenset[BlockKind]
 
 
 class RuleDetector:
@@ -126,6 +137,21 @@ class RuleDetector:
                     )
                 )
                 continue
+            try:
+                rule_violations = _apply_block_kind_gate(
+                    rule_violations,
+                    settings,
+                    document,
+                )
+            except ValueError as exc:
+                diagnostics.append(
+                    RuleDiagnostic(
+                        code="rule_options_error",
+                        rule_id=rule.rule_id,
+                        message=str(exc),
+                    )
+                )
+                continue
             for violation in rule_violations:
                 issue = _validate_violation_contract(rule, violation)
                 if issue is not None:
@@ -185,3 +211,89 @@ def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | 
     if metadata.suggestion_mode == SuggestionMode.NONE and violation.rewrite_tactics:
         return "rule with suggestion_mode='none' emitted rewrite tactics"
     return None
+
+
+def _apply_block_kind_gate(
+    violations: list[Violation],
+    settings: ResolvedRuleSettings,
+    document: Document,
+) -> list[Violation]:
+    """Apply block-kind include/exclude filtering to rule output."""
+    gate = _resolve_block_kind_gate(settings)
+    if not gate.include and not gate.exclude:
+        return violations
+    blocks_by_span_size = sorted(
+        document.iter_blocks(),
+        key=lambda block: (block.span.end - block.span.start, block.span.start),
+    )
+    span_kind_cache: dict[tuple[int, int], BlockKind | None] = {}
+    filtered: list[Violation] = []
+    for violation in violations:
+        cache_key = (violation.span.start, violation.span.end)
+        if cache_key not in span_kind_cache:
+            span_kind_cache[cache_key] = _block_kind_for_span(
+                violation.span,
+                blocks_by_span_size,
+            )
+        block_kind = span_kind_cache[cache_key]
+        if _block_kind_allowed(block_kind, gate):
+            filtered.append(violation)
+    return filtered
+
+
+def _resolve_block_kind_gate(settings: ResolvedRuleSettings) -> _BlockKindGate:
+    """Resolve block-kind gate options from rule settings."""
+    include = _coerce_block_kind_set(
+        settings.options.get(APPLY_BLOCK_KINDS_OPTION, ()),
+        field_name=APPLY_BLOCK_KINDS_OPTION,
+    )
+    exclude = _coerce_block_kind_set(
+        settings.options.get(EXCLUDE_BLOCK_KINDS_OPTION, ()),
+        field_name=EXCLUDE_BLOCK_KINDS_OPTION,
+    )
+    return _BlockKindGate(include=include, exclude=exclude)
+
+
+def _coerce_block_kind_set(raw: object, *, field_name: str) -> frozenset[BlockKind]:
+    """Coerce a raw block-kind option value into enum members."""
+    if raw is None:
+        return frozenset()
+    if not isinstance(raw, (list, tuple, set, frozenset)):
+        raise ValueError(f"{field_name} must be a sequence of block kind names")
+    values: set[BlockKind] = set()
+    for item in raw:
+        if isinstance(item, BlockKind):
+            values.add(item)
+            continue
+        if not isinstance(item, str):
+            raise ValueError(f"{field_name} must contain only block kind names")
+        try:
+            values.add(BlockKind(item.strip().lower()))
+        except ValueError as exc:
+            expected = ", ".join(sorted(kind.value for kind in BlockKind))
+            raise ValueError(
+                f"{field_name} includes unknown block kind '{item}'. "
+                f"Expected one of: {expected}"
+            ) from exc
+    return frozenset(values)
+
+
+def _block_kind_for_span(span: Span, blocks: list[Block]) -> BlockKind | None:
+    """Find the most specific block kind that contains the span."""
+    for block in blocks:
+        if span.start < block.span.start:
+            continue
+        if span.end > block.span.end:
+            continue
+        return block.kind
+    return None
+
+
+def _block_kind_allowed(block_kind: BlockKind | None, gate: _BlockKindGate) -> bool:
+    """Check whether a block kind passes include/exclude gate constraints."""
+    if gate.include:
+        if block_kind is None or block_kind not in gate.include:
+            return False
+    if block_kind is not None and block_kind in gate.exclude:
+        return False
+    return True

@@ -41,6 +41,8 @@ rules:
     syntax.sentence_length:
       options:
         max_words: 24
+        apply_block_kinds: [paragraph, table_cell, admonition]
+        exclude_block_kinds: [heading]
       severity: warning
       weight: 1.1
     linkage.banned_transition:
@@ -150,9 +152,18 @@ Override object fields:
 | `enabled` | `bool \| null` | Enables/disables one rule explicitly |
 | `severity` | `info \| warning \| error \| null` | Overrides default severity |
 | `weight` | `float \| null` | Overrides scoring weight |
-| `options` | `map[str, object]` | Rule-specific options validated by each rule options model |
+| `options` | `map[str, object]` | Rule-specific options validated by each rule options model, plus global block-kind gate keys |
 | `extra_patterns` | `list[str]` | Additive pattern extensions for rules that consume pattern lists |
 | `silenced_patterns` | `list[str]` | Additive pattern silencing for rules that consume pattern lists |
+
+Global options available for every rule inside `overrides.<rule_id>.options`:
+
+| Field | Type | Control |
+| --- | --- | --- |
+| `apply_block_kinds` | `list[str]` | Keep only violations mapped to these block kinds |
+| `exclude_block_kinds` | `list[str]` | Drop violations mapped to these block kinds |
+
+Supported block-kind names are: `heading`, `paragraph`, `list`, `list_item`, `block_quote`, `table`, `table_row`, `table_cell`, `code_block`, `display_math`, `footnote`, `admonition`.
 
 ### Scoring
 
@@ -208,6 +219,7 @@ These checks prevent silent policy drift and keep rule behavior auditable across
 - Unknown rule ids in `active`, `disabled`, `overrides`, language defaults, or profile defaults are errors.
 - Unknown override fields are errors.
 - Options model validation errors are surfaced with rule id context.
+- Global block-kind gate options (`apply_block_kinds`, `exclude_block_kinds`) are validated for every rule, including rules with strict options models.
 - `reference.generic_link_text` options accept only `reference_labels` and `procedural_terms`.
 - `terminology.acronym_burden` options accept `min_acronym_mentions_for_overuse`, `max_acronym_to_full_form_ratio`, `ignore_sentence_patterns`, and `ignore_acronym_tokens`.
 - `structure.opening_sentence_presence` options accept `min_opening_words` and `forbidden_block_kinds`.

@@ -7,11 +7,17 @@ from typing import Iterable, Mapping
 
 from hermeneia.config.defaults import PROFILE_PRESETS, ProfilePreset
 from hermeneia.config.schema import ProjectConfig, RuleOverrideConfig
+from hermeneia.document.model import BlockKind
 from hermeneia.engine.registry import RuleRegistry
 from hermeneia.language.base import LanguagePack
 from hermeneia.rules.base import ResolvedProfile, ResolvedRuleSettings, Severity
 
 COMMA_SEPARATOR = ", "
+APPLY_BLOCK_KINDS_OPTION = "apply_block_kinds"
+EXCLUDE_BLOCK_KINDS_OPTION = "exclude_block_kinds"
+GLOBAL_RULE_OPTION_KEYS = frozenset(
+    {APPLY_BLOCK_KINDS_OPTION, EXCLUDE_BLOCK_KINDS_OPTION}
+)
 
 
 @dataclass(frozen=True)
@@ -409,16 +415,17 @@ def _validate_options_model(
     options: dict[str, object],
 ) -> dict[str, object]:
     """Validate options model."""
+    global_options, rule_specific_options = _split_global_rule_options(rule_id, options)
     options_model = getattr(rule_cls, "options_model", None)
     if options_model is None:
-        return options
+        return {**rule_specific_options, **global_options}
     validator = getattr(options_model, "model_validate", None)
     if not callable(validator):
         raise ValueError(
             f"Rule '{rule_id}' declares options_model without model_validate(...)"
         )
     try:
-        model = validator(options)
+        model = validator(rule_specific_options)
     except Exception as exc:
         raise ValueError(f"Invalid options for rule '{rule_id}': {exc}") from exc
     dumper = getattr(model, "model_dump", None)
@@ -431,4 +438,61 @@ def _validate_options_model(
         raise ValueError(
             f"Rule '{rule_id}' options_model.model_dump() must return dict"
         )
-    return dumped
+    return {**dumped, **global_options}
+
+
+def _split_global_rule_options(
+    rule_id: str,
+    options: Mapping[str, object],
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Split global and rule-specific options."""
+    global_options: dict[str, object] = {}
+    rule_specific_options: dict[str, object] = {}
+    for key, value in options.items():
+        if key in GLOBAL_RULE_OPTION_KEYS:
+            global_options[key] = _normalize_global_block_kind_option(
+                rule_id=rule_id,
+                field_name=key,
+                raw=value,
+            )
+            continue
+        rule_specific_options[key] = value
+    return global_options, rule_specific_options
+
+
+def _normalize_global_block_kind_option(
+    rule_id: str,
+    field_name: str,
+    raw: object,
+) -> tuple[str, ...]:
+    """Normalize global block-kind gating options."""
+    if raw is None:
+        return ()
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError(
+            f"Invalid options for rule '{rule_id}': "
+            f"{field_name} must be a sequence of block kind names"
+        )
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        if not isinstance(item, str):
+            raise ValueError(
+                f"Invalid options for rule '{rule_id}': "
+                f"{field_name} must contain only strings"
+            )
+        candidate = item.strip().lower()
+        try:
+            block_kind = BlockKind(candidate)
+        except ValueError as exc:
+            expected = ", ".join(sorted(kind.value for kind in BlockKind))
+            raise ValueError(
+                f"Invalid options for rule '{rule_id}': "
+                f"{field_name} includes unknown block kind '{item}'. "
+                f"Expected one of: {expected}"
+            ) from exc
+        if block_kind.value in seen:
+            continue
+        seen.add(block_kind.value)
+        normalized.append(block_kind.value)
+    return tuple(normalized)

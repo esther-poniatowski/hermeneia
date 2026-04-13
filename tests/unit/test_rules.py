@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from hermeneia.config.profile import ProfileResolver
+from hermeneia.config.schema import parse_project_config
 from hermeneia.document.annotator import SpaCyDocumentAnnotator
 from hermeneia.document.indexes import FeatureStore
 from hermeneia.document.markdown import MarkdownDocumentParser
@@ -26,14 +28,62 @@ def test_contraction_rule_triggers_through_detector(
     detector = RuleDetector(registry)
     features = FeatureStore(document, document.indexes)
     detection = detector.detect(document, research_profile, language_pack, features)
-    assert any(violation.rule_id == "vocabulary.contraction" for violation in detection.violations)
+    assert any(
+        violation.rule_id == "vocabulary.contraction"
+        for violation in detection.violations
+    )
     assert detection.diagnostics == ()
+
+
+def test_detector_applies_rule_block_kind_gating(
+    registry,
+    language_pack,
+) -> None:
+    config = parse_project_config(
+        {
+            "rules": {
+                "active": ["syntax.sentence_length"],
+                "overrides": {
+                    "syntax.sentence_length": {
+                        "options": {
+                            "max_words": 4,
+                            "apply_block_kinds": ["paragraph"],
+                        }
+                    }
+                },
+            }
+        }
+    )
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    source = (
+        "# Heading with many words that exceeds the threshold\n\n"
+        "Paragraph with many words that should be kept by paragraph-only gating.\n\n"
+        "| Column |\n| --- |\n"
+        "| Table cell with many words that would also exceed the configured threshold |\n"
+    )
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    features = FeatureStore(document, document.indexes)
+    detection = RuleDetector(registry).detect(
+        document, profile, language_pack, features
+    )
+    assert detection.diagnostics == ()
+    violations = [
+        violation
+        for violation in detection.violations
+        if violation.rule_id == "syntax.sentence_length"
+    ]
+    assert len(violations) == 1
+    assert violations[0].span.start_line == 3
 
 
 def test_subject_verb_distance_rule_abstains_without_dependencies(
     registry, language_pack, research_profile
 ) -> None:
-    source = "The central claim, after several subordinate details, remains uncertain.\n"
+    source = (
+        "The central claim, after several subordinate details, remains uncertain.\n"
+    )
     document = MarkdownDocumentParser(language_pack).parse(
         ParseRequest(source=source, path=Path("demo.md"))
     )
@@ -46,7 +96,9 @@ def test_subject_verb_distance_rule_abstains_without_dependencies(
         Token("claim", "claim", None, None, None, actual_sentence.span, 12, 17),
     ]
     rule = registry.instantiate(research_profile.rules["syntax.subject_verb_distance"])
-    ctx = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    ctx = RuleContext(
+        research_profile, language_pack, FeatureStore(document, document.indexes)
+    )
     assert rule.check(document, ctx) == []
 
 
@@ -57,7 +109,9 @@ def test_claim_calibration_rule_emits_without_support(
     document = MarkdownDocumentParser(language_pack).parse(
         ParseRequest(source=source, path=Path("demo.md"))
     )
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    context = RuleContext(
+        research_profile, language_pack, FeatureStore(document, document.indexes)
+    )
     rule = registry.instantiate(research_profile.rules["evidence.claim_calibration"])
     violations = rule.check(document, context)
     assert len(violations) == 1
@@ -71,7 +125,9 @@ def test_claim_calibration_rule_abstains_on_heavy_math_masking(
     document = MarkdownDocumentParser(language_pack).parse(
         ParseRequest(source=source, path=Path("demo.md"))
     )
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    context = RuleContext(
+        research_profile, language_pack, FeatureStore(document, document.indexes)
+    )
     rule = registry.instantiate(research_profile.rules["evidence.claim_calibration"])
     assert rule.check(document, context) == []
 
@@ -88,7 +144,9 @@ def test_passive_voice_rule_extracts_actor_for_by_phrase(
         .annotate(document, research_profile)
         .document
     )
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    context = RuleContext(
+        research_profile, language_pack, FeatureStore(document, document.indexes)
+    )
     rule = registry.instantiate(research_profile.rules["syntax.passive_voice"])
     violations = rule.check(document, context)
     assert len(violations) == 1
@@ -113,7 +171,9 @@ def test_generic_one_rule_emits_on_subject_one_dependency(
         Token("the", "the", "DET", "det", 3, sentence.span, 12, 15),
         Token("estimate", "estimate", "NOUN", "dobj", 1, sentence.span, 16, 24),
     ]
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    context = RuleContext(
+        research_profile, language_pack, FeatureStore(document, document.indexes)
+    )
     rule = registry.instantiate(research_profile.rules["reference.generic_one"])
     violations = rule.check(document, context)
     assert len(violations) == 1
@@ -130,7 +190,9 @@ def test_personal_pronoun_rule_emits_on_we_subject(
     document = MarkdownDocumentParser(language_pack).parse(
         ParseRequest(source=source, path=Path("demo.md"))
     )
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    context = RuleContext(
+        research_profile, language_pack, FeatureStore(document, document.indexes)
+    )
     rule = registry.instantiate(research_profile.rules["reference.personal_pronoun"])
     violations = rule.check(document, context)
     assert len(violations) == 1

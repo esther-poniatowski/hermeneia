@@ -121,3 +121,24 @@ def test_markdown_parser_skips_yaml_front_matter(language_pack) -> None:
     assert all(not text.startswith("title:") for text in sentence_texts)
     assert all(not text.startswith("status:") for text in sentence_texts)
     assert "Paragraph body." in sentence_texts
+
+
+def test_markdown_parser_splits_table_cell_content_on_html_break(language_pack) -> None:
+    source = (
+        "| Metric |\n"
+        "| --- |\n"
+        "| First clause without final punctuation<br>Second clause also without final punctuation |\n"
+    )
+    document = MarkdownDocumentParser(language_pack).parse(
+        ParseRequest(source=source, path=Path("demo.md"))
+    )
+    table_cell_sentences = [
+        sentence.source_text
+        for block in document.iter_blocks()
+        if block.kind == BlockKind.TABLE_CELL
+        for sentence in block.sentences
+        if "clause" in sentence.source_text
+    ]
+    assert len(table_cell_sentences) == 2
+    assert "First clause without final punctuation" in table_cell_sentences[0]
+    assert "Second clause also without final punctuation" in table_cell_sentences[1]
