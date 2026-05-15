@@ -86,9 +86,7 @@ def _words(sentence) -> list[str]:
     """Words."""
     if sentence.tokens:
         return [token.lemma.lower() for token in sentence.tokens]
-    return [
-        match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)
-    ]
+    return [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
 
 
 def register(registry) -> None:

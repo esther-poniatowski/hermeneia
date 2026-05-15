@@ -21,9 +21,7 @@ def test_acronym_burden_emits_for_undefined_acronym(
 ) -> None:
     source = "The PDE is solved numerically.\n"
     document = _parse(language_pack, source)
-    context = RuleContext(
-        research_profile, language_pack, FeatureStore(document, document.indexes)
-    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     violations = rule.check(document, context)
     assert len(violations) == 1
@@ -40,9 +38,7 @@ def test_acronym_burden_skips_when_definition_precedes_use(
         "The PDE is solved numerically.\n"
     )
     document = _parse(language_pack, source)
-    context = RuleContext(
-        research_profile, language_pack, FeatureStore(document, document.indexes)
-    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     assert rule.check(document, context) == []
 
@@ -58,9 +54,7 @@ def test_acronym_burden_emits_for_acronym_overuse_against_full_form(
         "The PDE is solved numerically.\n"
     )
     document = _parse(language_pack, source)
-    context = RuleContext(
-        research_profile, language_pack, FeatureStore(document, document.indexes)
-    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     violations = rule.check(document, context)
     assert len(violations) == 1
@@ -75,17 +69,13 @@ def test_acronym_burden_ignores_callout_label_tokens(
 ) -> None:
     source = "> [!TODO] Goal\n> Clarify the objective before details.\n"
     document = _parse(language_pack, source)
-    context = RuleContext(
-        research_profile, language_pack, FeatureStore(document, document.indexes)
-    )
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
     violations = rule.check(document, context)
     assert violations == []
 
 
-def test_acronym_burden_accepts_custom_ignore_sentence_pattern(
-    registry, language_pack
-) -> None:
+def test_acronym_burden_accepts_custom_ignore_sentence_pattern(registry, language_pack) -> None:
     config = parse_project_config(
         {
             "rules": {
@@ -101,9 +91,40 @@ def test_acronym_burden_accepts_custom_ignore_sentence_pattern(
     profile = ProfileResolver(registry).resolve(config, language_pack)
     source = "Tag: ABC\n"
     document = _parse(language_pack, source)
-    context = RuleContext(
-        profile, language_pack, FeatureStore(document, document.indexes)
+    context = RuleContext(profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(profile.rules["terminology.acronym_burden"])
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_acronym_burden_ignores_bold_uppercase_label_syntax_by_default(
+    registry, language_pack, research_profile
+) -> None:
+    source = "**IMPORTANT** Keep the overview short before technical detail.\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
+    rule = registry.instantiate(research_profile.rules["terminology.acronym_burden"])
+    violations = rule.check(document, context)
+    assert violations == []
+
+
+def test_acronym_burden_accepts_custom_ignore_annotation_flags(registry, language_pack) -> None:
+    config = parse_project_config(
+        {
+            "rules": {
+                "active": ["terminology.acronym_burden"],
+                "overrides": {
+                    "terminology.acronym_burden": {
+                        "options": {"ignore_annotation_flags": ["table_cell_context"]}
+                    }
+                },
+            }
+        }
     )
+    profile = ProfileResolver(registry).resolve(config, language_pack)
+    source = "| status |\n| --- |\n| PDE |\n"
+    document = _parse(language_pack, source)
+    context = RuleContext(profile, language_pack, FeatureStore(document, document.indexes))
     rule = registry.instantiate(profile.rules["terminology.acronym_burden"])
     violations = rule.check(document, context)
     assert violations == []

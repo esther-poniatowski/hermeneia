@@ -7,17 +7,23 @@ from hermeneia.config.schema import parse_project_config
 from hermeneia.document.annotator import SpaCyDocumentAnnotator
 from hermeneia.document.indexes import FeatureStore
 from hermeneia.document.markdown import MarkdownDocumentParser
+from hermeneia.document.model import Document
 from hermeneia.document.parser import ParseRequest
-from hermeneia.rules.base import RuleContext
+from hermeneia.language.base import LanguagePack
+from hermeneia.rules.base import ResolvedProfile, RuleContext
 
 
-def _parse(language_pack, source: str):
+def _parse(language_pack: LanguagePack, source: str) -> Document:
     return MarkdownDocumentParser(language_pack).parse(
         ParseRequest(source=source, path=Path("demo.md"))
     )
 
 
-def _annotate(language_pack, profile, document):
+def _annotate(
+    language_pack: LanguagePack,
+    profile: ResolvedProfile,
+    document: Document,
+) -> Document:
     return SpaCyDocumentAnnotator(language_pack.parser_model).annotate(document, profile).document
 
 
@@ -64,7 +70,9 @@ def test_nominalization_rule_can_disable_adjective_position_exception(
     default_profile = ProfileResolver(registry).resolve(default_config, language_pack)
     default_document = _annotate(language_pack, default_profile, _parse(language_pack, source))
     default_context = RuleContext(
-        default_profile, language_pack, FeatureStore(default_document, default_document.indexes)
+        default_profile,
+        language_pack,
+        FeatureStore(default_document, default_document.indexes),
     )
     default_rule = registry.instantiate(default_profile.rules["vocabulary.nominalization"])
     assert default_rule.check(default_document, default_context) == []
@@ -87,7 +95,9 @@ def test_nominalization_rule_can_disable_adjective_position_exception(
     strict_profile = ProfileResolver(registry).resolve(strict_config, language_pack)
     strict_document = _annotate(language_pack, strict_profile, _parse(language_pack, source))
     strict_context = RuleContext(
-        strict_profile, language_pack, FeatureStore(strict_document, strict_document.indexes)
+        strict_profile,
+        language_pack,
+        FeatureStore(strict_document, strict_document.indexes),
     )
     strict_rule = registry.instantiate(strict_profile.rules["vocabulary.nominalization"])
     violations = strict_rule.check(strict_document, strict_context)
@@ -221,7 +231,9 @@ def test_double_framing_rule_emits(registry, language_pack, research_profile) ->
 def test_information_architecture_rules(registry, language_pack, research_profile) -> None:
     opening_missing = _parse(language_pack, "- [A](#a)\n- [B](#b)\n")
     opening_context = RuleContext(
-        research_profile, language_pack, FeatureStore(opening_missing, opening_missing.indexes)
+        research_profile,
+        language_pack,
+        FeatureStore(opening_missing, opening_missing.indexes),
     )
     opening_rule = registry.instantiate(
         research_profile.rules["structure.opening_sentence_presence"]
@@ -233,14 +245,18 @@ def test_information_architecture_rules(registry, language_pack, research_profil
         "This is a substantial opening paragraph that should be placed under a heading.\n\n# Setup\n",
     )
     prose_context = RuleContext(
-        research_profile, language_pack, FeatureStore(prose_outside, prose_outside.indexes)
+        research_profile,
+        language_pack,
+        FeatureStore(prose_outside, prose_outside.indexes),
     )
     prose_rule = registry.instantiate(research_profile.rules["structure.prose_outside_heading"])
     assert len(prose_rule.check(prose_outside, prose_context)) == 1
 
     heading_skip = _parse(language_pack, "# Top\n\n### Deep\n")
     skip_context = RuleContext(
-        research_profile, language_pack, FeatureStore(heading_skip, heading_skip.indexes)
+        research_profile,
+        language_pack,
+        FeatureStore(heading_skip, heading_skip.indexes),
     )
     skip_rule = registry.instantiate(research_profile.rules["structure.heading_level_skip"])
     assert len(skip_rule.check(heading_skip, skip_context)) == 1

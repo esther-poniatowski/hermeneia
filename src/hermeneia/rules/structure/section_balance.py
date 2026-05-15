@@ -46,9 +46,7 @@ class SectionBalanceRule(HeuristicSemanticRule):
         """
         max_ratio = self.settings.float_option("max_ratio", 3.5)
         sections = [
-            section
-            for section in ctx.features.sections
-            if section.heading_block_id is not None
+            section for section in ctx.features.sections if section.heading_block_id is not None
         ]
         if len(sections) < 2:
             return []
@@ -57,11 +55,7 @@ class SectionBalanceRule(HeuristicSemanticRule):
             for section in sections
             if section.heading_block_id is not None
         }
-        nonzero = {
-            section_id: count
-            for section_id, count in section_words.items()
-            if count > 0
-        }
+        nonzero = {section_id: count for section_id, count in section_words.items() if count > 0}
         if len(nonzero) < 2:
             return []
         largest_id, largest_words = max(nonzero.items(), key=lambda item: item[1])

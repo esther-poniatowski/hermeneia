@@ -59,9 +59,7 @@ class DisplayMathRule(SourcePatternRule):
         """
         violations: list[Violation] = []
         require_leadin = bool(self.settings.options.get("require_leadin", True))
-        require_leadin_colon = bool(
-            self.settings.options.get("require_leadin_colon", True)
-        )
+        require_leadin_colon = bool(self.settings.options.get("require_leadin_colon", True))
         source_lines = doc.source_lines
         for block in doc.iter_blocks():
             if block.kind != BlockKind.DISPLAY_MATH:
@@ -92,9 +90,7 @@ class DisplayMathRule(SourcePatternRule):
                     )
                 )
             if require_leadin:
-                leadin = _previous_nonempty_line(
-                    source_lines, block.span.start_line - 1
-                )
+                leadin = _previous_nonempty_line(source_lines, block.span.start_line - 1)
                 if leadin is None or CONTENT_FREE_LEADIN_RE.search(leadin.text.strip()):
                     span = block.span if leadin is None else leadin.span
                     violations.append(
@@ -112,9 +108,7 @@ class DisplayMathRule(SourcePatternRule):
                             ),
                         )
                     )
-                elif require_leadin_colon and not LEADIN_COLON_RE.search(
-                    leadin.text.strip()
-                ):
+                elif require_leadin_colon and not LEADIN_COLON_RE.search(leadin.text.strip()):
                     violations.append(
                         Violation(
                             rule_id=self.rule_id,
@@ -122,9 +116,7 @@ class DisplayMathRule(SourcePatternRule):
                             span=leadin.span,
                             severity=self.settings.severity,
                             layer=self.metadata.layer,
-                            evidence=RuleEvidence(
-                                features={"check": "missing_leadin_colon"}
-                            ),
+                            evidence=RuleEvidence(features={"check": "missing_leadin_colon"}),
                             rewrite_tactics=(
                                 "End the lead-in sentence with ':' before the $$...$$ block.",
                             ),

@@ -73,9 +73,7 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
                         continue
                     if _introduces_new_support(
                         right_sentence=right,
-                        right_sentence_signals=support_by_sentence.get(
-                            right.id, frozenset()
-                        ),
+                        right_sentence_signals=support_by_sentence.get(right.id, frozenset()),
                         strong_claim_markers=strong_claim_markers,
                     ):
                         continue
@@ -83,9 +81,7 @@ class LexicalRepetitionRule(HeuristicSemanticRule):
                     max_overlap = max(max_overlap, overlap)
             if len(redundant_pairs) < min_redundant_pairs:
                 continue
-            top_pairs = sorted(
-                redundant_pairs, key=lambda item: (-item[2], item[0], item[1])
-            )[:3]
+            top_pairs = sorted(redundant_pairs, key=lambda item: (-item[2], item[0], item[1]))[:3]
             pair_payload = tuple(
                 {
                     "left_sentence_id": left_id,

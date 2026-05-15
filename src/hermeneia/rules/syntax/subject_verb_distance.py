@@ -26,9 +26,17 @@ class SubjectVerbDistanceRule(AnnotatedRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
-        default_options={"max_distance": 8},
+        default_options={"max_distance": 8, "apply_block_kinds": ("paragraph",)},
         abstain_when_flags=frozenset(
-            {"heavy_math_masking", "symbol_dense_sentence", "fragment_sentence"}
+            {
+                "heavy_math_masking",
+                "symbol_dense_sentence",
+                "fragment_sentence",
+                "list_item_context",
+                "blockquote_context",
+                "table_cell_context",
+                "heading_context",
+            }
         ),
         evidence_fields=("distance", "subject_token", "root_token"),
     )
@@ -56,11 +64,7 @@ class SubjectVerbDistanceRule(AnnotatedRule):
             if not sentence.tokens or not any(token.dep for token in sentence.tokens):
                 continue
             root_index = next(
-                (
-                    index
-                    for index, token in enumerate(sentence.tokens)
-                    if token.dep == "ROOT"
-                ),
+                (index for index, token in enumerate(sentence.tokens) if token.dep == "ROOT"),
                 None,
             )
             subject_index = next(

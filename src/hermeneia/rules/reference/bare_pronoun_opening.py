@@ -62,8 +62,7 @@ class BarePronounOpeningRule(AnnotatedRule):
             word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_openers
         )
         predicate_starters = frozenset(
-            word.lower()
-            for word in ctx.language_pack.lexicons.bare_pronoun_predicate_starters
+            word.lower() for word in ctx.language_pack.lexicons.bare_pronoun_predicate_starters
         )
         explicit_heads = frozenset(
             word.lower()

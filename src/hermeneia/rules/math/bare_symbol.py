@@ -68,10 +68,7 @@ class BareSymbolRule(SourcePatternRule):
         violations: list[Violation] = []
         patterns = (BARE_SYMBOL_RE, BARE_PREP_SYMBOL_RE, BARE_SPACE_SYMBOL_RE)
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line.text
             for pattern in patterns:
@@ -88,12 +85,8 @@ class BareSymbolRule(SourcePatternRule):
                         span=_match_span(line, match.start(), match.end()),
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={"matched_text": match.group(0)}
-                        ),
-                        rewrite_tactics=(
-                            "Insert the object name immediately before the symbol.",
-                        ),
+                        evidence=RuleEvidence(features={"matched_text": match.group(0)}),
+                        rewrite_tactics=("Insert the object name immediately before the symbol.",),
                     )
                 )
                 break

@@ -60,10 +60,7 @@ class CrossReferenceRule(SourcePatternRule):
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             match = ambiguous_pattern.search(probe)

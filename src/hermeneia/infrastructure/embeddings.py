@@ -51,9 +51,7 @@ class SentenceTransformerEmbeddingBackend:
                 "Embedding backend 'sentence_transformers' requires the "
                 "'sentence-transformers' package."
             ) from exc
-        sentence_transformer_cls = getattr(
-            sentence_transformers, "SentenceTransformer", None
-        )
+        sentence_transformer_cls = getattr(sentence_transformers, "SentenceTransformer", None)
         if sentence_transformer_cls is None:
             raise RuntimeError(
                 "Embedding backend 'sentence_transformers' is installed but does not expose "

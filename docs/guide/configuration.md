@@ -113,6 +113,8 @@ This reference is organized by top-level section in the same order as the YAML t
 
 `audience`, `genre`, `section`, and `register` do not select rules directly; they expose contextual metadata to rule logic and reporting.
 
+Built-in profile names are `research`, `strict`, `pedagogical`, and `math`.
+
 ### Language
 
 `language` controls which language pack contributes lexicons and defaults.
@@ -164,6 +166,156 @@ Global options available for every rule inside `overrides.<rule_id>.options`:
 | `exclude_block_kinds` | `list[str]` | Drop violations mapped to these block kinds |
 
 Supported block-kind names are: `heading`, `paragraph`, `list`, `list_item`, `block_quote`, `table`, `table_row`, `table_cell`, `code_block`, `display_math`, `footnote`, `admonition`.
+
+### Selected Rule Options
+
+This subsection documents frequently tuned options for recently added rules.
+
+#### Citation Rules
+
+`reference.citation_as_agent` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `citation_styles` | `list[str]` | Built-in citation style names to match |
+| `citation_tag_pattern` | `str` | Regular expression used to match citation tags |
+| `citation_tag_patterns` | `list[str]` | Additional citation regex patterns merged with selected styles |
+| `agent_verbs` | `list[str]` | Verbs that trigger citation-as-subject detection |
+| `object_verbs` | `list[str]` | Verbs that trigger citation-as-object detection |
+| `forbidden_prepositions` | `list[str]` | Prepositions that should not introduce citation tags |
+| `context_nouns` | `list[str]` | Context nouns used to detect citation-container phrasing |
+
+`reference.citation_tail_parenthetical` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `citation_styles` | `list[str]` | Built-in citation style names to match |
+| `citation_tag_pattern` | `str` | Regular expression used to match citation tags |
+| `citation_tag_patterns` | `list[str]` | Additional citation regex patterns merged with selected styles |
+
+Built-in `citation_styles` values are:
+`key_year_bracket`, `key_bracket`, `numeric_bracket`, `author_year_parenthetical`, `pandoc_citekey`.
+
+Minimal example:
+
+```yaml
+rules:
+  overrides:
+    reference.citation_as_agent:
+      options:
+        citation_styles: [numeric_bracket]
+        citation_tag_patterns: ["\\[(?:RFC\\d+)\\]"]
+        agent_verbs: [shows, proves]
+        forbidden_prepositions: [in, within]
+    reference.citation_tail_parenthetical:
+      options:
+        citation_styles: [author_year_parenthetical]
+```
+
+#### Structural Metalanguage
+
+`reference.structural_metalanguage` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `structural_terms` | `list[str]` | Terms treated as structural containers (`section`, `paragraph`, ...) |
+| `position_terms` | `list[str]` | Positional markers used in container references (`above`, `below`, ...) |
+
+Minimal example:
+
+```yaml
+rules:
+  overrides:
+    reference.structural_metalanguage:
+      options:
+        structural_terms: [section, subsection, paragraph]
+        position_terms: [above, below, earlier, later]
+```
+
+#### Multi-Action Sentences
+
+`syntax.multi_action_sentence` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `max_load_bearing_verbs` | `int` | Maximum allowed count of load-bearing verbs per sentence |
+| `require_coordination_marker` | `bool` | Only flag when a coordination signal is present |
+| `coordination_markers` | `list[str]` | Markers counted as coordination signals (`and`, `while`, `;`, ...) |
+
+Minimal example:
+
+```yaml
+rules:
+  overrides:
+    syntax.multi_action_sentence:
+      options:
+        max_load_bearing_verbs: 2
+        require_coordination_marker: true
+        coordination_markers: [and, while, whereas, then, ";"]
+        apply_block_kinds: [paragraph, table_cell]
+```
+
+#### Cardinality Framing
+
+`vocabulary.cardinality_framing` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `target_terms` | `list[str]` | Taxonomy target nouns after cardinality terms |
+| `number_words` | `list[str]` | Number words recognized in cardinality patterns |
+
+Minimal example:
+
+```yaml
+rules:
+  overrides:
+    vocabulary.cardinality_framing:
+      options:
+        target_terms: [dimensions, factors, categories]
+        number_words: [two, three, four]
+```
+
+#### Filler Noun Scaffolding
+
+`vocabulary.filler_noun_scaffolding` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `filler_terms` | `list[str]` | Terms treated as low-information scaffolding nouns |
+
+Minimal example:
+
+```yaml
+rules:
+  overrides:
+    vocabulary.filler_noun_scaffolding:
+      options:
+        filler_terms: [aspect, thing, item]
+```
+
+#### Declarative Headings
+
+`structure.declarative_heading` options:
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `apply_heading_levels` | `int \| list[int]` | Restricts checks to selected heading levels |
+| `forbid_question_headings` | `bool` | Flags headings ending in `?` |
+| `forbid_imperative_headings` | `bool` | Flags imperative heading openings |
+| `imperative_verbs` | `list[str]` | Verbs treated as imperative heading starts |
+
+Minimal example:
+
+```yaml
+rules:
+  overrides:
+    structure.declarative_heading:
+      options:
+        apply_heading_levels: [2, 3]
+        forbid_question_headings: true
+        forbid_imperative_headings: true
+        imperative_verbs: [define, assume, prove]
+```
 
 ### Scoring
 
@@ -225,6 +377,12 @@ These checks prevent silent policy drift and keep rule behavior auditable across
 - `structure.opening_sentence_presence` options accept `min_opening_words` and `forbidden_block_kinds`.
 - `structure.section_opener_block_kind` options accept `blocked_block_kinds` and `apply_heading_levels`.
 - `math.display_math` options accept `require_leadin` and `require_leadin_colon`.
+- `reference.citation_as_agent` options accept `citation_styles`, `citation_tag_pattern`, `citation_tag_patterns`, `agent_verbs`, `object_verbs`, `forbidden_prepositions`, and `context_nouns`.
+- `reference.citation_tail_parenthetical` options accept `citation_styles`, `citation_tag_pattern`, and `citation_tag_patterns`.
+- `reference.structural_metalanguage` options accept `structural_terms` and `position_terms`.
+- `vocabulary.cardinality_framing` options accept `target_terms` and `number_words`.
+- `vocabulary.filler_noun_scaffolding` options accept `filler_terms`.
+- `structure.declarative_heading` options accept `apply_heading_levels`, `forbid_question_headings`, `forbid_imperative_headings`, and `imperative_verbs`.
 - Language-pack `supported_rules` (when declared) is enforced as a rule allowlist.
 
 ## Heuristic Sensitivity Tuning

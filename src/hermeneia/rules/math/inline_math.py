@@ -17,9 +17,7 @@ from hermeneia.rules.base import (
 
 INLINE_ATOM_RE = re.compile(r"[A-Za-z][A-Za-z0-9']*")
 INLINE_NUMERIC_RE = re.compile(r"[+-]?\d+(?:\.\d+)?")
-INLINE_LATEX_ATOM_RE = re.compile(
-    r"\\(?:mathbf|boldsymbol|mathbb|mathrm)\{[A-Za-z0-9]+\}"
-)
+INLINE_LATEX_ATOM_RE = re.compile(r"\\(?:mathbf|boldsymbol|mathbb|mathrm)\{[A-Za-z0-9]+\}")
 INLINE_ALLOWED_RE = re.compile(r"[A-Za-z0-9\\_^{}()\[\]|,.'\s:/+-]+")
 
 
@@ -92,9 +90,7 @@ class InlineMathRule(SourcePatternRule):
                         span=span,
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={"reason": reason, "expression": content}
-                        ),
+                        evidence=RuleEvidence(features={"reason": reason, "expression": content}),
                         rewrite_tactics=(
                             "Move the expression into a '$$...$$' block and introduce it in prose.",
                         ),

@@ -55,18 +55,14 @@ class VagueProceduralNominalizationRule(SourcePatternRule):
         _ = doc
         terms = tuple(ctx.language_pack.lexicons.procedural_nominalization_terms)
         argument_markers = frozenset(
-            marker.lower()
-            for marker in ctx.language_pack.lexicons.procedural_argument_markers
+            marker.lower() for marker in ctx.language_pack.lexicons.procedural_argument_markers
         )
         term_pattern = _compile_term_pattern(terms)
         if term_pattern is None:
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             for match in term_pattern.finditer(probe):

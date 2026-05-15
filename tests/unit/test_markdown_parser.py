@@ -26,9 +26,7 @@ $$
     assert any(kind == BlockKind.LIST for _, kind in flat_blocks)
     assert any(kind == BlockKind.LIST_ITEM for _, kind in flat_blocks)
     assert any(kind == BlockKind.DISPLAY_MATH for _, kind in flat_blocks)
-    sentence_ids = [
-        sentence.id for block in document.iter_blocks() for sentence in block.sentences
-    ]
+    sentence_ids = [sentence.id for block in document.iter_blocks() for sentence in block.sentences]
     assert sentence_ids[:3] == ["s000", "s001", "s002"]
     paragraph_sentence = next(
         sentence
@@ -91,9 +89,7 @@ def test_markdown_parser_strips_callout_marker_from_admonition_title(
         block for block in document.iter_blocks() if block.kind == BlockKind.ADMONITION
     )
     sentence_texts = [
-        sentence.source_text
-        for block in admonition.iter_blocks()
-        for sentence in block.sentences
+        sentence.source_text for block in admonition.iter_blocks() for sentence in block.sentences
     ]
     assert sentence_texts
     assert all("[!TODO]" not in text for text in sentence_texts)
@@ -114,9 +110,7 @@ def test_markdown_parser_skips_yaml_front_matter(language_pack) -> None:
         ParseRequest(source=source, path=Path("demo.md"))
     )
     sentence_texts = [
-        sentence.source_text
-        for block in document.iter_blocks()
-        for sentence in block.sentences
+        sentence.source_text for block in document.iter_blocks() for sentence in block.sentences
     ]
     assert all(not text.startswith("title:") for text in sentence_texts)
     assert all(not text.startswith("status:") for text in sentence_texts)

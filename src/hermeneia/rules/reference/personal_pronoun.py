@@ -95,10 +95,7 @@ def _is_prose_line(line) -> bool:
     """Is prose line."""
     if not line.container_kinds:
         return True
-    if any(
-        kind in {BlockKind.CODE_BLOCK, BlockKind.DISPLAY_MATH}
-        for kind in line.container_kinds
-    ):
+    if any(kind in {BlockKind.CODE_BLOCK, BlockKind.DISPLAY_MATH} for kind in line.container_kinds):
         return False
     return any(kind in PROSE_BLOCK_KINDS for kind in line.container_kinds)
 

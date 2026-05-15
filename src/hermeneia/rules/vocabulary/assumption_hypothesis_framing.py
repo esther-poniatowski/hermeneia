@@ -54,9 +54,7 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
         framing_pattern = _compile_assumption_framing_pattern(
             tuple(ctx.language_pack.lexicons.assumption_hypothesis_terms)
         )
-        ignored_modifiers = (
-            ctx.language_pack.lexicons.assumption_hypothesis_ignored_modifiers
-        )
+        ignored_modifiers = ctx.language_pack.lexicons.assumption_hypothesis_ignored_modifiers
         violations: list[Violation] = []
         for line in lines:
             if any(kind.value in {"code_block"} for kind in line.container_kinds):
@@ -79,9 +77,7 @@ class AssumptionHypothesisFramingRule(SourcePatternRule):
                     span=_match_span(line, match.start(), match.end()),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(
-                        features={"modifier": modifier, "target": target}
-                    ),
+                    evidence=RuleEvidence(features={"modifier": modifier, "target": target}),
                     confidence=0.74,
                     rewrite_tactics=(
                         "Rewrite to foreground the proposition explicitly, for example 'the assumption of ...'.",

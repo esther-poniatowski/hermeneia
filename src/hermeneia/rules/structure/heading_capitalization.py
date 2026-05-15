@@ -55,9 +55,7 @@ class HeadingCapitalizationRule(HeuristicSemanticRule):
                     continue
                 styles = {
                     heading.id: _style(
-                        " ".join(
-                            sentence.projection.text for sentence in heading.sentences
-                        )
+                        " ".join(sentence.projection.text for sentence in heading.sentences)
                     )
                     for heading in headings
                 }

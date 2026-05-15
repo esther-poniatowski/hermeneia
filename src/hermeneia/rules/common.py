@@ -121,9 +121,7 @@ def sentence_lemmas(sentence: Sentence) -> set[str]:
         }
         if lemmas:
             return lemmas
-    return {
-        match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)
-    }
+    return {match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)}
 
 
 def matched_sentence_markers(
@@ -331,11 +329,7 @@ def upstream_limits(sentence: Sentence) -> tuple[str, ...]:
     tuple[str, ...]
         Resulting value produced by this call.
     """
-    return tuple(
-        sorted(
-            flag for flag in sentence.annotation_flags if flag != "table_cell_context"
-        )
-    )
+    return tuple(sorted(flag for flag in sentence.annotation_flags if flag != "table_cell_context"))
 
 
 def span_from_lines(start_line: SourceLine, end_line: SourceLine | None = None) -> Span:

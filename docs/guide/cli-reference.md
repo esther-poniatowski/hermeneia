@@ -41,7 +41,7 @@ hermeneia lint [OPTIONS] TARGET
 
 **Options**:
 
-- `--profile TEXT` (default `research`): profile preset.
+- `--profile TEXT` (default `research`): profile preset (`research`, `strict`, `pedagogical`, `math`).
 - `--config PATH`: YAML configuration file.
 - `--format TEXT`: output format (`text` or `json`).
 - `--rule TEXT` (repeatable): restrict active rules to explicit ids.

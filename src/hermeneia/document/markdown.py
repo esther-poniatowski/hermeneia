@@ -35,9 +35,7 @@ from hermeneia.language.base import LanguagePack
 
 INLINE_MATH_RE = re.compile(r"(?<!\\)\$(?!\$)(.+?)(?<!\\)\$")
 FOOTNOTE_RE = re.compile(r"^\s*\[\^([^\]]+)\]:\s*")
-ADMONITION_PREFIX_RE = re.compile(
-    r"^\s*\[!(?P<label>[A-Z][A-Z0-9_-]*)\]\s*(?P<title>.*)$"
-)
+ADMONITION_PREFIX_RE = re.compile(r"^\s*\[!(?P<label>[A-Z][A-Z0-9_-]*)\]\s*(?P<title>.*)$")
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(])")
 HTML_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 
@@ -256,18 +254,14 @@ class MarkdownDocumentParser(DocumentParser):
         """Build leaf block."""
         block_span = _token_span(open_token, source, line_starts)
         raw_segment = source[block_span.start : block_span.end]
-        buffer = _visible_buffer(
-            raw_segment, block_span.start, inline_token, source, line_starts
-        )
+        buffer = _visible_buffer(raw_segment, block_span.start, inline_token, source, line_starts)
         block_metadata = dict(metadata or {})
         block_kind = kind
 
         if kind == BlockKind.PARAGRAPH and BlockKind.BLOCK_QUOTE in container_kinds:
             admonition_match = ADMONITION_PREFIX_RE.match(buffer.text)
             if admonition_match is not None:
-                block_metadata["admonition_label"] = admonition_match.group(
-                    "label"
-                ).lower()
+                block_metadata["admonition_label"] = admonition_match.group("label").lower()
                 buffer = _strip_prefix(buffer, admonition_match.start("title"))
 
         raw_stripped = raw_segment.strip()
@@ -353,9 +347,7 @@ class MarkdownDocumentParser(DocumentParser):
                 parent.kind = BlockKind.ADMONITION
                 parent.metadata = {"label": label}
                 block.metadata = {
-                    key: value
-                    for key, value in block.metadata.items()
-                    if key != "admonition_label"
+                    key: value for key, value in block.metadata.items() if key != "admonition_label"
                 }
 
 
@@ -369,9 +361,7 @@ def _visible_buffer(
     """Visible buffer."""
     children = inline_token.children or []
     if not children:
-        source_offsets = tuple(
-            segment_start + index for index in range(len(inline_token.content))
-        )
+        source_offsets = tuple(segment_start + index for index in range(len(inline_token.content)))
         return VisibleBuffer(
             text=inline_token.content, source_offsets=source_offsets, special_spans=()
         )
@@ -446,9 +436,7 @@ def _visible_buffer(
                             kind=InlineKind.LINK_TARGET,
                             start=len(output),
                             end=len(output),
-                            span=_span_from_offsets(
-                                target_start, target_end, line_starts
-                            ),
+                            span=_span_from_offsets(target_start, target_end, line_starts),
                             text=raw_segment[open_paren + 1 : closing],
                         )
                     )
@@ -495,9 +483,7 @@ def _inject_math_spans(buffer: VisibleBuffer, line_starts: list[int]) -> Visible
     )
 
 
-def _inline_nodes_from_buffer(
-    buffer: VisibleBuffer, line_starts: list[int]
-) -> list[InlineNode]:
+def _inline_nodes_from_buffer(buffer: VisibleBuffer, line_starts: list[int]) -> list[InlineNode]:
     """Inline nodes from buffer."""
     return _inline_nodes_for_range(buffer, 0, len(buffer.text), line_starts)
 
@@ -526,20 +512,14 @@ def _inline_nodes_for_range(
     return [node for node in nodes if node.text]
 
 
-def _text_node(
-    buffer: VisibleBuffer, start: int, end: int, line_starts: list[int]
-) -> InlineNode:
+def _text_node(buffer: VisibleBuffer, start: int, end: int, line_starts: list[int]) -> InlineNode:
     """Text node."""
     source_start = next(
         (offset for offset in buffer.source_offsets[start:end] if offset is not None),
         None,
     )
     source_end = next(
-        (
-            offset
-            for offset in reversed(buffer.source_offsets[start:end])
-            if offset is not None
-        ),
+        (offset for offset in reversed(buffer.source_offsets[start:end]) if offset is not None),
         None,
     )
     if source_start is None or source_end is None:
@@ -564,12 +544,8 @@ def _build_sentences(
         segment_text = buffer.text[start:end].strip()
         if not segment_text:
             continue
-        trimmed_start = (
-            start + len(buffer.text[start:end]) - len(buffer.text[start:end].lstrip())
-        )
-        trimmed_end = (
-            end - len(buffer.text[start:end]) + len(buffer.text[start:end].rstrip())
-        )
+        trimmed_start = start + len(buffer.text[start:end]) - len(buffer.text[start:end].lstrip())
+        trimmed_end = end - len(buffer.text[start:end]) + len(buffer.text[start:end].rstrip())
         source_start = next(
             (
                 offset
@@ -589,9 +565,7 @@ def _build_sentences(
         if source_start is None or source_end is None:
             continue
         span = _span_from_offsets(source_start, source_end + 1, line_starts)
-        inline_nodes = _inline_nodes_for_range(
-            buffer, trimmed_start, trimmed_end, line_starts
-        )
+        inline_nodes = _inline_nodes_for_range(buffer, trimmed_start, trimmed_end, line_starts)
         projection_result = build_projection(
             text=buffer.text[trimmed_start:trimmed_end],
             source_offsets=buffer.source_offsets[trimmed_start:trimmed_end],
@@ -602,6 +576,12 @@ def _build_sentences(
         flags.update(extra_flags)
         if BlockKind.LIST_ITEM in container_kinds and "fragment_sentence" in flags:
             flags.add("list_item_fragment")
+        if BlockKind.LIST_ITEM in container_kinds:
+            flags.add("list_item_context")
+        if BlockKind.BLOCK_QUOTE in container_kinds:
+            flags.add("blockquote_context")
+        if block_kind == BlockKind.HEADING:
+            flags.add("heading_context")
         if block_kind == BlockKind.TABLE_CELL:
             flags.add("table_cell_context")
         sentences.append(
@@ -617,9 +597,7 @@ def _build_sentences(
     return sentences
 
 
-def _segment_ranges(
-    block_kind: BlockKind, text: str
-) -> list[tuple[int, int, set[str]]]:
+def _segment_ranges(block_kind: BlockKind, text: str) -> list[tuple[int, int, set[str]]]:
     """Segment ranges."""
     stripped = text.strip()
     if not stripped:
@@ -628,9 +606,7 @@ def _segment_ranges(
         return [(0, len(text), set())]
     segments: list[tuple[int, int, set[str]]] = []
     segment_ranges = (
-        _split_on_html_breaks(text)
-        if block_kind == BlockKind.TABLE_CELL
-        else [(0, len(text))]
+        _split_on_html_breaks(text) if block_kind == BlockKind.TABLE_CELL else [(0, len(text))]
     )
     for segment_start, segment_end in segment_ranges:
         unit = text[segment_start:segment_end]
@@ -732,11 +708,7 @@ def _token_span(token: MarkdownToken, source: str, line_starts: list[int]) -> Sp
     end_line_number = source.count("\n", 0, end) + 1 if source else 1
     end_column = (
         end
-        - (
-            line_starts[end_line_number - 1]
-            if end_line_number - 1 < len(line_starts)
-            else 0
-        )
+        - (line_starts[end_line_number - 1] if end_line_number - 1 < len(line_starts) else 0)
         + 1
     )
     return Span(
@@ -793,9 +765,7 @@ def _front_matter_line_range(source: str) -> tuple[int, int] | None:
     return None
 
 
-def _token_in_line_range(
-    token: MarkdownToken, line_range: tuple[int, int] | None
-) -> bool:
+def _token_in_line_range(token: MarkdownToken, line_range: tuple[int, int] | None) -> bool:
     """Token in line range."""
     if line_range is None:
         return False

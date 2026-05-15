@@ -68,9 +68,7 @@ class DisplayAmbiguousRule(SourcePatternRule):
                     span=span_from_lines(line),
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(
-                        features={"delimiter_count": delimiter_count}
-                    ),
+                    evidence=RuleEvidence(features={"delimiter_count": delimiter_count}),
                     rewrite_tactics=(
                         "Use one opening '$$' and one closing '$$' for each display equation.",
                     ),

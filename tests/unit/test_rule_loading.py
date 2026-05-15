@@ -14,7 +14,7 @@ from hermeneia.rules.base import (
 
 
 def test_load_builtin_rules_registers_expected_ids(registry) -> None:
-    assert len(registry.rule_ids()) == 76
+    assert len(registry.rule_ids()) == 83
     assert all(
         not rule_id.startswith(("surface.", "discourse.", "audience.", "sentence."))
         for rule_id in registry.rule_ids()
@@ -35,6 +35,8 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "syntax.long_inline_enumeration" in registry.rule_ids()
     assert "vocabulary.stacked_nominalization_chain" in registry.rule_ids()
     assert "vocabulary.indefinite_reference" in registry.rule_ids()
+    assert "vocabulary.filler_noun_scaffolding" in registry.rule_ids()
+    assert "vocabulary.cardinality_framing" in registry.rule_ids()
     assert "vocabulary.double_negative" in registry.rule_ids()
     assert "vocabulary.boilerplate_opener" in registry.rule_ids()
     assert "math.display_math" in registry.rule_ids()
@@ -57,12 +59,17 @@ def test_load_builtin_rules_registers_expected_ids(registry) -> None:
     assert "linkage.transition_quality" in registry.rule_ids()
     assert "linkage.semicolon_connector" in registry.rule_ids()
     assert "syntax.embedding_depth" in registry.rule_ids()
+    assert "syntax.multi_action_sentence" in registry.rule_ids()
     assert "linkage.numbered_case" in registry.rule_ids()
     assert "reference.heading_link" in registry.rule_ids()
     assert "reference.see_link" in registry.rule_ids()
     assert "reference.raw_anchor" in registry.rule_ids()
     assert "reference.generic_link_text" in registry.rule_ids()
+    assert "reference.structural_metalanguage" in registry.rule_ids()
+    assert "reference.citation_as_agent" in registry.rule_ids()
+    assert "reference.citation_tail_parenthetical" in registry.rule_ids()
     assert "structure.heading_capitalization" in registry.rule_ids()
+    assert "structure.declarative_heading" in registry.rule_ids()
     assert "structure.heading_level_skip" in registry.rule_ids()
     assert "structure.section_opener_block_kind" in registry.rule_ids()
     assert "structure.opening_sentence_presence" in registry.rule_ids()

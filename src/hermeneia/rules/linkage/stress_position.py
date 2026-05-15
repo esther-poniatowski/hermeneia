@@ -78,9 +78,7 @@ class StressPositionRule(AnnotatedRule):
                         "Stress-position checks are heuristic and should be interpreted "
                         "with local rhetorical context."
                     ),
-                    rewrite_tactics=(
-                        "Move the key new information to the end of the sentence.",
-                    ),
+                    rewrite_tactics=("Move the key new information to the end of the sentence.",),
                 )
             )
         return violations

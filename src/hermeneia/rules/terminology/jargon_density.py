@@ -61,10 +61,7 @@ class JargonDensityRule(HeuristicSemanticRule):
             max_density = AUDIENCE_THRESHOLDS.get(ctx.profile.audience, 0.18)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
-            words = [
-                match.group(0).lower()
-                for match in WORD_RE.finditer(sentence.projection.text)
-            ]
+            words = [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
             if len(words) < 6:
                 continue
             jargon = [word for word in words if _is_jargon(word, jargon_terms)]

@@ -61,9 +61,7 @@ class DoubleFramingRule(HeuristicSemanticRule):
             list_items = _following_list_items(flat_blocks, index)
             if len(list_items) < 2:
                 continue
-            reframed = sum(
-                1 for item in list_items if _item_reframes(item, framing_markers)
-            )
+            reframed = sum(1 for item in list_items if _item_reframes(item, framing_markers))
             if reframed < 2:
                 continue
             violations.append(
@@ -101,9 +99,7 @@ def _following_list_items(blocks: list[Block], index: int) -> list[Block]:
         return []
     next_block = blocks[index + 1]
     if next_block.kind == BlockKind.LIST:
-        return [
-            item for item in next_block.children if item.kind == BlockKind.LIST_ITEM
-        ]
+        return [item for item in next_block.children if item.kind == BlockKind.LIST_ITEM]
     if next_block.kind != BlockKind.LIST_ITEM:
         return []
     items = [next_block]

@@ -70,9 +70,7 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
             signals = ctx.features.support_signals_in_window(
                 sentence.id, max_sentences_back=lookback
             )
-            strong_support = [
-                signal for signal in signals if signal.kind in evidence_kinds
-            ]
+            strong_support = [signal for signal in signals if signal.kind in evidence_kinds]
             if strong_support:
                 continue
             violations.append(
@@ -85,9 +83,7 @@ class ClaimCalibrationRule(HeuristicSemanticRule):
                     evidence=RuleEvidence(
                         features={
                             "claim_markers": matched_markers,
-                            "support_signals": tuple(
-                                signal.kind.value for signal in signals
-                            ),
+                            "support_signals": tuple(signal.kind.value for signal in signals),
                         },
                         score=0.0,
                         threshold=1.0,

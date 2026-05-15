@@ -67,9 +67,7 @@ class ContractionRule(SourcePatternRule):
                     span=span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(
-                        features={"contraction": contraction.lower()}
-                    ),
+                    evidence=RuleEvidence(features={"contraction": contraction.lower()}),
                     rewrite_tactics=("Expand the contraction to its full form.",),
                 )
             )

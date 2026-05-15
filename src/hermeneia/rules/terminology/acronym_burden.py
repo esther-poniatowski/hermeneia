@@ -40,6 +40,7 @@ class _AcronymBurdenOptions(BaseModel):
     min_acronym_mentions_for_overuse: int = Field(default=4, ge=1)
     max_acronym_to_full_form_ratio: float = Field(default=2.0, gt=0)
     ignore_sentence_patterns: tuple[str, ...] = ()
+    ignore_annotation_flags: tuple[str, ...] = ()
     ignore_acronym_tokens: tuple[str, ...] = ()
 
 
@@ -68,7 +69,15 @@ class AcronymBurdenRule(AnnotatedRule):
             "min_acronym_mentions_for_overuse": 4,
             "max_acronym_to_full_form_ratio": 2.0,
             "ignore_sentence_patterns": (r"^\s*\[![A-Z][A-Z0-9_-]*\](?:\s+.*)?$",),
-            "ignore_acronym_tokens": (),
+            "ignore_annotation_flags": (),
+            "ignore_acronym_tokens": (
+                "NOTE",
+                "TIP",
+                "TODO",
+                "WARNING",
+                "IMPORTANT",
+                "CAUTION",
+            ),
         },
         evidence_fields=(
             "issue",
@@ -95,18 +104,32 @@ class AcronymBurdenRule(AnnotatedRule):
         object
             Resulting value produced by this call.
         """
-        min_mentions_for_overuse = self.settings.int_option(
-            "min_acronym_mentions_for_overuse", 4
-        )
+        min_mentions_for_overuse = self.settings.int_option("min_acronym_mentions_for_overuse", 4)
         max_ratio = self.settings.float_option("max_acronym_to_full_form_ratio", 2.0)
-        ignore_sentence_patterns = tuple(
-            self.settings.options.get("ignore_sentence_patterns", ())
+        ignore_sentence_patterns = (
+            _as_string_tuple(
+                self.settings.options.get("ignore_sentence_patterns"),
+                "ignore_sentence_patterns",
+            )
+            or ()
         )
         ignore_patterns = _compile_ignore_patterns(ignore_sentence_patterns)
-        ignore_acronym_tokens = frozenset(
-            token.upper()
-            for token in self.settings.options.get("ignore_acronym_tokens", ())
+        ignore_annotation_flags_raw = (
+            _as_string_tuple(
+                self.settings.options.get("ignore_annotation_flags"),
+                "ignore_annotation_flags",
+            )
+            or ()
         )
+        ignore_annotation_flags = frozenset(str(flag) for flag in ignore_annotation_flags_raw)
+        ignore_acronym_tokens_raw = (
+            _as_string_tuple(
+                self.settings.options.get("ignore_acronym_tokens"),
+                "ignore_acronym_tokens",
+            )
+            or ()
+        )
+        ignore_acronym_tokens = frozenset(token.upper() for token in ignore_acronym_tokens_raw)
         allowlist = ctx.language_pack.lexicons.acronym_allowlist
         definition_stopwords = ctx.language_pack.lexicons.acronym_definition_stopwords
         ordinal_by_sentence_id = {ref.id: ref.ordinal for ref in doc.indexes.sentences}
@@ -116,6 +139,7 @@ class AcronymBurdenRule(AnnotatedRule):
             ordinal_by_sentence_id,
             definition_stopwords,
             ignore_patterns,
+            ignore_annotation_flags,
             ignore_acronym_tokens,
         )
         mentions = _collect_mentions(
@@ -123,6 +147,7 @@ class AcronymBurdenRule(AnnotatedRule):
             allowlist,
             ordinal_by_sentence_id,
             ignore_patterns,
+            ignore_annotation_flags,
             ignore_acronym_tokens,
         )
         violations: list[Violation] = []
@@ -165,14 +190,15 @@ class AcronymBurdenRule(AnnotatedRule):
 
             acronym_mentions = len(sentence_mentions)
             full_form_mentions = _count_full_form_mentions(
-                doc, definition.full_form, ignore_patterns
+                doc,
+                definition.full_form,
+                ignore_patterns,
+                ignore_annotation_flags,
             )
             if acronym_mentions < min_mentions_for_overuse:
                 continue
             ratio = (
-                float("inf")
-                if not full_form_mentions
-                else acronym_mentions / full_form_mentions
+                float("inf") if not full_form_mentions else acronym_mentions / full_form_mentions
             )
             if ratio <= max_ratio:
                 continue
@@ -216,12 +242,17 @@ def _collect_mentions(
     allowlist: frozenset[str],
     ordinal_by_sentence_id: dict[str, int],
     ignore_patterns: tuple[re.Pattern[str], ...],
+    ignore_annotation_flags: frozenset[str],
     ignore_acronym_tokens: frozenset[str],
 ) -> dict[str, list[tuple[int, Sentence]]]:
     """Collect mentions."""
     mentions: dict[str, list[tuple[int, Sentence]]] = {}
     for sentence in iter_sentences(doc):
-        if _sentence_is_ignored(sentence.source_text, ignore_patterns):
+        if _sentence_is_ignored(
+            sentence,
+            ignore_patterns,
+            ignore_annotation_flags,
+        ):
             continue
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
         for match in ACRONYM_RE.finditer(sentence.source_text):
@@ -241,12 +272,17 @@ def _collect_definitions(
     ordinal_by_sentence_id: dict[str, int],
     definition_stopwords: frozenset[str],
     ignore_patterns: tuple[re.Pattern[str], ...],
+    ignore_annotation_flags: frozenset[str],
     ignore_acronym_tokens: frozenset[str],
 ) -> dict[str, AcronymDefinition]:
     """Collect definitions."""
     definitions: dict[str, AcronymDefinition] = {}
     for sentence in iter_sentences(doc):
-        if _sentence_is_ignored(sentence.source_text, ignore_patterns):
+        if _sentence_is_ignored(
+            sentence,
+            ignore_patterns,
+            ignore_annotation_flags,
+        ):
             continue
         ordinal = ordinal_by_sentence_id.get(sentence.id, 10**9)
         for match in FULL_FORM_THEN_ACRONYM_RE.finditer(sentence.source_text):
@@ -352,13 +388,20 @@ def _initials_align(
 
 
 def _count_full_form_mentions(
-    doc, full_form: str, ignore_patterns: tuple[re.Pattern[str], ...]
+    doc,
+    full_form: str,
+    ignore_patterns: tuple[re.Pattern[str], ...],
+    ignore_annotation_flags: frozenset[str],
 ) -> int:
     """Count full form mentions."""
     pattern = re.compile(rf"\b{re.escape(full_form)}\b", re.IGNORECASE)
     count = 0
     for sentence in iter_sentences(doc):
-        if _sentence_is_ignored(sentence.source_text, ignore_patterns):
+        if _sentence_is_ignored(
+            sentence,
+            ignore_patterns,
+            ignore_annotation_flags,
+        ):
             continue
         count += len(pattern.findall(sentence.source_text))
     return count
@@ -374,11 +417,28 @@ def _compile_ignore_patterns(patterns: tuple[str, ...]) -> tuple[re.Pattern[str]
     return tuple(compiled)
 
 
+def _as_string_tuple(raw: object, field: str) -> tuple[str, ...] | None:
+    """Coerce option values into tuple[str, ...] where applicable."""
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        return (raw,)
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError(f"{field} must be a string or sequence of strings")
+    if not all(isinstance(item, str) for item in raw):
+        raise ValueError(f"{field} must be a string or sequence of strings")
+    return tuple(raw)
+
+
 def _sentence_is_ignored(
-    sentence_text: str, ignore_patterns: tuple[re.Pattern[str], ...]
+    sentence: Sentence,
+    ignore_patterns: tuple[re.Pattern[str], ...],
+    ignore_annotation_flags: frozenset[str],
 ) -> bool:
     """Sentence is ignored."""
-    return any(pattern.search(sentence_text) is not None for pattern in ignore_patterns)
+    if sentence.annotation_flags & ignore_annotation_flags:
+        return True
+    return any(pattern.search(sentence.source_text) is not None for pattern in ignore_patterns)
 
 
 def register(registry) -> None:

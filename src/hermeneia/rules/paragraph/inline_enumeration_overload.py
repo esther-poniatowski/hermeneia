@@ -20,9 +20,7 @@ ENUM_LABEL_RE = re.compile(
     r"(?:\(\s*(?:[ivx]+|\d+)\s*\)|\b(?:first|second|third|fourth)\b)",
     re.IGNORECASE,
 )
-FALLBACK_VERB_RE = re.compile(
-    r"\b(?:is|are|was|were|be|been|being|has|have|had|\w+ed|\w+ing)\b"
-)
+FALLBACK_VERB_RE = re.compile(r"\b(?:is|are|was|were|be|been|being|has|have|had|\w+ed|\w+ing)\b")
 
 
 class InlineEnumerationOverloadRule(HeuristicSemanticRule):

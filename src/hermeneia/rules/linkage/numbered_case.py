@@ -54,10 +54,7 @@ class NumberedCaseRule(SourcePatternRule):
         _ = doc, ctx
         violations: list[Violation] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             match = NUMBERED_CASE_RE.search(probe)

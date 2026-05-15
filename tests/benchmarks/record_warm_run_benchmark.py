@@ -6,7 +6,7 @@ Usage:
 
 from __future__ import annotations
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from datetime import datetime, timezone
 from importlib import metadata
 import json
@@ -106,7 +106,7 @@ def main() -> None:
     print(f"Wrote warm-run benchmark record: {output_path}")
 
 
-def _parse_args():
+def _parse_args() -> Namespace:
     parser = ArgumentParser(description=__doc__)
     parser.add_argument(
         "--iterations",

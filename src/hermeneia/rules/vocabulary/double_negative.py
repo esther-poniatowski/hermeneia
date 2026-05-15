@@ -61,10 +61,7 @@ class DoubleNegativeRule(SourcePatternRule):
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             for match in pattern.finditer(probe):
@@ -81,9 +78,7 @@ class DoubleNegativeRule(SourcePatternRule):
                         span=_match_span(line, match.start(), match.end()),
                         severity=self.settings.severity,
                         layer=self.metadata.layer,
-                        evidence=RuleEvidence(
-                            features={"matched_text": matched.lower()}
-                        ),
+                        evidence=RuleEvidence(features={"matched_text": matched.lower()}),
                         rewrite_tactics=(
                             "Rewrite with a single negative or a direct positive statement.",
                         ),

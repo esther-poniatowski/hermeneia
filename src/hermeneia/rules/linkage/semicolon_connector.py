@@ -30,6 +30,7 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         kind=RuleKind.RHETORICAL_EXPECTATION,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
+        default_options={"apply_block_kinds": ("paragraph",)},
         evidence_fields=("issue", "right_clause_preview"),
     )
 
@@ -54,12 +55,18 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
             + tuple(ctx.language_pack.lexicons.explicit_contrast_markers)
         )
         parallel_starters = frozenset(
-            token.lower()
-            for token in ctx.language_pack.lexicons.semicolon_parallel_starters
+            token.lower() for token in ctx.language_pack.lexicons.semicolon_parallel_starters
         )
         connector_pattern = compile_leading_phrase_regex(connectors)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
+            if sentence.annotation_flags & {
+                "list_item_context",
+                "blockquote_context",
+                "table_cell_context",
+                "heading_context",
+            }:
+                continue
             text = sentence.source_text
             if ";" not in text:
                 continue
@@ -104,9 +111,7 @@ class SemicolonConnectorRule(HeuristicSemanticRule):
         return violations
 
 
-def _strict_parallel_pair(
-    left: str, right: str, parallel_starters: frozenset[str]
-) -> bool:
+def _strict_parallel_pair(left: str, right: str, parallel_starters: frozenset[str]) -> bool:
     """Strict parallel pair."""
     left_first = _first_token(left)
     right_first = _first_token(right)

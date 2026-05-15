@@ -19,9 +19,7 @@ from hermeneia.rules.base import (
 from hermeneia.rules.common import line_text_outside_excluded
 from hermeneia.rules.patterns import normalize_phrases
 
-MARKDOWN_LINK_RE = re.compile(
-    r"(?<!\!)\[(?P<link_text>[^\]\n]+)\]\((?P<link_target>[^)\n]*)\)"
-)
+MARKDOWN_LINK_RE = re.compile(r"(?<!\!)\[(?P<link_text>[^\]\n]+)\]\((?P<link_target>[^)\n]*)\)")
 COMMA_SEPARATOR = ", "
 
 
@@ -59,12 +57,8 @@ class _GenericLinkTextOptions:
         if unknown:
             raise ValueError(f"unknown option keys: {COMMA_SEPARATOR.join(unknown)}")
         return cls(
-            reference_labels=_as_string_tuple(
-                raw.get("reference_labels"), "reference_labels"
-            ),
-            procedural_terms=_as_string_tuple(
-                raw.get("procedural_terms"), "procedural_terms"
-            ),
+            reference_labels=_as_string_tuple(raw.get("reference_labels"), "reference_labels"),
+            procedural_terms=_as_string_tuple(raw.get("procedural_terms"), "procedural_terms"),
         )
 
     def model_dump(self) -> dict[str, object]:

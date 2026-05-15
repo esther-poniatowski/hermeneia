@@ -40,9 +40,7 @@ class SpaCyDocumentAnnotator:
             backend="regex_fallback", diagnostics=("spaCy model unavailable",)
         )
 
-    def annotate(
-        self, document: Document, profile: ResolvedProfile
-    ) -> AnnotationResult:
+    def annotate(self, document: Document, profile: ResolvedProfile) -> AnnotationResult:
         """Annotate.
 
         Parameters
@@ -96,9 +94,7 @@ class SpaCyDocumentAnnotator:
                     pos=token.pos_,
                     dep=token.dep_,
                     head_idx=None if token.head is token else token.head.i,
-                    source_span=_token_span(
-                        sentence, token.idx, token.idx + len(token.text)
-                    ),
+                    source_span=_token_span(sentence, token.idx, token.idx + len(token.text)),
                     projection_start=token.idx,
                     projection_end=token.idx + len(token.text),
                 )

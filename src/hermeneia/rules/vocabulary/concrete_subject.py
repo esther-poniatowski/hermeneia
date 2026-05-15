@@ -57,10 +57,7 @@ class ConcreteSubjectRule(SourcePatternRule):
             return []
         violations: list[Violation] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             match = pattern.search(probe)
@@ -92,12 +89,8 @@ def _compile_subject_pattern(
     verbs: tuple[str, ...],
 ) -> re.Pattern[str] | None:
     """Compile subject pattern."""
-    normalized_subjects = tuple(
-        sorted({item.strip().lower() for item in subjects if item.strip()})
-    )
-    normalized_verbs = tuple(
-        sorted({item.strip().lower() for item in verbs if item.strip()})
-    )
+    normalized_subjects = tuple(sorted({item.strip().lower() for item in subjects if item.strip()}))
+    normalized_verbs = tuple(sorted({item.strip().lower() for item in verbs if item.strip()}))
     if not normalized_subjects or not normalized_verbs:
         return None
     subject_body = "|".join(re.escape(item) for item in normalized_subjects)

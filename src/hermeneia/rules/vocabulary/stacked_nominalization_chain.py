@@ -54,8 +54,7 @@ class StackedNominalizationChainRule(AnnotatedRule):
         """
         min_chain = self.settings.int_option("min_chain", 3)
         suffixes = tuple(
-            suffix.lower()
-            for suffix in ctx.language_pack.lexicons.nominalization_suffixes
+            suffix.lower() for suffix in ctx.language_pack.lexicons.nominalization_suffixes
         )
         allowlist = frozenset(
             term.lower() for term in ctx.language_pack.lexicons.nominalization_allowlist
@@ -107,9 +106,7 @@ def _largest_chain(
         words = [_token_word(token) for token in sentence.tokens]
         poses = [(token.pos or "").upper() for token in sentence.tokens]
         return _largest_chain_from_words(words, suffixes, allowlist, poses=poses)
-    words = [
-        match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)
-    ]
+    words = [match.group(0).lower() for match in WORD_RE.finditer(sentence.projection.text)]
     return _largest_chain_from_words(words, suffixes, allowlist, poses=None)
 
 

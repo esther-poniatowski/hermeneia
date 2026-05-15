@@ -33,6 +33,8 @@ Run one-file analysis to validate profile behavior:
 hermeneia lint notes.md --profile research
 ```
 
+Use `--profile strict` when a document needs tighter prose constraints than the default research policy.
+
 ### Analyze a Directory
 
 Then apply the same profile to a directory:

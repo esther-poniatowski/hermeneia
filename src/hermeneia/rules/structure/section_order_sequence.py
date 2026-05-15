@@ -54,9 +54,7 @@ class SectionOrderSequenceRule(HeuristicSemanticRule):
             return []
         heading_rows = [
             (index, heading, _heading_text(heading))
-            for index, heading in enumerate(
-                sorted(headings, key=lambda block: block.span.start)
-            )
+            for index, heading in enumerate(sorted(headings, key=lambda block: block.span.start))
         ]
         purpose = _first_match(
             heading_rows,
@@ -84,12 +82,8 @@ class SectionOrderSequenceRule(HeuristicSemanticRule):
             _order_violation(self, installation, purpose, "purpose_over_installation")
         )
         violations.extend(_order_violation(self, usage, purpose, "purpose_over_usage"))
-        violations.extend(
-            _order_violation(self, configuration, usage, "usage_over_configuration")
-        )
-        violations.extend(
-            _order_violation(self, advanced, usage, "usage_over_advanced")
-        )
+        violations.extend(_order_violation(self, configuration, usage, "usage_over_configuration"))
+        violations.extend(_order_violation(self, advanced, usage, "usage_over_advanced"))
         return violations
 
 

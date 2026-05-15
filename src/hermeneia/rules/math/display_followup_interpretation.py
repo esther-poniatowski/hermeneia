@@ -64,12 +64,9 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
             Resulting value produced by this call.
         """
         min_display_chars = self.settings.int_option("min_display_chars", 12)
-        interpretation_markers = tuple(
-            ctx.language_pack.lexicons.formula_interpretation_markers
-        )
+        interpretation_markers = tuple(ctx.language_pack.lexicons.formula_interpretation_markers)
         weak_transition_markers = frozenset(
-            marker.lower()
-            for marker in ctx.language_pack.lexicons.transition_connectors
+            marker.lower() for marker in ctx.language_pack.lexicons.transition_connectors
         )
         interpretive_noun_pattern = compile_inline_phrase_regex(
             tuple(ctx.language_pack.lexicons.display_interpretive_nouns)
@@ -116,9 +113,7 @@ class DisplayFollowupInterpretationRule(HeuristicSemanticRule):
         return violations
 
 
-def _build_violation(
-    rule, span_owner, issue: str, score: float | None, threshold: float | None
-):
+def _build_violation(rule, span_owner, issue: str, score: float | None, threshold: float | None):
     """Build violation."""
     return Violation(
         rule_id=rule.rule_id,
@@ -148,11 +143,7 @@ def _build_violation(
 def _display_text(doc, block) -> str:
     """Display text."""
     lines = doc.source_lines[block.span.start_line - 1 : block.span.end_line]
-    inner = [
-        line.text.strip()
-        for line in lines
-        if line.text.strip() and line.text.strip() != "$$"
-    ]
+    inner = [line.text.strip() for line in lines if line.text.strip() and line.text.strip() != "$$"]
     return " ".join(inner)
 
 
@@ -194,8 +185,7 @@ def _is_interpretive_followup(
     if not lowered or CONTENT_FREE_FOLLOWUP_RE.fullmatch(lowered):
         return False
     matched = tuple(
-        marker.lower()
-        for marker in matched_sentence_markers(sentence, interpretation_markers)
+        marker.lower() for marker in matched_sentence_markers(sentence, interpretation_markers)
     )
     if not matched:
         return False
@@ -211,11 +201,7 @@ def _is_bare_pronoun_followup(sentence) -> bool:
     """Is bare pronoun followup."""
     lowered = sentence.projection.text.lower().strip()
     return bool(
-        lowered
-        and (
-            IT_THEY_OPENING_RE.match(lowered)
-            or DEMONSTRATIVE_PREDICATE_RE.match(lowered)
-        )
+        lowered and (IT_THEY_OPENING_RE.match(lowered) or DEMONSTRATIVE_PREDICATE_RE.match(lowered))
     )
 
 

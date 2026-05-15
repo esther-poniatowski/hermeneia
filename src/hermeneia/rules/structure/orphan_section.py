@@ -56,9 +56,7 @@ class OrphanSectionRule(HeuristicSemanticRule):
             if heading is None or heading.kind != BlockKind.HEADING:
                 continue
             level = int(heading.metadata.get("level", 1))
-            direct_children, parent_words = _section_shell_stats(
-                doc, section.block_ids, level
-            )
+            direct_children, parent_words = _section_shell_stats(doc, section.block_ids, level)
             if not direct_children and not parent_words:
                 violations.append(
                     _violation(
@@ -83,9 +81,7 @@ class OrphanSectionRule(HeuristicSemanticRule):
         return violations
 
 
-def _section_shell_stats(
-    doc, block_ids: tuple[str, ...], level: int
-) -> tuple[int, int]:
+def _section_shell_stats(doc, block_ids: tuple[str, ...], level: int) -> tuple[int, int]:
     """Section shell stats."""
     direct_children = 0
     parent_words = 0
@@ -119,7 +115,9 @@ def _violation(
     if issue == "empty_section":
         message = "Section has a heading but no substantive content."
     else:
-        message = "Section appears as a shell with one direct subsection and minimal parent-level prose."
+        message = (
+            "Section appears as a shell with one direct subsection and minimal parent-level prose."
+        )
     return Violation(
         rule_id=rule.rule_id,
         message=message,

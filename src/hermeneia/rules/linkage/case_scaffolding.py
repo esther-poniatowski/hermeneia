@@ -76,10 +76,7 @@ class CaseScaffoldingRule(SourcePatternRule):
         violations: list[Violation] = []
         seen_spans: list[tuple[int, int, int]] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             probe = line_text_outside_excluded(line)
             for pattern in CASE_PATTERNS:

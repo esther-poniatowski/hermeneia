@@ -68,14 +68,10 @@ class NominalizationRule(AnnotatedRule):
             True,
         )
         suffixes = tuple(
-            suffix.lower()
-            for suffix in ctx.language_pack.lexicons.nominalization_suffixes
+            suffix.lower() for suffix in ctx.language_pack.lexicons.nominalization_suffixes
         )
         allowlist = (
-            frozenset(
-                term.lower()
-                for term in ctx.language_pack.lexicons.nominalization_allowlist
-            )
+            frozenset(term.lower() for term in ctx.language_pack.lexicons.nominalization_allowlist)
             if allow_lexicalized_noun_exception
             else frozenset()
         )
@@ -83,9 +79,7 @@ class NominalizationRule(AnnotatedRule):
             self.settings.options.get("extra_lexicalized_nouns")
         )
         weak_verbs = ctx.language_pack.lexicons.weak_support_verbs
-        linking_prepositions = (
-            ctx.language_pack.lexicons.nominalization_linking_prepositions
-        )
+        linking_prepositions = ctx.language_pack.lexicons.nominalization_linking_prepositions
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
             if self.should_abstain(sentence.annotation_flags):
@@ -221,9 +215,7 @@ def _detect_from_tokens(
 
     for index in candidate_indexes:
         neighbors = words[max(0, index - 2) : min(len(words), index + 3)]
-        support = next(
-            (neighbor for neighbor in neighbors if neighbor in weak_verbs), None
-        )
+        support = next((neighbor for neighbor in neighbors if neighbor in weak_verbs), None)
         if support is not None:
             return words[index], "weak_support_verb", support
 
@@ -275,9 +267,7 @@ def _detect_from_text(
 
     for index in candidate_indexes:
         neighbors = words[max(0, index - 2) : min(len(words), index + 3)]
-        support = next(
-            (neighbor for neighbor in neighbors if neighbor in weak_verbs), None
-        )
+        support = next((neighbor for neighbor in neighbors if neighbor in weak_verbs), None)
         if support is not None:
             return words[index], "weak_support_verb", support
 
@@ -312,15 +302,9 @@ def _token_is_candidate(
     if suffix in HIGH_NOISE_SUFFIXES:
         pos = (token.pos or "").upper()
         dependency = (token.dep or "").lower()
-        if (
-            pos not in {"NOUN", "PROPN"}
-            and dependency not in SUBJECT_OBJECT_DEPENDENCIES
-        ):
+        if pos not in {"NOUN", "PROPN"} and dependency not in SUBJECT_OBJECT_DEPENDENCIES:
             return False
-        if (
-            next_word not in linking_prepositions
-            and dependency not in SUBJECT_OBJECT_DEPENDENCIES
-        ):
+        if next_word not in linking_prepositions and dependency not in SUBJECT_OBJECT_DEPENDENCIES:
             return False
     return True
 
@@ -375,9 +359,7 @@ def _is_adjective_position(token: Token, next_token: Token | None) -> bool:
     )
 
 
-def _is_suffix_candidate(
-    word: str, suffixes: tuple[str, ...], allowlist: frozenset[str]
-) -> bool:
+def _is_suffix_candidate(word: str, suffixes: tuple[str, ...], allowlist: frozenset[str]) -> bool:
     """Is suffix candidate."""
     if len(word) < 6:
         return False

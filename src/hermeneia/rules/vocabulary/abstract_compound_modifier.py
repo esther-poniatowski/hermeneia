@@ -106,9 +106,7 @@ class AbstractCompoundModifierRule(SourcePatternRule):
                                     "signal": signal,
                                 }
                             ),
-                            confidence=(
-                                0.88 if signal != "stacked_compound_chain" else 0.92
-                            ),
+                            confidence=(0.88 if signal != "stacked_compound_chain" else 0.92),
                             rewrite_tactics=(
                                 "Rewrite the compound as a clause that states what depends on what, and how.",
                             ),

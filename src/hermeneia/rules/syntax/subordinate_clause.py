@@ -29,8 +29,20 @@ class SubordinateClauseRule(AnnotatedRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
-        default_options={"max_subordinate_clauses": 2},
-        abstain_when_flags=frozenset({"heavy_math_masking", "symbol_dense_sentence"}),
+        default_options={
+            "max_subordinate_clauses": 2,
+            "apply_block_kinds": ("paragraph",),
+        },
+        abstain_when_flags=frozenset(
+            {
+                "heavy_math_masking",
+                "symbol_dense_sentence",
+                "list_item_context",
+                "blockquote_context",
+                "table_cell_context",
+                "heading_context",
+            }
+        ),
         evidence_fields=("subordinate_count", "signal_source"),
     )
 
@@ -90,10 +102,7 @@ def _subordinate_count(sentence, marker_pattern) -> tuple[int, str]:
         count = sum(
             1
             for token in sentence.tokens
-            if any(
-                (token.dep or "").startswith(prefix)
-                for prefix in SUBORDINATE_DEP_PREFIXES
-            )
+            if any((token.dep or "").startswith(prefix) for prefix in SUBORDINATE_DEP_PREFIXES)
         )
         return count, "dependency"
     return sum(1 for _ in marker_pattern.finditer(sentence.projection.text)), "regex"

@@ -179,9 +179,7 @@ def rewrite_for_passive_voice(
     if not cleaned_actor:
         return None
     capitalized_actor = cleaned_actor[0].upper() + cleaned_actor[1:]
-    tactic = (
-        f"Rewrite in active voice with '{cleaned_actor}' as the grammatical subject."
-    )
+    tactic = f"Rewrite in active voice with '{cleaned_actor}' as the grammatical subject."
     if participle and participle.lower().endswith("ed"):
         return RewriteCandidate(
             tactic=tactic,

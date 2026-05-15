@@ -170,9 +170,7 @@ class RuleDetector:
                 key=lambda violation: (violation.span.start, violation.rule_id),
             )
         )
-        return DetectionResult(
-            violations=ordered_violations, diagnostics=tuple(diagnostics)
-        )
+        return DetectionResult(violations=ordered_violations, diagnostics=tuple(diagnostics))
 
 
 def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | None:
@@ -192,14 +190,11 @@ def _validate_violation_contract(rule: BaseRule, violation: Violation) -> str | 
         if violation.evidence is None:
             return "violation is missing evidence required by rule metadata"
         missing = [
-            field
-            for field in metadata.evidence_fields
-            if field not in violation.evidence.features
+            field for field in metadata.evidence_fields if field not in violation.evidence.features
         ]
         if missing:
             return (
-                "violation evidence is missing required fields: "
-                f"{COMMA_SEPARATOR.join(missing)}"
+                "violation evidence is missing required fields: " f"{COMMA_SEPARATOR.join(missing)}"
             )
     if metadata.tractability == Tractability.CLASS_H:
         if violation.evidence is None:

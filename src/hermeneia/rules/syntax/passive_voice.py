@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 
+from hermeneia.document.model import Sentence
 from hermeneia.rules.base import (
     AnnotatedRule,
     Layer,
+    RuleContext,
     RuleEvidence,
     RuleKind,
     RuleMetadata,
@@ -19,9 +21,7 @@ from hermeneia.rules.common import iter_sentences, upstream_limits
 PASSIVE_FALLBACK_RE = re.compile(
     r"\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b", re.IGNORECASE
 )
-BY_PHRASE_RE = re.compile(
-    r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE
-)
+BY_PHRASE_RE = re.compile(r"\bby\s+([A-Za-z][A-Za-z0-9' -]{0,80}?)(?=[,.;:!?]|$)", re.IGNORECASE)
 
 
 class PassiveVoiceRule(AnnotatedRule):
@@ -35,7 +35,22 @@ class PassiveVoiceRule(AnnotatedRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
-        abstain_when_flags=frozenset({"heavy_math_masking", "symbol_dense_sentence"}),
+        default_options={
+            "apply_block_kinds": ("paragraph",),
+            "allow_topic_preserving_passive": True,
+            "min_topic_overlap_for_passive_exemption": 0.22,
+            "topic_subject_determiners": ("this", "that", "these", "those"),
+        },
+        abstain_when_flags=frozenset(
+            {
+                "heavy_math_masking",
+                "symbol_dense_sentence",
+                "list_item_context",
+                "blockquote_context",
+                "table_cell_context",
+                "heading_context",
+            }
+        ),
         evidence_fields=("auxiliary", "participle", "dependency_signal"),
     )
 
@@ -54,12 +69,42 @@ class PassiveVoiceRule(AnnotatedRule):
         object
             Resulting value produced by this call.
         """
+        allow_topic_preserving = self.settings.bool_option("allow_topic_preserving_passive", True)
+        min_topic_overlap = self.settings.float_option(
+            "min_topic_overlap_for_passive_exemption", 0.22
+        )
+        configured_determiners = self.settings.options.get("topic_subject_determiners")
+        topic_determiners: tuple[str, ...]
+        if isinstance(configured_determiners, str):
+            topic_determiners = (configured_determiners,)
+        elif isinstance(configured_determiners, (list, tuple)):
+            topic_determiners = tuple(
+                value
+                for value in configured_determiners
+                if isinstance(value, str) and value.strip()
+            )
+        else:
+            topic_determiners = ("this", "that", "these", "those")
+        sentences = list(iter_sentences(doc))
         violations: list[Violation] = []
-        for sentence in iter_sentences(doc):
+        for index, sentence in enumerate(sentences):
             if self.should_abstain(sentence.annotation_flags):
                 continue
             passive_signal = _detect_passive_signal(sentence)
             if passive_signal is None:
+                continue
+            previous = sentences[index - 1] if index > 0 else None
+            if (
+                allow_topic_preserving
+                and previous is not None
+                and _is_topic_preserving_passive(
+                    previous,
+                    sentence,
+                    ctx,
+                    min_topic_overlap=min_topic_overlap,
+                    topic_determiners=topic_determiners,
+                )
+            ):
                 continue
             violations.append(
                 Violation(
@@ -79,6 +124,28 @@ class PassiveVoiceRule(AnnotatedRule):
                 )
             )
         return violations
+
+
+def _is_topic_preserving_passive(
+    previous_sentence: Sentence,
+    sentence: Sentence,
+    ctx: RuleContext,
+    *,
+    min_topic_overlap: float,
+    topic_determiners: tuple[str, ...],
+) -> bool:
+    """Topic-preserving passive."""
+    if not topic_determiners:
+        return False
+    determiner_body = "|".join(re.escape(value) for value in topic_determiners)
+    subject_pattern = re.compile(
+        rf"^\s*(?:{determiner_body})\s+\w+\s+(?:is|are|was|were|be|been|being)\b",
+        re.IGNORECASE,
+    )
+    if subject_pattern.search(sentence.projection.text) is None:
+        return False
+    overlap = ctx.features.sentence_overlap(previous_sentence.id, sentence.id)
+    return overlap >= min_topic_overlap
 
 
 def _detect_passive_signal(sentence) -> dict[str, object] | None:

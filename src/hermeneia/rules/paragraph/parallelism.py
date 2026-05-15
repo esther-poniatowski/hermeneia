@@ -52,11 +52,7 @@ class ParagraphParallelismRule(AnnotatedRule):
         _ = ctx
         violations: list[Violation] = []
         for list_block in iter_blocks(doc, {BlockKind.LIST}):
-            items = [
-                child
-                for child in list_block.children
-                if child.kind == BlockKind.LIST_ITEM
-            ]
+            items = [child for child in list_block.children if child.kind == BlockKind.LIST_ITEM]
             if len(items) < 3:
                 continue
             frames = {item.id: _frame(_item_text(item)) for item in items}

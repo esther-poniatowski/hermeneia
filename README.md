@@ -42,7 +42,7 @@ rationale for each finding.
 ### Advantages
 
 - Diagnose clarity issues from sentence wording to document organization.
-- Apply profile-specific policies for research, pedagogical, and mathematical writing.
+- Apply profile-specific policies for research, pedagogical, mathematical, and strict prose-audit writing.
 - Attach evidence, confidence, and rationale to each rule outcome so reviewers can audit decisions.
 - Order revision steps by structural dependency instead of lexicographic rule order.
 - Validate configuration strictly, apply explicit merge semantics, and fail early on unknown fields or rule ids.

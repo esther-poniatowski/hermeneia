@@ -32,11 +32,21 @@ class EmbeddingDepthRule(AnnotatedRule):
         default_severity=Severity.WARNING,
         supported_languages=frozenset({"en"}),
         default_options={
+            "apply_block_kinds": ("paragraph",),
             "max_dependency_depth": 5,
             "max_embedding_markers": 4,
             "min_sentence_words": 14,
         },
-        abstain_when_flags=frozenset({"heavy_math_masking", "symbol_dense_sentence"}),
+        abstain_when_flags=frozenset(
+            {
+                "heavy_math_masking",
+                "symbol_dense_sentence",
+                "list_item_context",
+                "blockquote_context",
+                "table_cell_context",
+                "heading_context",
+            }
+        ),
         evidence_fields=("signal_source", "dependency_depth", "embedding_markers"),
     )
 
@@ -58,9 +68,7 @@ class EmbeddingDepthRule(AnnotatedRule):
         max_dependency_depth = self.settings.int_option("max_dependency_depth", 5)
         max_embedding_markers = self.settings.int_option("max_embedding_markers", 4)
         min_sentence_words = self.settings.int_option("min_sentence_words", 14)
-        subordinate_markers = tuple(
-            ctx.language_pack.lexicons.subordinate_clause_markers
-        )
+        subordinate_markers = tuple(ctx.language_pack.lexicons.subordinate_clause_markers)
         subordinate_pattern = compile_inline_phrase_regex(subordinate_markers)
         violations: list[Violation] = []
         for sentence in iter_sentences(doc):
@@ -121,13 +129,7 @@ def _dependency_depth(tokens) -> int:
             return memo[index]
         token = tokens[index]
         head = token.head_idx
-        if (
-            head is None
-            or head < 0
-            or head >= len(tokens)
-            or head == index
-            or index in stack
-        ):
+        if head is None or head < 0 or head >= len(tokens) or head == index or index in stack:
             memo[index] = 1
             return 1
         stack.add(index)

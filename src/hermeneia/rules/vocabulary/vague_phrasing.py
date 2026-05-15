@@ -54,10 +54,7 @@ class VaguePhrasingRule(SourcePatternRule):
         )
         violations: list[Violation] = []
         for line in lines:
-            if any(
-                kind.value in {"code_block", "display_math"}
-                for kind in line.container_kinds
-            ):
+            if any(kind.value in {"code_block", "display_math"} for kind in line.container_kinds):
                 continue
             match = match_allowed(line, vague_phrase_pattern)
             if match is None:

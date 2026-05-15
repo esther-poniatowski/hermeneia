@@ -24,9 +24,7 @@ class RevisionPlanner:
         Input value for ``default_mode``.
     """
 
-    def __init__(
-        self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY
-    ) -> None:
+    def __init__(self, default_mode: SuggestionMode = SuggestionMode.TACTIC_ONLY) -> None:
         """Initialize the instance."""
         self._default_mode = default_mode
 

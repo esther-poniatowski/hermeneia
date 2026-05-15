@@ -52,9 +52,7 @@ class HeadingParallelismRule(HeuristicSemanticRule):
                     continue
                 frames = {
                     heading.id: _heading_frame(
-                        " ".join(
-                            sentence.projection.text for sentence in heading.sentences
-                        )
+                        " ".join(sentence.projection.text for sentence in heading.sentences)
                     )
                     for heading in headings
                 }

@@ -50,9 +50,7 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
         object
             Resulting value produced by this call.
         """
-        interpretation_markers = tuple(
-            ctx.language_pack.lexicons.formula_interpretation_markers
-        )
+        interpretation_markers = tuple(ctx.language_pack.lexicons.formula_interpretation_markers)
         formal_statement_pattern = compile_leading_phrase_regex(
             tuple(ctx.language_pack.lexicons.proof_context_formal_openers)
         )
@@ -67,9 +65,7 @@ class ProofPlacementContextRule(HeuristicSemanticRule):
             previous = previous_prose_block(flat_blocks, index)
             if previous is None or not previous.sentences:
                 continue
-            previous_text = " ".join(
-                sentence.source_text for sentence in previous.sentences
-            )
+            previous_text = " ".join(sentence.source_text for sentence in previous.sentences)
             if formal_statement_pattern.search(previous_text) is None:
                 continue
             if text_has_marker(previous_text, interpretation_markers):

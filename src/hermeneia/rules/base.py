@@ -278,9 +278,7 @@ class RuleContext:
     profile: ResolvedProfile
     language_pack: LanguagePack
     features: FeatureStore
-    capabilities: RuntimeCapabilities = field(
-        default_factory=RuntimeCapabilities.defaults
-    )
+    capabilities: RuntimeCapabilities = field(default_factory=RuntimeCapabilities.defaults)
 
     @property
     def embeddings_available(self) -> bool:

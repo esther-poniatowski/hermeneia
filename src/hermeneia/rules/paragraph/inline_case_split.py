@@ -71,9 +71,7 @@ class InlineCaseSplitRule(HeuristicSemanticRule):
                     span=sentence.span,
                     severity=self.settings.severity,
                     layer=self.metadata.layer,
-                    evidence=RuleEvidence(
-                        features={"pattern": match.group(0), "issue": issue}
-                    ),
+                    evidence=RuleEvidence(features={"pattern": match.group(0), "issue": issue}),
                     rewrite_tactics=(
                         "Convert semicolon-joined case clauses into explicit case bullets.",
                     ),

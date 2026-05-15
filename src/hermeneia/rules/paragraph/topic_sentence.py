@@ -28,7 +28,7 @@ class TopicSentenceRule(HeuristicSemanticRule):
         kind=RuleKind.SOFT_HEURISTIC,
         default_severity=Severity.INFO,
         supported_languages=frozenset({"en"}),
-        default_options={"minimum_score": 0.45},
+        default_options={"minimum_score": 0.45, "apply_block_kinds": ("paragraph",)},
         evidence_fields=("first_score", "second_score", "sentence_count"),
     )
 
@@ -52,6 +52,8 @@ class TopicSentenceRule(HeuristicSemanticRule):
         opener_pattern = compile_leading_phrase_regex(transitional_openers)
         violations: list[Violation] = []
         for block in iter_blocks(doc, {BlockKind.PARAGRAPH}):
+            if _block_in_structured_context(block):
+                continue
             if len(block.sentences) < 2:
                 continue
             first, second = block.sentences[0], block.sentences[1]
@@ -108,12 +110,23 @@ class TopicSentenceRule(HeuristicSemanticRule):
         overlap = (
             0.0
             if not others
-            else sum(
-                ctx.features.sentence_overlap(sentence.id, other.id) for other in others
-            )
+            else sum(ctx.features.sentence_overlap(sentence.id, other.id) for other in others)
             / len(others)
         )
         return max(0.0, min(1.0, position_bonus + overlap))
+
+
+def _block_in_structured_context(block) -> bool:
+    """Return whether a paragraph block sits in a structured container context."""
+    for sentence in block.sentences:
+        if sentence.annotation_flags & {
+            "list_item_context",
+            "blockquote_context",
+            "table_cell_context",
+            "heading_context",
+        }:
+            return True
+    return False
 
 
 def register(registry) -> None:
