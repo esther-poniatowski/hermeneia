@@ -1,26 +1,4 @@
 """Document indexes and shared feature computations.
-
-Classes
--------
-SectionView
-    Public API symbol.
-SentenceRef
-    Public API symbol.
-SupportSignalKind
-    Public API symbol.
-SupportSignal
-    Public API symbol.
-DocumentIndexes
-    Public API symbol.
-EmbeddingBackend
-    Public API symbol.
-FeatureStore
-    Public API symbol.
-
-Functions
----------
-build_document_indexes
-    Public API symbol.
 """
 
 from __future__ import annotations

@@ -1,23 +1,4 @@
 """Application-level analysis orchestration.
-
-Classes
--------
-AnalysisInput
-    Public API symbol.
-OperationalDiagnostic
-    Public API symbol.
-AnalysisResult
-    Public API symbol.
-BatchAnalysisResult
-    Public API symbol.
-AnnotationResult
-    Public API symbol.
-AnalysisPolicy
-    Public API symbol.
-DocumentAnnotator
-    Public API symbol.
-AnalysisRunner
-    Public API symbol.
 """
 
 from __future__ import annotations

@@ -1,39 +1,4 @@
 """Rule-domain types and base classes.
-
-Classes
--------
-Layer
-    Public API symbol.
-Tractability
-    Public API symbol.
-Severity
-    Public API symbol.
-RuleKind
-    Public API symbol.
-SuggestionMode
-    Public API symbol.
-RuleMetadata
-    Public API symbol.
-RuleEvidence
-    Public API symbol.
-Violation
-    Public API symbol.
-ResolvedRuleSettings
-    Public API symbol.
-ResolvedProfile
-    Public API symbol.
-RuntimeCapabilities
-    Public API symbol.
-RuleContext
-    Public API symbol.
-BaseRule
-    Public API symbol.
-SourcePatternRule
-    Public API symbol.
-AnnotatedRule
-    Public API symbol.
-HeuristicSemanticRule
-    Public API symbol.
 """
 
 from __future__ import annotations
@@ -321,19 +286,12 @@ class BaseRule(ABC):
     ----------
     settings : ResolvedRuleSettings
         Input value for ``settings``.
-
-    Attributes
-    ----------
-    metadata : ClassVar[RuleMetadata]
-        Configured value for ``metadata``.
-    options_model : ClassVar[type[object] | None]
-        Configured value for ``options_model``.
-    settings : object
-        Configured value for ``settings``.
     """
 
     metadata: ClassVar[RuleMetadata]
+    """Configured value for ``metadata``."""
     options_model: ClassVar[type[object] | None] = None
+    """Configured value for ``options_model``."""
 
     def __init__(self, settings: ResolvedRuleSettings) -> None:
         """Initialize the instance."""

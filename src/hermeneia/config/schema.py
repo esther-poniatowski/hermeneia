@@ -1,34 +1,4 @@
 """Strict configuration parsing and validation.
-
-Classes
--------
-ConfigError
-    Public API symbol.
-ProfileConfig
-    Public API symbol.
-LanguageConfig
-    Public API symbol.
-EmbeddingConfig
-    Public API symbol.
-RuntimeConfig
-    Public API symbol.
-RuleOverrideConfig
-    Public API symbol.
-RulesConfig
-    Public API symbol.
-ScoringConfig
-    Public API symbol.
-SuggestionConfig
-    Public API symbol.
-ReportingConfig
-    Public API symbol.
-ProjectConfig
-    Public API symbol.
-
-Functions
----------
-parse_project_config
-    Public API symbol.
 """
 
 from __future__ import annotations
@@ -59,31 +29,22 @@ class _ConfigModel(BaseModel):
 
 
 class ProfileConfig(_ConfigModel):
-    """Profileconfig.
-
-    Attributes
-    ----------
-    audience : str | None
-        Configured audience profile.
-    genre : str | None
-        Configured writing genre.
-    name : str
-        Profile name.
-    register_name : str | None
-        Optional register profile name.
-    section : str | None
-        Section-oriented profile policy.
-    """
+    """Profileconfig."""
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
     name: str = DEFAULT_PROFILE
+    """Profile name."""
     audience: str | None = None
+    """Configured audience profile."""
     genre: str | None = None
+    """Configured writing genre."""
     section: str | None = None
+    """Section-oriented profile policy."""
     register_name: str | None = Field(
         default=None, alias="register", serialization_alias="register"
     )
+    """Optional register profile name."""
 
     @property
     def register(self) -> str | None:
@@ -98,84 +59,53 @@ class ProfileConfig(_ConfigModel):
 
 
 class LanguageConfig(_ConfigModel):
-    """Languageconfig.
-
-    Attributes
-    ----------
-    code : str
-        Language code for the active language pack.
-    pack : str | None
-        Language pack implementation identifier.
-    """
+    """Languageconfig."""
 
     code: str = "en"
+    """Language code for the active language pack."""
     pack: str | None = None
+    """Language pack implementation identifier."""
 
 
 class EmbeddingConfig(_ConfigModel):
-    """Embeddingconfig.
-
-    Attributes
-    ----------
-    backend : Literal['none', 'sentence_transformers']
-        Embedding backend identifier.
-    model : str
-        Model name used by the backend.
-    """
+    """Embeddingconfig."""
 
     backend: Literal["none", "sentence_transformers"] = "none"
+    """Embedding backend identifier."""
     model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    """Model name used by the backend."""
 
 
 class RuntimeConfig(_ConfigModel):
-    """Runtimeconfig.
-
-    Attributes
-    ----------
-    debug : StrictBool
-        Enable debug-mode diagnostics.
-    embeddings : EmbeddingConfig
-        Enable embedding-backed features.
-    experimental_rules : StrictBool
-        Enable experimental rules.
-    external_rule_modules : tuple[str, ...]
-        External modules that contribute rules.
-    strict_validation : StrictBool
-        Enable strict validation behavior.
-    """
+    """Runtimeconfig."""
 
     strict_validation: StrictBool = True
+    """Enable strict validation behavior."""
     experimental_rules: StrictBool = False
+    """Enable experimental rules."""
     debug: StrictBool = False
+    """Enable debug-mode diagnostics."""
     external_rule_modules: tuple[str, ...] = ()
+    """External modules that contribute rules."""
     embeddings: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
+    """Enable embedding-backed features."""
 
 
 class RuleOverrideConfig(_ConfigModel):
-    """Ruleoverrideconfig.
-
-    Attributes
-    ----------
-    enabled : StrictBool | None
-        Whether the feature is enabled.
-    extra_patterns : tuple[str, ...]
-        Additional user-defined patterns.
-    options : dict[str, object]
-        Rule-specific option mapping.
-    severity : Severity | None
-        Severity assigned to the rule.
-    silenced_patterns : tuple[str, ...]
-        Patterns excluded from matching.
-    weight : float | None
-        Rule weight used by scoring.
-    """
+    """Ruleoverrideconfig."""
 
     enabled: StrictBool | None = None
+    """Whether the feature is enabled."""
     severity: Severity | None = None
+    """Severity assigned to the rule."""
     weight: float | None = None
+    """Rule weight used by scoring."""
     options: dict[str, object] = Field(default_factory=dict)
+    """Rule-specific option mapping."""
     extra_patterns: tuple[str, ...] = ()
+    """Additional user-defined patterns."""
     silenced_patterns: tuple[str, ...] = ()
+    """Patterns excluded from matching."""
 
     @field_validator("weight", mode="before")
     @classmethod
@@ -189,96 +119,60 @@ class RuleOverrideConfig(_ConfigModel):
 
 
 class RulesConfig(_ConfigModel):
-    """Rulesconfig.
-
-    Attributes
-    ----------
-    active : tuple[str, ...] | None
-        Explicitly activated rule identifiers.
-    disabled : tuple[str, ...]
-        Explicitly disabled rule identifiers.
-    overrides : dict[str, RuleOverrideConfig]
-        Per-rule override configuration.
-    """
+    """Rulesconfig."""
 
     active: tuple[str, ...] | None = None
+    """Explicitly activated rule identifiers."""
     disabled: tuple[str, ...] = ()
+    """Explicitly disabled rule identifiers."""
     overrides: dict[str, RuleOverrideConfig] = Field(default_factory=dict)
+    """Per-rule override configuration."""
 
 
 class ScoringConfig(_ConfigModel):
-    """Scoringconfig.
-
-    Attributes
-    ----------
-    aggregation : str
-        Score aggregation strategy.
-    output : tuple[str, ...]
-        Output configuration block.
-    """
+    """Scoringconfig."""
 
     aggregation: str = "hierarchical"
+    """Score aggregation strategy."""
     output: tuple[str, ...] = ("layer_scores", "global_score", "violation_list")
+    """Output configuration block."""
 
 
 class SuggestionConfig(_ConfigModel):
-    """Suggestionconfig.
-
-    Attributes
-    ----------
-    default_mode : str
-        Default suggestion mode.
-    enabled : StrictBool
-        Whether the feature is enabled.
-    """
+    """Suggestionconfig."""
 
     enabled: StrictBool = True
+    """Whether the feature is enabled."""
     default_mode: str = "tactic_only"
+    """Default suggestion mode."""
 
 
 class ReportingConfig(_ConfigModel):
-    """Reportingconfig.
-
-    Attributes
-    ----------
-    format : str
-        Report output format.
-    sort_by : str
-        Diagnostic sorting strategy.
-    """
+    """Reportingconfig."""
 
     format: str = "text"
+    """Report output format."""
     sort_by: str = "severity_desc"
+    """Diagnostic sorting strategy."""
 
 
 class ProjectConfig(_ConfigModel):
-    """Projectconfig.
-
-    Attributes
-    ----------
-    language : LanguageConfig
-        Language configuration block.
-    profile : ProfileConfig
-        Configured value for ``profile``.
-    reporting : ReportingConfig
-        Reporting configuration block.
-    rules : RulesConfig
-        Rule-selection configuration block.
-    runtime : RuntimeConfig
-        Runtime configuration block.
-    scoring : ScoringConfig
-        Scoring configuration block.
-    suggestions : SuggestionConfig
-        Suggestion configuration block.
-    """
+    """Projectconfig."""
 
     profile: ProfileConfig = Field(default_factory=ProfileConfig)
+    """Configured value for ``profile``."""
     language: LanguageConfig = Field(default_factory=LanguageConfig)
+    """Language configuration block."""
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
+    """Runtime configuration block."""
     rules: RulesConfig = Field(default_factory=RulesConfig)
+    """Rule-selection configuration block."""
     scoring: ScoringConfig = Field(default_factory=ScoringConfig)
+    """Scoring configuration block."""
     suggestions: SuggestionConfig = Field(default_factory=SuggestionConfig)
+    """Suggestion configuration block."""
     reporting: ReportingConfig = Field(default_factory=ReportingConfig)
+    """Reporting configuration block."""
 
 
 def parse_project_config(raw: Mapping[str, object] | None) -> ProjectConfig:

@@ -1,14 +1,6 @@
 """
 Initialization logic and public interface for the `hermeneia` package.
 
-Variables
----------
-__version__ : str, default "0.0.0+unknown"
-    Version of the package. If the package metadata is unavailable (e.g. in editable or source-only
-    environments), a fallback value is provided (PEP 440 compliant).
-__all__ : list
-    Public objects exposed by this package.
-
 See Also
 --------
 importlib.metadata.version
@@ -23,11 +15,6 @@ To programmatically retrieve the package version:
     >>> import hermeneia
     >>> hermeneia.__version__
     '0.1.0'
-
-Functions
----------
-info() -> str
-    Format diagnostic information about the package and platform.
 """
 
 from importlib.metadata import version, PackageNotFoundError

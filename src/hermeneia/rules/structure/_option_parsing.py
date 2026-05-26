@@ -1,15 +1,4 @@
 """Shared option parsing helpers for structure rules.
-
-Functions
----------
-as_block_kind_name_tuple
-    Public API symbol.
-resolve_block_kinds
-    Public API symbol.
-mapping_with_allowed_keys
-    Public API symbol.
-parse_block_kind_name
-    Public API symbol.
 """
 
 from __future__ import annotations

@@ -1,33 +1,4 @@
 """Shared helper logic for built-in rules.
-
-Functions
----------
-iter_sentences
-    Public API symbol.
-iter_blocks
-    Public API symbol.
-sentence_word_count
-    Public API symbol.
-sentence_lemmas
-    Public API symbol.
-matched_sentence_markers
-    Public API symbol.
-sentence_has_marker
-    Public API symbol.
-text_has_marker
-    Public API symbol.
-line_text_outside_excluded
-    Public API symbol.
-match_allowed
-    Public API symbol.
-block_text
-    Public API symbol.
-previous_prose_block
-    Public API symbol.
-upstream_limits
-    Public API symbol.
-span_from_lines
-    Public API symbol.
 """
 
 from __future__ import annotations

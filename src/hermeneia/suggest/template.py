@@ -1,24 +1,4 @@
 """Guarded candidate rewrites.
-
-Classes
--------
-RewriteCandidate
-    Public API symbol.
-
-Functions
----------
-rewrite_for_contraction
-    Public API symbol.
-rewrite_for_proof_marker
-    Public API symbol.
-rewrite_for_nominalization
-    Public API symbol.
-rewrite_for_passive_voice
-    Public API symbol.
-tactic_only
-    Public API symbol.
-no_deterministic_rewrite_available
-    Public API symbol.
 """
 
 from __future__ import annotations

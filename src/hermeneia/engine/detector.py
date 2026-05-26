@@ -1,13 +1,4 @@
 """Rule dispatch over a parsed, annotated document.
-
-Classes
--------
-RuleDiagnostic
-    Public API symbol.
-DetectionResult
-    Public API symbol.
-RuleDetector
-    Public API symbol.
 """
 
 from __future__ import annotations

@@ -1,13 +1,4 @@
 """Markdown-it-backed parser into the Hermeneia document IR.
-
-Classes
--------
-VisibleBuffer
-    Public API symbol.
-InlineSpan
-    Public API symbol.
-MarkdownDocumentParser
-    Public API symbol.
 """
 
 from __future__ import annotations

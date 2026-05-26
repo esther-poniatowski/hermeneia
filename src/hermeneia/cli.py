@@ -1,13 +1,4 @@
 """CLI adapter for the Hermeneia analysis pipeline.
-
-Functions
----------
-cli_info
-    Public API symbol.
-cli_lint
-    Public API symbol.
-main_callback
-    Public API symbol.
 """
 
 from __future__ import annotations

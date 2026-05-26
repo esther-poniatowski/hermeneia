@@ -1,19 +1,4 @@
 """Shared regex skeleton builders for rule matching.
-
-Functions
----------
-normalize_phrases
-    Public API symbol.
-compile_leading_phrase_regex
-    Public API symbol.
-compile_inline_phrase_regex
-    Public API symbol.
-compile_structured_leading_term_regex
-    Public API symbol.
-compile_prefixed_term_regex
-    Public API symbol.
-compile_hyphen_suffix_regex
-    Public API symbol.
 """
 
 from __future__ import annotations

@@ -1,13 +1,4 @@
 """Hierarchical scoring over violation sets.
-
-Classes
--------
-LayerScore
-    Public API symbol.
-Scorecard
-    Public API symbol.
-HierarchicalScorer
-    Public API symbol.
 """
 
 from __future__ import annotations

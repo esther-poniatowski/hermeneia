@@ -1,31 +1,4 @@
 """Pure document-domain models for Hermeneia.
-
-Classes
--------
-Span
-    Public API symbol.
-MaskedSegmentKind
-    Public API symbol.
-MaskedSegment
-    Public API symbol.
-TextProjection
-    Public API symbol.
-Token
-    Public API symbol.
-BlockKind
-    Public API symbol.
-InlineKind
-    Public API symbol.
-InlineNode
-    Public API symbol.
-Sentence
-    Public API symbol.
-Block
-    Public API symbol.
-SourceLine
-    Public API symbol.
-Document
-    Public API symbol.
 """
 
 from __future__ import annotations
