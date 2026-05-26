@@ -26,6 +26,7 @@ dependencies:
   - sphinx                 # documentation generator
   - myst-parser            # Markdown support for Sphinx
   - sphinx-rtd-theme       # ReadTheDocs theme
+  - sphinx-markdown-builder # Markdown builder for API-only pipeline
   - sphinx-needs           # for requirements and specifications in Sphinx
   - esbonio                # language server for Sphinx
   # CLI

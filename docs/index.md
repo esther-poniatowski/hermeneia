@@ -3,30 +3,18 @@
 Diagnoses and improves research, pedagogical, and mathematical writing through
 profile-aware, stratified rule systems.
 
-```{toctree}
-:maxdepth: 2
-:caption: User Guide
+## User Guide
 
-guide/index
-```
+- [User Guide](guide/index.md)
 
-```{toctree}
-:maxdepth: 2
-:caption: API Reference
+## API Reference
 
-api/index
-```
+- [API Reference](api/index.md)
 
-```{toctree}
-:maxdepth: 2
-:caption: Developer Internals
+## Developer Internals
 
-internals/index
-```
+- [Internals](internals/index.md)
 
-```{toctree}
-:maxdepth: 2
-:caption: Architecture Decisions
+## Architecture Decisions
 
-adr/index
-```
+- [Architecture Decisions](adr/index.md)

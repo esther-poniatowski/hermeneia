@@ -11,16 +11,12 @@ Follow this sequence:
 4. Use `configuration` and `cli-reference` to tune policy and command behavior for the target document context.
 5. Finish with `prose-audit-protocol` and `sources-and-further-reading` for human-audit method and external grounding.
 
-```{toctree}
-:maxdepth: 1
-
-installation
-usage
-writing-quality-model
-rule-registry
-metrics
-configuration
-cli-reference
-prose-audit-protocol
-sources-and-further-reading
-```
+- [Installation](installation.md)
+- [Usage](usage.md)
+- [Writing Quality Model](writing-quality-model.md)
+- [Rule Registry](rule-registry.md)
+- [Prose Metrics](metrics.md)
+- [Configuration](configuration.md)
+- [CLI Reference](cli-reference.md)
+- [Prose Audit Protocol](prose-audit-protocol.md)
+- [Sources and Further Reading](sources-and-further-reading.md)
