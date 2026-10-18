@@ -1,0 +1,109 @@
+# planted cases of the rules; each source under fires must yield a finding of its rule, and each source under passes none
+# a source is a Markdown document, so a case may span several lines or blocks
+
+syntax.missing_relative_pronoun:
+  fires:
+    - "The tests an answer must pass are listed."
+    - "The variants it accounts for are rare."
+  passes:
+    - "The tests that an answer must pass are listed."
+    - "The tests passed by every answer are listed."
+
+syntax.object_relative:
+  fires:
+    - "The tests that an answer must pass are listed."
+    - "A kind that no case can hold is listed."
+  passes:
+    - "The rule that fixes the key is stated once."
+    - "The symbols already declared are typed."
+
+syntax.relative_tail_claim:
+  fires:
+    - "The checker reports the kinds, which makes the suite fail."
+  passes:
+    - "The checker reports the kinds. The suite then fails."
+    - "The rule which the checker reads is stated once."
+
+syntax.condition_in_subject:
+  fires:
+    - "A kind that no case can hold is listed with its reason."
+    - "A label that each reader applies differently does not qualify."
+  passes:
+    - "When no case can hold a kind, the registry lists the kind."
+    - "The label that each reader applies is recorded."
+
+reference.free_relative:
+  fires:
+    - "What a candidate proposes is a system."
+    - "The duplicate restated what the value sets already carried."
+    - "The operator set was the one list written twice."
+  passes:
+    - "The checker records what changed in the last run."
+    - "What does the checker report?"
+    - "On the one hand, the bound holds."
+    - "A candidate proposes a system."
+    - "The key `what` stays quoted as code."
+
+syntax.counterfactual_detour:
+  fires:
+    - "A parallel vocabulary would have had to draw its own distinctions."
+    - "Had these declarations been deleted, the content was lost."
+  passes:
+    - "The declarations keep the typed content on record."
+    - "Would the bound have held without the assumption?"
+
+linkage.adverbial_position:
+  fires:
+    - "A researcher writing a law therefore names the declared quantities."
+    - "A reader can then find every declaration in one table."
+  passes:
+    - "Therefore, a researcher names the declared quantities."
+    - "If the sequence converges, then the bound holds."
+    - "The checker uses a table instead of a list."
+    - "The bound holds; however, the constant grows."
+    - "| Key | Words |\n| --- | --- |\n| connector | a sentence opening on `therefore` or `hence` |\n"
+    - "The keys were scanned by hand instead."
+
+vocabulary.aphorism:
+  fires:
+    - "A proposed answer is a model, and a model is a system."
+  passes:
+    - "A candidate answer proposes a model of the target system."
+
+linkage.indefinite_opening:
+  fires:
+    - "The checker reads the registry. A formula combines the declared kinds."
+  passes:
+    - "A formula combines the declared kinds."
+    - "The checker reads the registry. The registry declares the kinds."
+
+linkage.unstated_modality:
+  fires:
+    - "Therefore, the checker reports every kind."
+  passes:
+    - "Therefore, the checker must report every kind."
+    - "The checker reports every kind."
+
+math.display_math:
+  fires:
+    - "The sum reads:\n$$\na\n$$\n$$\nb\n$$\n"
+    - "## Bound\n$$\nx\n$$\n"
+    - "Therefore:\n$$\nx\n$$\n"
+    - "The bound reads:\n$$\nx \\le 1.\n$$\n"
+    - "The value reads:\n$$ y = 2, $$\n"
+  passes:
+    - "The bound reads:\n$$\nx \\le 1\n$$\n"
+    - "> [!NOTE] Bound\n> The bound reads:\n> $$\n> x \\le 1\n> $$\n"
+
+math.prose_math:
+  fires:
+    - "The drift $d$ is zero here."
+    - "The gain is fixed to $g_0$."
+  passes:
+    - "The drift satisfies $d = 0$."
+
+vocabulary.vague_phrasing:
+  fires:
+    - "The gain varies in different ways."
+  passes:
+    - "The gain decreases with the variance."

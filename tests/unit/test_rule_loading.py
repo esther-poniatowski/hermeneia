@@ -14,7 +14,7 @@ from hermeneia.rules.base import (
 
 
 def test_load_builtin_rules_registers_expected_ids(registry) -> None:
-    assert len(registry.rule_ids()) == 83
+    assert len(registry.rule_ids()) == 94
     assert all(
         not rule_id.startswith(("surface.", "discourse.", "audience.", "sentence."))
         for rule_id in registry.rule_ids()
