@@ -100,3 +100,12 @@ Document-structure rules covering headings, section ordering, and section opener
    :undoc-members:
    :show-inheritance:
 ```
+
+## Field form
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.structure.field_form
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

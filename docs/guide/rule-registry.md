@@ -69,6 +69,14 @@ Each rule belongs to exactly one namespace. The sections below are ordered by re
 | `reference.see_link` | "See [link]" scaffolding control | Standalone "See" link lead-ins add indirection and weak rhetorical integration. | "See [Lemma 2](#^lemma-two)." | "Lemma 2 gives the bound [link]." |
 | `reference.raw_anchor` | Raw-anchor token ban | Raw `^anchor` tokens in prose are implementation artifacts, not reader-facing references. | "Use ^lemma-two for details." | "Use [Lemma 2](#^lemma-two) for details." |
 | `reference.generic_link_text` | Generic/procedural link text control | Label-only links and procedural/container labels hide what the link contributes. | `[Lemma (Bound)](#^lemma-two)` / `[normality specialization](...)` | `[Boundary bound in Lemma 2](#^lemma-two)` / `[normal overlaps yield independent mode contributions](...)` |
+| `syntax.missing_relative_pronoun` | Relative pronoun required | When a noun is followed directly by the subject of its relative clause, that subject is first parsed as a new constituent. | "the tests an answer must pass" | "the tests that an answer must pass" |
+| `syntax.object_relative` | Object relative control | An object relative holds two noun phrases and an open dependency until its verb arrives. | "the specifications that each layer fixes" | "the specifications of each layer" |
+| `syntax.relative_tail_claim` | Claim in a relative tail | A claim parked after ", which" lands in the position of incidental detail. | "…, which makes the suite fail." | "As a result, the suite fails." |
+| `syntax.condition_in_subject` | Condition packed in the subject | An indefinite subject restricted by a relative clause states a case without marking it as one. | "A kind that no case can hold is listed." | "When no case can hold a kind, the registry lists it." |
+| `syntax.counterfactual_detour` | Counterfactual detour | A fact established through an unrealized alternative leaves the reader to recover the fact. | "A vocabulary would have had to draw its own distinctions." | "The value sets already draw every distinction." |
+| `reference.free_relative` | Named object | A free relative or "the one" names the object by its role in a clause. | "What a candidate proposes is a system." | "A candidate proposes a system." |
+| `vocabulary.aphorism` | Literal claim | A chain of copulas compresses an argument into a memorable form. | "An answer is a model, and a model is a system." | "A candidate answer proposes a model of the target system." |
+| `structure.field_form` | Field form | Each string of a structured source takes the form of its kind: lowercase comments and glosses, labels without a period, sentences with a capital and a period, empty template values. | `# The key is optional.` | `# optional` |
 
 ## Discourse Linkage and Emphasis
 
@@ -80,6 +88,9 @@ Each rule belongs to exactly one namespace. The sections below are ordered by re
 | `linkage.stress_position` | Stress-position quality | Weak sentence endings reduce emphasis and retention. | "From lemma 2, spectral convergence follows." | "The key implication of Lemma 2 is spectral convergence." |
 | `linkage.transition_quality` | Transition articulation | Flags weakly linked adjacent shifts, if-consequence sentences missing `then`, implicit contrasts without explicit contrast markers, and paragraph chains with low continuity/no connectors. | "If X, Y." / "Sentence A. Sentence B flips polarity." | "If X, then Y." / "Sentence A. By contrast, Sentence B ..." |
 | `linkage.semicolon_connector` | Semicolon connector articulation | Semicolon-linked clauses need explicit connective framing unless strictly parallel. | "The bound tightens; the variance shrinks." | "The bound tightens; therefore, the variance shrinks." |
+| `linkage.adverbial_position` | Adverbial at the boundary | A sentence adverbial placed inside its clause arrives after the reader has parsed that clause. | "A researcher therefore names …" | "Therefore, a researcher names …" |
+| `linkage.indefinite_opening` | Topic of an indefinite subject | An indefinite subject presents a new entity, the usual form of a drifting topic. The finding is a question. | "… A formula combines the kinds." | "… The registry declares the kinds." |
+| `linkage.unstated_modality` | Modality of a consequence | A consequence in the indicative leaves an obligation indistinguishable from a fact. The finding is a question. | "Therefore, the checker reports every kind." | "Therefore, the checker must report every kind." |
 
 ## Paragraph Coherence and Redundancy
 

@@ -64,3 +64,21 @@ Document intermediate representation, parsing, annotation, and source views.
    :undoc-members:
    :show-inheritance:
 ```
+
+## Display-math blocks
+
+```{eval-rst}
+.. automodule:: hermeneia.document.math_blocks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Structured sources
+
+```{eval-rst}
+.. automodule:: hermeneia.document.structured
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

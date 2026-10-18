@@ -10,3 +10,21 @@ Optional infrastructure adapters (e.g. embedding backends) used by semantic rule
    :undoc-members:
    :show-inheritance:
 ```
+
+## Changed lines
+
+```{eval-rst}
+.. automodule:: hermeneia.infrastructure.changes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Lexicon files
+
+```{eval-rst}
+.. automodule:: hermeneia.infrastructure.lexicon_files
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

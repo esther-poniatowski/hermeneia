@@ -163,3 +163,12 @@ Vocabulary-layer rules covering nominalization, vague phrasing, framing, and lex
    :undoc-members:
    :show-inheritance:
 ```
+
+## Aphorism
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.vocabulary.aphorism
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

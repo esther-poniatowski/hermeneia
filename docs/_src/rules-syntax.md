@@ -64,3 +64,48 @@ Syntax-layer rules covering sentence length, embedding depth, and clause structu
    :undoc-members:
    :show-inheritance:
 ```
+
+## Missing relative pronoun
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.syntax.missing_relative_pronoun
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Object relative
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.syntax.object_relative
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Relative tail claim
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.syntax.relative_tail_claim
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Condition in subject
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.syntax.condition_in_subject
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Counterfactual detour
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.syntax.counterfactual_detour
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

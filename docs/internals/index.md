@@ -10,3 +10,4 @@ Developer documentation for hermeneia architecture, execution flow, and extensio
 - [Language and NLP](language-and-nlp.md)
 - [Reporting, Scoring, and Suggestions](reporting-and-suggestions.md)
 - [Testing and Benchmarks](testing-and-benchmarks.md)
+- [Alignment with the oikos prose rules](oikos-rule-alignment.md): to decide, for each rule that diverges from the oikos prose rules, which side changes.

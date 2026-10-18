@@ -343,8 +343,52 @@ If `output` omits both `layer_scores` and `global_score`, score computation is s
 
 | Field | Type | Default | Control |
 | --- | --- | --- | --- |
-| `format` | `text \| json` | `text` | Selects CLI output format when `--format` is not passed |
+| `format` | `text \| json \| compact` | `text` | Selects CLI output format when `--format` is not passed |
 | `sort_by` | `str` | `severity_desc` | Parsed and validated; not yet applied by current renderer |
+
+### Inputs
+
+`inputs` controls which files a directory target yields.
+
+| Field | Type | Default | Control |
+| --- | --- | --- | --- |
+| `kinds` | list of `markdown \| yaml \| python \| commit` | `[markdown]` | Source kinds collected from a directory |
+| `exclude_dirs` | list of names | `[]` | Directory names skipped at any depth, such as `_backup` or `_inbox` |
+| `frontmatter_keys` | list of keys | `[]` | Keys of the YAML frontmatter of a Markdown document whose values are linted as prose, such as `purpose` |
+
+A structured source is projected to Markdown before analysis, one paragraph per prose string, and each finding is located on its source line. The prose strings depend on the kind of source:
+
+- a YAML file contributes its string values of at least three words and its comments, each block of consecutive comment lines being read as one string;
+- a Python module contributes its docstrings and its comments, without the section headers, the specification lines of entries and the doctests of its docstrings;
+- a commit message contributes its subject and its body paragraphs, without its trailers and its `#` lines.
+
+The values of the keys listed in `frontmatter_keys` form a structured source of their own, located on their lines of the Markdown document, whose body is analysed as usual.
+
+Only the rules of the surface and discourse layers apply to a structured source, since its strings are independent of each other. The rule `structure.field_form` checks each string against the form of its kind. Its option `forms` declares the form of the values of a key: `gloss`, `paragraph` or `label`. A declared form outranks the form read from the construction of the string:
+
+```yaml
+rules:
+  overrides:
+    structure.field_form:
+      options:
+        forms: {purpose: gloss, contribution: gloss}
+```
+
+### Terminology
+
+`terminology` declares the terms of a project. The nominalization rule reads each declared term as a named quantity and exempts it.
+
+| Field | Type | Default | Control |
+| --- | --- | --- | --- |
+| `terms` | list of terms | `[]` | Terms listed in the configuration |
+| `files` | list of `{path, select}` | `[]` | Files declaring terms: `path` is a glob relative to the configuration file, and `select` a dotted path where `*` matches every key, such as `terms.*.label` |
+
+```yaml
+terminology:
+  terms: [finding, violation]
+  files:
+    - {path: "lexicon/*.glossary.yml", select: "terms.*.label"}
+```
 
 ## Merge and Resolution Semantics
 

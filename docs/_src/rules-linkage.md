@@ -55,3 +55,30 @@ Linkage-layer rules covering transitions, case scaffolding, stress position, and
    :undoc-members:
    :show-inheritance:
 ```
+
+## Adverbial position
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.linkage.adverbial_position
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Indefinite opening
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.linkage.indefinite_opening
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+## Unstated modality
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.linkage.unstated_modality
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

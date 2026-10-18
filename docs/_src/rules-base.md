@@ -37,3 +37,12 @@ Rule-domain types, base classes, shared helpers, loaders, and pattern utilities.
    :undoc-members:
    :show-inheritance:
 ```
+
+## Clause helpers
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.clauses
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

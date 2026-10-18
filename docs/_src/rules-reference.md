@@ -109,3 +109,12 @@ Reference-layer rules covering citations, cross-references, link text, and ancho
    :undoc-members:
    :show-inheritance:
 ```
+
+## Free relative
+
+```{eval-rst}
+.. automodule:: hermeneia.rules.reference.free_relative
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
