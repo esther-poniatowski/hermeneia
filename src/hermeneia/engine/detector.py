@@ -1,5 +1,4 @@
-"""Rule dispatch over a parsed, annotated document.
-"""
+"""Rule dispatch over a parsed, annotated document."""
 
 from __future__ import annotations
 
@@ -8,6 +7,7 @@ from dataclasses import dataclass
 from hermeneia.engine.registry import RuleRegistry
 from hermeneia.rules.base import (
     BaseRule,
+    Layer,
     ResolvedProfile,
     ResolvedRuleSettings,
     RuntimeCapabilities,
@@ -16,7 +16,7 @@ from hermeneia.rules.base import (
     Tractability,
     Violation,
 )
-from hermeneia.document.model import Block, BlockKind, Document, Span
+from hermeneia.document.model import Block, BlockKind, Document, SourceKind, Span
 from hermeneia.document.indexes import FeatureStore
 from hermeneia.language.base import LanguagePack
 
@@ -106,6 +106,8 @@ class RuleDetector:
         # Defensive boundary: rule modules are extension points.
         # pylint: disable=broad-exception-caught
         for settings in profile.active_rules():
+            if not _applies(settings.metadata.layer, document.source_kind):
+                continue
             try:
                 rule = self._registry.instantiate(settings)
             except Exception as exc:  # pragma: no cover
@@ -283,3 +285,23 @@ def _block_kind_allowed(block_kind: BlockKind | None, gate: _BlockKindGate) -> b
     if block_kind is not None and block_kind in gate.exclude:
         return False
     return True
+
+
+#: Layers of the rules applied to a structured source, whose strings are independent of each other.
+SENTENCE_LAYERS = frozenset({Layer.SURFACE_STYLE, Layer.LOCAL_DISCOURSE})
+
+
+def _applies(layer: Layer, source_kind: SourceKind) -> bool:
+    """Whether a rule of a layer applies to a document of a source kind.
+
+    A structured source holds independent strings, such as YAML values or docstrings, so the rules
+    reading paragraphs, sections and the audience are left to Markdown documents.
+
+    Examples
+    --------
+    >>> _applies(Layer.DOCUMENT_STRUCTURE, SourceKind.YAML)
+    False
+    >>> _applies(Layer.DOCUMENT_STRUCTURE, SourceKind.MARKDOWN)
+    True
+    """
+    return source_kind == SourceKind.MARKDOWN or layer in SENTENCE_LAYERS

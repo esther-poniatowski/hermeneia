@@ -156,6 +156,44 @@ class ReportingConfig(_ConfigModel):
     """Diagnostic sorting strategy."""
 
 
+class InputsConfig(_ConfigModel):
+    """Sources collected from a directory target."""
+
+    kinds: tuple[str, ...] = ("markdown",)
+    """Source kinds collected from a directory: markdown, yaml, python or commit."""
+    exclude_dirs: tuple[str, ...] = ()
+    """Directory names skipped at any depth, such as backups or an inbox."""
+    frontmatter_keys: tuple[str, ...] = ()
+    """Keys of the YAML frontmatter of a Markdown document whose values are linted as prose."""
+
+    @field_validator("kinds")
+    @classmethod
+    def _validate_kinds(cls, raw: tuple[str, ...]) -> tuple[str, ...]:
+        """Validate kinds."""
+        unknown = sorted(set(raw) - {"markdown", "yaml", "python", "commit"})
+        if unknown:
+            raise ValueError(f"unknown source kinds: {', '.join(unknown)}")
+        return raw
+
+
+class LexiconFileConfig(_ConfigModel):
+    """One file declaring terms, and the path of the terms within it."""
+
+    path: str
+    """Glob of the files, relative to the configuration file."""
+    select: str
+    """Dotted path of the terms within each file, where ``*`` matches every key of a mapping."""
+
+
+class TerminologyConfig(_ConfigModel):
+    """Terms of a project, read as named quantities rather than as process nouns."""
+
+    files: tuple[LexiconFileConfig, ...] = ()
+    """Files declaring the terms."""
+    terms: tuple[str, ...] = ()
+    """Terms listed directly in the configuration."""
+
+
 class ProjectConfig(_ConfigModel):
     """Projectconfig."""
 
@@ -173,6 +211,10 @@ class ProjectConfig(_ConfigModel):
     """Suggestion configuration block."""
     reporting: ReportingConfig = Field(default_factory=ReportingConfig)
     """Reporting configuration block."""
+    inputs: InputsConfig = Field(default_factory=InputsConfig)
+    """Input-collection configuration block."""
+    terminology: TerminologyConfig = Field(default_factory=TerminologyConfig)
+    """Terminology configuration block."""
 
 
 def parse_project_config(raw: Mapping[str, object] | None) -> ProjectConfig:

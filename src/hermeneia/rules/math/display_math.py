@@ -23,6 +23,8 @@ CONTENT_FREE_LEADIN_RE = re.compile(
 TRAILING_PUNCTUATION_RE = re.compile(r"[.,;:!?]\s*$")
 PUNCTUATION_BEFORE_LINEBREAK_RE = re.compile(r"[.,;:!?]\s*\\\\\s*$")
 LEADIN_COLON_RE = re.compile(r":\s*$")
+QUOTE_PREFIX_RE = re.compile(r"^(?:\s*>)+\s?")
+DELIMITER = "$$"
 
 
 class DisplayMathRule(SourcePatternRule):
@@ -66,9 +68,9 @@ class DisplayMathRule(SourcePatternRule):
                 continue
             block_lines = source_lines[block.span.start_line - 1 : block.span.end_line]
             inner_lines = [
-                line.text.strip()
-                for line in block_lines
-                if line.text.strip() and line.text.strip() != "$$"
+                content
+                for content in (_display_content(line.text) for line in block_lines)
+                if content
             ]
             punctuation_issue = _display_punctuation_issue(inner_lines)
             if punctuation_issue is not None:
@@ -91,7 +93,31 @@ class DisplayMathRule(SourcePatternRule):
                 )
             if require_leadin:
                 leadin = _previous_nonempty_line(source_lines, block.span.start_line - 1)
-                if leadin is None or CONTENT_FREE_LEADIN_RE.search(leadin.text.strip()):
+                leadin_text = "" if leadin is None else _unquoted(leadin.text)
+                placement = _misplaced_leadin(leadin_text)
+                if leadin is not None and placement is not None:
+                    violations.append(
+                        Violation(
+                            rule_id=self.rule_id,
+                            message=(
+                                "Display math directly follows "
+                                + (
+                                    "another display"
+                                    if placement == "follows_display"
+                                    else "a heading"
+                                )
+                                + "; introduce it with an explanatory lead-in sentence."
+                            ),
+                            span=block.span,
+                            severity=self.settings.severity,
+                            layer=self.metadata.layer,
+                            evidence=RuleEvidence(features={"check": placement}),
+                            rewrite_tactics=(
+                                "Name the quantity, operation, or argumentative role before the display equation.",
+                            ),
+                        )
+                    )
+                elif leadin is None or CONTENT_FREE_LEADIN_RE.search(leadin_text):
                     span = block.span if leadin is None else leadin.span
                     violations.append(
                         Violation(
@@ -108,7 +134,7 @@ class DisplayMathRule(SourcePatternRule):
                             ),
                         )
                     )
-                elif require_leadin_colon and not LEADIN_COLON_RE.search(leadin.text.strip()):
+                elif require_leadin_colon and not LEADIN_COLON_RE.search(leadin_text):
                     violations.append(
                         Violation(
                             rule_id=self.rule_id,
@@ -130,6 +156,51 @@ def _previous_nonempty_line(lines, before_line_number: int):
     for index in range(before_line_number - 1, -1, -1):
         if lines[index].text.strip():
             return lines[index]
+    return None
+
+
+def _unquoted(text: str) -> str:
+    """Return a line without its block-quote markers, stripped.
+
+    Examples
+    --------
+    >>> _unquoted("> > The bound reads:")
+    'The bound reads:'
+    """
+    return QUOTE_PREFIX_RE.sub("", text).strip()
+
+
+def _display_content(text: str) -> str:
+    """Return the mathematical content of a line of a display block, without its delimiters.
+
+    Examples
+    --------
+    >>> _display_content("> $$ y = 2, $$")
+    'y = 2,'
+    >>> _display_content("$$")
+    ''
+    """
+    content = _unquoted(text)
+    content = content.removeprefix(DELIMITER).removesuffix(DELIMITER)
+    return content.strip()
+
+
+def _misplaced_leadin(leadin_text: str) -> str | None:
+    """Return the check failed when the line before a display is a display or a heading.
+
+    Examples
+    --------
+    >>> _misplaced_leadin("$$")
+    'follows_display'
+    >>> _misplaced_leadin("## Bound")
+    'follows_heading'
+    >>> _misplaced_leadin("The bound reads:") is None
+    True
+    """
+    if leadin_text.endswith(DELIMITER):
+        return "follows_display"
+    if leadin_text.startswith("#"):
+        return "follows_heading"
     return None
 
 

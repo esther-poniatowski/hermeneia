@@ -1,8 +1,8 @@
-"""CLI adapter for the Hermeneia analysis pipeline.
-"""
+"""CLI adapter for the Hermeneia analysis pipeline."""
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from pathlib import Path
 
@@ -13,11 +13,16 @@ from hermeneia.config.loader import load_project_config
 from hermeneia.config.profile import CliOverrides, ProfileResolver
 from hermeneia.config.schema import ProjectConfig
 from hermeneia.engine.registry import RuleRegistry
-from hermeneia.engine.runner import AnalysisInput, AnalysisPolicy, AnalysisRunner
+from hermeneia.engine.runner import AnalysisInput, AnalysisPolicy, AnalysisResult, AnalysisRunner
 from hermeneia.infrastructure.embeddings import build_embedding_backend
 from hermeneia.language.registry import LanguageRegistry
 from hermeneia.document.annotator import SpaCyDocumentAnnotator
 from hermeneia.document.markdown import MarkdownDocumentParser
+from hermeneia.document.model import SourceKind
+from hermeneia.document.structured import project, project_frontmatter, source_kind
+from hermeneia.infrastructure.changes import changed_files, changed_lines
+from hermeneia.infrastructure.lexicon_files import load_terms
+from hermeneia.language.base import LanguagePack
 from hermeneia.report.annotations import build_excerpt
 from hermeneia.rules.base import Severity, SuggestionMode, Violation
 from hermeneia.rules.loader import load_builtin_rules, load_external_rules
@@ -25,6 +30,8 @@ from hermeneia.rules.loader import load_builtin_rules, load_external_rules
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
 SUPPORTED_SCORING_OUTPUTS = frozenset({"layer_scores", "global_score", "violation_list"})
+#: Names of the project configuration file, searched from the target upwards.
+CONFIG_NAMES = (".hermeneia.yaml", ".hermeneia.yml")
 
 
 @app.command("info")
@@ -36,7 +43,7 @@ def cli_info() -> None:
 
 @app.command("lint")
 def cli_lint(
-    target: Path = typer.Argument(..., exists=True, readable=True, resolve_path=True),
+    targets: list[Path] = typer.Argument(..., exists=True, readable=True, resolve_path=True),
     profile: str = typer.Option(
         "research", "--profile", help="Profile preset to resolve before user overrides."
     ),
@@ -62,13 +69,25 @@ def cli_lint(
         "--fail-on",
         help="Exit non-zero when this severity or higher is present.",
     ),
+    changed: bool = typer.Option(
+        False, "--changed", help="Report only the findings on lines changed since --base."
+    ),
+    base: str = typer.Option("HEAD", "--base", help="Revision compared by --changed."),
+    kinds: list[str] = typer.Option(
+        [],
+        "--kind",
+        help="Source kinds collected from a directory (markdown, yaml, python, commit).",
+    ),
+    no_exclude: bool = typer.Option(
+        False, "--no-exclude", help="Collect the directories excluded by inputs.exclude_dirs."
+    ),
 ) -> None:
-    """Lint a markdown file or directory.
+    """Lint Markdown files, structured sources, or directories.
 
     Parameters
     ----------
-    target : Path
-        Input value for ``target``.
+    targets : list[Path]
+        Files or directories to analyse; the configuration is searched from the first one.
     profile : str
         Resolved profile controlling rule behavior.
     config : Path | None
@@ -85,9 +104,18 @@ def cli_lint(
         Input value for ``experimental``.
     fail_on : Severity
         Input value for ``fail_on``.
+    changed : bool
+        Whether to report only the findings on lines changed since ``base``.
+    base : str
+        Revision compared by ``changed``.
+    kinds : list[str]
+        Source kinds collected from a directory, overriding ``inputs.kinds``.
+    no_exclude : bool
+        Whether to collect the directories excluded by ``inputs.exclude_dirs``.
     """
 
     try:
+        config = config or _discover_config(targets[0])
         project_config = load_project_config(config)
         registry = RuleRegistry()
         load_builtin_rules(registry)
@@ -95,7 +123,10 @@ def cli_lint(
             load_external_rules(module_name, registry)
 
         language_registry = LanguageRegistry()
-        language_pack = language_registry.get(project_config.language.code)
+        language_pack = _with_terms(
+            language_registry.get(project_config.language.code),
+            load_terms(project_config.terminology, config.parent if config else Path.cwd()),
+        )
         resolved_profile = ProfileResolver(registry).resolve(
             project_config,
             language_pack,
@@ -118,14 +149,34 @@ def cli_lint(
             embedding_backend=embedding_backend,
             policy=policy,
         )
-        inputs = _collect_inputs(target)
+        collected_kinds = frozenset(
+            SourceKind(kind) for kind in (kinds or project_config.inputs.kinds)
+        )
+        excluded = () if no_exclude else project_config.inputs.exclude_dirs
+        inputs = tuple(
+            item
+            for target in targets
+            for item in _collect_inputs(
+                target,
+                collected_kinds,
+                excluded,
+                changed_files(target, base) if changed and target.is_dir() else None,
+                frozenset(project_config.inputs.frontmatter_keys),
+            )
+        )
         if not inputs:
-            raise typer.BadParameter("No markdown files were found at the requested target.")
+            if changed:
+                return
+            raise typer.BadParameter("No analysable files were found at the requested target.")
         batch = runner.analyze(inputs, resolved_profile)
+        if changed:
+            batch = _restrict_to_changes(batch, base)
 
         effective_format = output_format or project_config.reporting.format
         if effective_format == "json":
             typer.echo(_render_json(batch))
+        elif effective_format == "compact":
+            typer.echo(_render_compact(batch))
         else:
             typer.echo(_render_text(batch))
 
@@ -157,18 +208,115 @@ def main_callback(
         raise typer.Exit()
 
 
-def _collect_inputs(target: Path) -> tuple[AnalysisInput, ...]:
-    """Collect inputs."""
+def _discover_config(target: Path) -> Path | None:
+    """Return the nearest project configuration file at or above a target, if any."""
+    directory = target if target.is_dir() else target.parent
+    for candidate in (directory, *directory.parents):
+        for name in CONFIG_NAMES:
+            if (candidate / name).is_file():
+                return candidate / name
+    return None
+
+
+def _with_terms(language_pack: LanguagePack, terms: frozenset[str]) -> LanguagePack:
+    """Return a language pack reading the terms of a project as named quantities."""
+    if not terms:
+        return language_pack
+    lexicons = dataclasses.replace(
+        language_pack.lexicons,
+        nominalization_allowlist=language_pack.lexicons.nominalization_allowlist | terms,
+    )
+    return dataclasses.replace(language_pack, lexicons=lexicons)
+
+
+def _collect_inputs(
+    target: Path,
+    kinds: frozenset[SourceKind],
+    exclude_dirs: tuple[str, ...],
+    paths: tuple[Path, ...] | None = None,
+    frontmatter_keys: frozenset[str] = frozenset(),
+) -> tuple[AnalysisInput, ...]:
+    """Collect the sources of a target, each projected to Markdown when it is structured.
+
+    A file target is analysed whatever its kind. A directory target yields its files of the
+    requested kinds, outside the excluded directories, or only the listed paths when given. A
+    Markdown file also yields the values of its frontmatter keys listed in ``frontmatter_keys``,
+    analysed as a structured source located in the same file.
+    """
     if target.is_file():
-        return (AnalysisInput(path=target, source=target.read_text(encoding="utf-8")),)
-    files = sorted(
-        path
-        for path in target.rglob("*")
-        if path.is_file() and path.suffix.lower() in {".md", ".markdown"}
-    )
-    return tuple(
-        AnalysisInput(path=path, source=path.read_text(encoding="utf-8")) for path in files
-    )
+        candidates: tuple[Path, ...] = (target,)
+    else:
+        pool = paths if paths is not None else tuple(sorted(target.rglob("*")))
+        candidates = tuple(
+            path
+            for path in pool
+            if path.is_file()
+            and source_kind(path) in kinds
+            and not any(part in exclude_dirs for part in path.relative_to(target).parts[:-1])
+        )
+    inputs: list[AnalysisInput] = []
+    for path in candidates:
+        kind = source_kind(path) or SourceKind.MARKDOWN
+        text = path.read_text(encoding="utf-8")
+        projections = [(kind, project(kind, text))]
+        if kind == SourceKind.MARKDOWN and frontmatter_keys:
+            frontmatter = project_frontmatter(text, frontmatter_keys)
+            if frontmatter.fields:
+                projections.append((SourceKind.YAML, frontmatter))
+        inputs.extend(
+            AnalysisInput(
+                path=path,
+                source=projection.markdown,
+                source_kind=projected_kind,
+                fields=projection.fields,
+                line_map=projection.line_map,
+            )
+            for projected_kind, projection in projections
+        )
+    return tuple(inputs)
+
+
+def _restrict_to_changes(batch, base: str):
+    """Keep the findings whose source lines intersect the lines changed since a base revision."""
+    results = []
+    for result in batch.results:
+        path = result.report.path
+        lines = changed_lines(path, base) if path is not None else None
+        if lines is None:
+            results.append(result)
+            continue
+        document = result.document
+        kept = tuple(
+            violation
+            for violation in result.violations
+            if any(
+                document.source_line(line) in lines
+                for line in range(violation.span.start_line, violation.span.end_line + 1)
+            )
+        )
+        report = dataclasses.replace(result.report, violations=kept)
+        results.append(dataclasses.replace(result, violations=kept, report=report))
+    return dataclasses.replace(batch, results=tuple(results))
+
+
+def _render_compact(batch) -> str:
+    """Render one line per finding, located in the source file."""
+    lines: list[str] = []
+    for diagnostic in batch.diagnostics:
+        location = f"{diagnostic.path}: " if diagnostic.path is not None else ""
+        lines.append(f"[diagnostic] {location}{diagnostic.message}")
+    for result in batch.results:
+        path_label = str(result.report.path) if result.report.path is not None else "<memory>"
+        for violation in result.violations:
+            document = result.document
+            location = f"{document.source_line(violation.span.start_line)}"
+            if document.source_kind == SourceKind.MARKDOWN:
+                location += f":{violation.span.start_column + 1}"
+            lines.append(
+                f"{path_label}:{location}: "
+                f"{violation.severity.value} {violation.rule_id}: {violation.message}"
+            )
+    return "\n".join(lines)
 
 
 def _render_text(batch) -> str:
@@ -189,7 +337,7 @@ def _render_text(batch) -> str:
                 f"  {violation.severity.value.upper()} {violation.rule_id}: {violation.message}"
             )
             for row in excerpt.lines:
-                lines.append(f"    {row.line_number}: {row.line_text}")
+                lines.append(f"    {result.document.source_line(row.line_number)}: {row.line_text}")
                 lines.append(f"       {row.marker_line}")
             _append_violation_details(lines, violation)
         if result.report.scorecard is not None and "global_score" in result.report.scoring_output:
@@ -208,9 +356,21 @@ def _render_json(batch) -> str:
             }
             for diagnostic in batch.diagnostics
         ],
-        "results": [result.report.to_dict() for result in batch.results],
+        "results": [_located(result) for result in batch.results],
     }
     return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def _located(result: AnalysisResult) -> dict[str, object]:
+    """Return the report of a result, with every span located in the source file."""
+    payload: dict[str, object] = result.report.to_dict()
+    violations = payload.get("violations", [])
+    for violation in violations if isinstance(violations, list) else []:
+        span = violation.get("span")
+        if isinstance(span, dict):
+            for key in ("start_line", "end_line"):
+                span[key] = result.document.source_line(span[key])
+    return payload
 
 
 def _has_failure(batch, threshold: Severity) -> bool:

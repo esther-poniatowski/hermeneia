@@ -1,5 +1,4 @@
-"""Application-level analysis orchestration.
-"""
+"""Application-level analysis orchestration."""
 
 from __future__ import annotations
 
@@ -8,7 +7,7 @@ from pathlib import Path
 from typing import Protocol
 
 from hermeneia.document.indexes import EmbeddingBackend, FeatureStore
-from hermeneia.document.model import Document
+from hermeneia.document.model import Document, FieldString, SourceKind
 from hermeneia.document.parser import DocumentParser, ParseRequest
 from hermeneia.engine.detector import RuleDetector
 from hermeneia.engine.registry import RuleRegistry
@@ -22,10 +21,13 @@ from hermeneia.rules.base import ResolvedProfile, SuggestionMode, Violation
 
 @dataclass(frozen=True)
 class AnalysisInput:
-    """Analysisinput."""
+    """One source to analyse, projected to Markdown when it is a structured file."""
 
     path: Path | None
     source: str
+    source_kind: SourceKind = SourceKind.MARKDOWN
+    fields: tuple[FieldString, ...] = ()
+    line_map: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -223,7 +225,13 @@ class AnalysisRunner:
         """Parse document."""
         try:
             return self._parser.parse(
-                ParseRequest(source=analysis_input.source, path=analysis_input.path)
+                ParseRequest(
+                    source=analysis_input.source,
+                    path=analysis_input.path,
+                    source_kind=analysis_input.source_kind,
+                    fields=analysis_input.fields,
+                    line_map=analysis_input.line_map,
+                )
             )
         except Exception as exc:  # pylint: disable=broad-exception-caught
             diagnostics.append(

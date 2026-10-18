@@ -1,5 +1,4 @@
-"""Pure document-domain models for Hermeneia.
-"""
+"""Pure document-domain models for Hermeneia."""
 
 from __future__ import annotations
 
@@ -215,6 +214,52 @@ class SourceLine:
     excluded_spans: tuple[Span, ...] = ()
 
 
+class SourceKind(StrEnum):
+    """Kinds of source file, each projected to Markdown before analysis."""
+
+    MARKDOWN = "markdown"
+    YAML = "yaml"
+    PYTHON = "python"
+    COMMIT = "commit"
+
+
+class FieldKind(StrEnum):
+    """Kinds of prose string extracted from a structured source."""
+
+    VALUE = "value"
+    LABEL = "label"
+    COMMENT = "comment"
+    DOCSTRING = "docstring"
+    CODE_COMMENT = "code_comment"
+    COMMIT_SUBJECT = "commit_subject"
+    COMMIT_BODY = "commit_body"
+
+
+@dataclass(frozen=True)
+class FieldString:
+    """A prose string of a structured source, located in the projection and in the source.
+
+    Parameters
+    ----------
+    kind : FieldKind
+        Kind of the string, which fixes the form it must take.
+    key : str | None
+        Key holding a YAML value, absent for other kinds.
+    text : str
+        The string, without its quotes or comment marker.
+    line : int
+        First line of the string in the Markdown projection.
+    source_line : int
+        First line of the string in the source file.
+    """
+
+    kind: FieldKind
+    key: str | None
+    text: str
+    line: int
+    source_line: int
+
+
 @dataclass
 class Document:
     """Canonical source-of-truth document representation."""
@@ -224,6 +269,27 @@ class Document:
     indexes: "DocumentIndexes"
     source: str
     path: Path | None = None
+    source_kind: SourceKind = SourceKind.MARKDOWN
+    fields: tuple[FieldString, ...] = ()
+    #: Line of the source file for each line of a projected source, empty for a Markdown file.
+    line_map: tuple[int, ...] = ()
+
+    def source_line(self, line: int) -> int:
+        """Return the line of the source file holding a line of the analysed text.
+
+        Parameters
+        ----------
+        line : int
+            One-based line of the analysed text.
+
+        Returns
+        -------
+        int
+            One-based line of the source file.
+        """
+        if not self.line_map or not 1 <= line <= len(self.line_map):
+            return line
+        return self.line_map[line - 1]
 
     def iter_blocks(self) -> Iterable[Block]:
         """Iter blocks.

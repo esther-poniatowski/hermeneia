@@ -1,5 +1,4 @@
-"""Markdown-it-backed parser into the Hermeneia document IR.
-"""
+"""Markdown-it-backed parser into the Hermeneia document IR."""
 
 from __future__ import annotations
 
@@ -10,6 +9,7 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token as MarkdownToken
 
 from hermeneia.document.indexes import DocumentIndexes, build_document_indexes
+from hermeneia.document.math_blocks import MATH_BLOCK_TOKEN, enable_display_math
 from hermeneia.document.model import (
     Block,
     BlockKind,
@@ -69,7 +69,7 @@ class MarkdownDocumentParser(DocumentParser):
             fragment_token_threshold=language_pack.preprocessing.fragment_token_threshold,
             code_dominant_ratio=language_pack.preprocessing.code_dominant_ratio,
         )
-        self._markdown = MarkdownIt("commonmark").enable("table")
+        self._markdown = enable_display_math(MarkdownIt("commonmark").enable("table"))
 
     def parse(self, request: ParseRequest) -> Document:
         """Parse.
@@ -194,6 +194,16 @@ class MarkdownDocumentParser(DocumentParser):
                 _append_block(roots, stack, block)
                 cursor += 3
                 continue
+            if token.type == MATH_BLOCK_TOKEN:
+                block = Block(
+                    id=_block_id(block_counter),
+                    kind=BlockKind.DISPLAY_MATH,
+                    span=_token_span(token, source, line_starts),
+                    metadata={"content": token.content.strip()},
+                )
+                _append_block(roots, stack, block)
+                cursor += 1
+                continue
             if token.type == "fence":
                 block = Block(
                     id=_block_id(block_counter),
@@ -220,6 +230,9 @@ class MarkdownDocumentParser(DocumentParser):
             ),
             source=source,
             path=request.path,
+            source_kind=request.source_kind,
+            fields=request.fields,
+            line_map=request.line_map,
         )
         document.indexes = build_document_indexes(
             document,
