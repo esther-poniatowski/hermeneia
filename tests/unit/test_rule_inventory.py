@@ -9,6 +9,7 @@ from hermeneia.document.indexes import FeatureStore
 from hermeneia.document.markdown import MarkdownDocumentParser
 from hermeneia.document.model import Document
 from hermeneia.document.parser import ParseRequest
+from hermeneia.engine.registry import RuleRegistry
 from hermeneia.language.base import LanguagePack
 from hermeneia.rules.base import ResolvedProfile, RuleContext
 
@@ -25,6 +26,18 @@ def _annotate(
     document: Document,
 ) -> Document:
     return SpaCyDocumentAnnotator(language_pack.parser_model).annotate(document, profile).document
+
+
+def _profile_for_rule(
+    registry: RuleRegistry,
+    language_pack: LanguagePack,
+    rule_id: str,
+) -> ResolvedProfile:
+    """Return a profile with one explicitly selected rule."""
+    return ProfileResolver(registry).resolve(
+        parse_project_config({"rules": {"active": [rule_id]}}),
+        language_pack,
+    )
 
 
 def test_passive_voice_rule_emits(registry, language_pack, research_profile) -> None:
@@ -876,12 +889,19 @@ def test_math_proof_placement_context_rule_emits(registry, language_pack, resear
 
 
 def test_math_display_followup_interpretation_rule_emits(
-    registry, language_pack, research_profile
+    registry, language_pack
 ) -> None:
-    source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n" "The claim is immediate.\n"
+    source = (
+        "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n" "The claim is immediate.\n"
+    )
     document = _parse(language_pack, source)
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["math.display_followup_interpretation"])
+    profile = _profile_for_rule(
+        registry, language_pack, "math.display_followup_interpretation"
+    )
+    context = RuleContext(
+        profile, language_pack, FeatureStore(document, document.indexes)
+    )
+    rule = registry.instantiate(profile.rules["math.display_followup_interpretation"])
     violations = rule.check(document, context)
     assert len(violations) == 1
     assert violations[0].rule_id == "math.display_followup_interpretation"
@@ -902,26 +922,36 @@ def test_math_consecutive_display_blocks_without_bridge_rule_emits(
 
 
 def test_math_display_followup_interpretation_rule_accepts_interpretive_followup(
-    registry, language_pack, research_profile
+    registry, language_pack
 ) -> None:
     source = (
         "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\n"
         "The equation shows how the correction term controls the residual.\n"
     )
     document = _parse(language_pack, source)
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["math.display_followup_interpretation"])
+    profile = _profile_for_rule(
+        registry, language_pack, "math.display_followup_interpretation"
+    )
+    context = RuleContext(
+        profile, language_pack, FeatureStore(document, document.indexes)
+    )
+    rule = registry.instantiate(profile.rules["math.display_followup_interpretation"])
     violations = rule.check(document, context)
     assert violations == []
 
 
 def test_math_display_followup_interpretation_rule_skips_bare_pronoun_followup(
-    registry, language_pack, research_profile
+    registry, language_pack
 ) -> None:
     source = "We derive the bound:\n\n$$\na=b+c+d+e+f+g\n$$\n\nIt follows.\n"
     document = _parse(language_pack, source)
-    context = RuleContext(research_profile, language_pack, FeatureStore(document, document.indexes))
-    rule = registry.instantiate(research_profile.rules["math.display_followup_interpretation"])
+    profile = _profile_for_rule(
+        registry, language_pack, "math.display_followup_interpretation"
+    )
+    context = RuleContext(
+        profile, language_pack, FeatureStore(document, document.indexes)
+    )
+    rule = registry.instantiate(profile.rules["math.display_followup_interpretation"])
     violations = rule.check(document, context)
     assert violations == []
 

@@ -197,6 +197,23 @@ def test_profile_resolution_applies_merge_precedence(registry, language_pack) ->
     assert settings.severity.value == "info"
 
 
+def test_display_followup_interpretation_is_opt_in(registry, language_pack) -> None:
+    resolver = ProfileResolver(registry)
+    for profile_name in PROFILE_PRESETS:
+        profile = resolver.resolve(
+            parse_project_config({"profile": {"name": profile_name}}), language_pack
+        )
+        assert "math.display_followup_interpretation" not in profile.rules
+
+    explicit_profile = resolver.resolve(
+        parse_project_config(
+            {"rules": {"active": ["math.display_followup_interpretation"]}}
+        ),
+        language_pack,
+    )
+    assert "math.display_followup_interpretation" in explicit_profile.rules
+
+
 def test_profile_resolution_supports_strict_profile_with_tighter_prose_overrides(
     registry, language_pack
 ) -> None:
