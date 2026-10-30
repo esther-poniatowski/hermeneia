@@ -18,3 +18,7 @@ profile-aware, stratified rule systems.
 ## Architecture Decisions
 
 - [Architecture Decisions](adr/index.md)
+
+## Rule Sources
+
+- [Rule Sources](rule-sources/index.md)
