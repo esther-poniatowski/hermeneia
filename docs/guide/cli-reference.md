@@ -43,13 +43,15 @@ hermeneia lint [OPTIONS] TARGET...
 
 - `--profile TEXT` (default `research`): profile preset (`research`, `strict`, `pedagogical`, `math`).
 - `--config PATH`: YAML configuration file. When absent, the nearest `.hermeneia.yaml` or `.hermeneia.yml` at or above the target is read.
-- `--format TEXT`: output format (`text`, `json`, or `compact`). The `compact` format prints one finding per line as `path:line[:column]: severity rule_id: message`.
+- `--format TEXT`: output format (`text`, `json`, `compact` or `sarif`). The `compact` format prints one finding per line as `path:line[:column]: severity rule_id: message`. The `sarif` format writes a SARIF 2.1.0 log in the findings profile of the gate Elenchos; [ADR 0009](../adr/0009-findings-output.md) fixes its content.
+- `--output PATH`: file receiving the `sarif` log instead of standard output; its missing folders are created.
+- `--root PATH` (default: the current folder): root of the consumer repository, against which the `sarif` log states every path.
 - `--rule TEXT` (repeatable): restrict active rules to explicit ids.
 - `--disable-rule TEXT` (repeatable): disable selected rules after resolution.
 - `--load-rules TEXT` (repeatable): import external rule modules exposing `register(registry)`.
 - `--experimental`: enable experimental rules.
 - `--fail-on [info|warning|error]` (default `error`): non-zero exit threshold.
-- `--changed`: report only the findings on lines added or modified since `--base`. Every line of an untracked file counts as changed. For a directory target, only its changed and untracked files are analyzed.
+- `--changed`: report only the findings on lines added or modified since `--base`; refused with the `sarif` format. Every line of an untracked file counts as changed. For a directory target, only its changed and untracked files are analyzed.
 - `--base TEXT` (default `HEAD`): revision compared by `--changed`.
 - `--kind TEXT` (repeatable): source kinds collected from a directory (`markdown`, `yaml`, `python`, `commit`), overriding `inputs.kinds`.
 - `--no-exclude`: collect the directories listed in `inputs.exclude_dirs`.
@@ -60,6 +62,7 @@ To keep policy reproducible across runs, provide `--config` or select a fixed `-
 hermeneia lint --profile research paper.md
 hermeneia lint --changed --format compact .
 hermeneia lint --format compact .git/COMMIT_EDITMSG
+hermeneia lint --format sarif --output build/hermeneia.sarif docs
 ```
 
 **Exit Codes**:
