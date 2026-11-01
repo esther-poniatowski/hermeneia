@@ -335,7 +335,7 @@ def _render_compact(batch) -> str:
             document = result.document
             location = f"{document.source_line(violation.span.start_line)}"
             if document.source_kind == SourceKind.MARKDOWN:
-                location += f":{violation.span.start_column + 1}"
+                location += f":{violation.span.start_column}"
             lines.append(
                 f"{path_label}:{location}: "
                 f"{violation.severity.value} {violation.rule_id}: {violation.message}"

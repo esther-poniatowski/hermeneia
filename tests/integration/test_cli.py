@@ -237,3 +237,12 @@ def test_cli_lint_respects_suggestions_enabled_flag(tmp_path) -> None:
     assert '"vocabulary.contraction"' in result.stdout
     assert '"revision_plan"' in result.stdout
     assert '"operations": []' in result.stdout
+
+
+def test_cli_lint_compact_output_prints_one_based_columns(tmp_path) -> None:
+    path = tmp_path / "sample.md"
+    path.write_text("Clearly, it's obvious.\n", encoding="utf-8")
+    result = CliRunner().invoke(
+        app, ["lint", str(path), "--format", "compact", "--rule", "vocabulary.contraction"]
+    )
+    assert f"{path}:1:10: warning vocabulary.contraction:" in result.stdout
