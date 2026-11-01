@@ -1,6 +1,6 @@
 # ADR 0009: Findings output for the gate Elenchos
 
-- Status: Proposed. The decision implements the Hermeneia row of the [producer migration](https://github.com/esther-poniatowski/elenchos/blob/main/docs/producer-migration.md) of Elenchos, and depends on the [findings profile](https://github.com/esther-poniatowski/elenchos/blob/main/docs/profile.md) of Elenchos, still a draft.
+- Status: Accepted. The decision implements the Hermeneia row of the [producer migration](https://github.com/esther-poniatowski/elenchos/blob/main/docs/producer-migration.md) of Elenchos, under its [findings profile](https://github.com/esther-poniatowski/elenchos/blob/main/docs/profile.md).
 - Date: 2026-11-01
 
 ## Context
