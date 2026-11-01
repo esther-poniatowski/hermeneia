@@ -24,6 +24,7 @@ from hermeneia.infrastructure.changes import changed_files, changed_lines
 from hermeneia.infrastructure.lexicon_files import load_terms
 from hermeneia.language.base import LanguagePack
 from hermeneia.report.annotations import build_excerpt
+from hermeneia.report.sarif import sarif_log
 from hermeneia.rules.base import Severity, SuggestionMode, Violation
 from hermeneia.rules.loader import load_builtin_rules, load_external_rules
 
@@ -55,7 +56,17 @@ def cli_lint(
         resolve_path=True,
         help="Project YAML configuration.",
     ),
-    output_format: str | None = typer.Option(None, "--format", help="Output format: text or json."),
+    output_format: str | None = typer.Option(
+        None, "--format", help="Output format: text, compact, json or sarif."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", help="File receiving the SARIF log, instead of standard output."
+    ),
+    root: Path | None = typer.Option(
+        None,
+        "--root",
+        help="Root against which the SARIF log states paths; default: current folder.",
+    ),
     rule: list[str] = typer.Option([], "--rule", help="Restrict analysis to these rule ids."),
     disable_rule: list[str] = typer.Option(
         [], "--disable-rule", help="Disable specific rule ids after profile resolution."
@@ -94,6 +105,10 @@ def cli_lint(
         Resolved configuration used by this operation.
     output_format : str | None
         Input value for ``output_format``.
+    output : Path | None
+        File receiving the SARIF log; standard output when absent.
+    root : Path | None
+        Root of the consumer repository, against which the SARIF log states every path.
     rule : list[str]
         Input value for ``rule``.
     disable_rule : list[str]
@@ -117,6 +132,13 @@ def cli_lint(
     try:
         config = config or _discover_config(targets[0])
         project_config = load_project_config(config)
+        effective_format = output_format or project_config.reporting.format
+        if effective_format == "sarif" and changed:
+            raise typer.BadParameter(
+                "the SARIF format reports every finding, so it cannot be combined with --changed."
+            )
+        if effective_format != "sarif" and (output is not None or root is not None):
+            raise typer.BadParameter("--output and --root require the SARIF format.")
         registry = RuleRegistry()
         load_builtin_rules(registry)
         for module_name in (*project_config.runtime.external_rule_modules, *load_rules):
@@ -172,8 +194,10 @@ def cli_lint(
         if changed:
             batch = _restrict_to_changes(batch, base)
 
-        effective_format = output_format or project_config.reporting.format
-        if effective_format == "json":
+        if effective_format == "sarif":
+            log = sarif_log(batch, registry.all(), __version__, root or Path.cwd())
+            _write_or_echo(json.dumps(log, indent=2, ensure_ascii=False), output)
+        elif effective_format == "json":
             typer.echo(_render_json(batch))
         elif effective_format == "compact":
             typer.echo(_render_compact(batch))
@@ -371,6 +395,15 @@ def _located(result: AnalysisResult) -> dict[str, object]:
             for key in ("start_line", "end_line"):
                 span[key] = result.document.source_line(span[key])
     return payload
+
+
+def _write_or_echo(text: str, output: Path | None) -> None:
+    """Write ``text`` to ``output``, creating its folder, or echo it when ``output`` is absent."""
+    if output is None:
+        typer.echo(text)
+        return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(text + "\n", encoding="utf-8")
 
 
 def _has_failure(batch, threshold: Severity) -> bool:
