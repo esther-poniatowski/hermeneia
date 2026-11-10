@@ -34,3 +34,9 @@ def language_pack():
 @pytest.fixture()
 def research_profile(registry, language_pack):
     return ProfileResolver(registry).resolve(ProjectConfig(), language_pack)
+
+
+@pytest.fixture(autouse=True)
+def _no_root_variable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep a ``HERMENEIA_ROOT`` of the environment from choosing the root of a test run."""
+    monkeypatch.delenv("HERMENEIA_ROOT", raising=False)

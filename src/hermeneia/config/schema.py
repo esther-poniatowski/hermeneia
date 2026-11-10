@@ -180,7 +180,7 @@ class LexiconFileConfig(_ConfigModel):
     """One file declaring terms, and the path of the terms within it."""
 
     path: str
-    """Glob of the files, relative to the configuration file."""
+    """Glob of the files, relative to the root."""
     select: str
     """Dotted path of the terms within each file, where ``*`` matches every key of a mapping."""
 

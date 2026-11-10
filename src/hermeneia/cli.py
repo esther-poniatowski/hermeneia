@@ -9,7 +9,7 @@ from pathlib import Path
 import typer
 
 from hermeneia import __version__, info
-from hermeneia.config.loader import load_project_config
+from hermeneia.config.loader import find_settings, load_project_config, resolve_root
 from hermeneia.config.profile import CliOverrides, ProfileResolver
 from hermeneia.config.schema import ProjectConfig
 from hermeneia.engine.registry import RuleRegistry
@@ -31,8 +31,6 @@ from hermeneia.rules.loader import load_builtin_rules, load_external_rules
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
 SUPPORTED_SCORING_OUTPUTS = frozenset({"layer_scores", "global_score", "violation_list"})
-#: Names of the project configuration file, searched from the target upwards.
-CONFIG_NAMES = (".hermeneia.yaml", ".hermeneia.yml")
 
 
 @app.command("info")
@@ -51,21 +49,31 @@ def cli_lint(
     config: Path | None = typer.Option(
         None,
         "--config",
+        "-c",
         exists=True,
+        dir_okay=False,
         readable=True,
         resolve_path=True,
-        help="Project YAML configuration.",
+        help="Settings file; default: config/tools/hermeneia.yml or hermeneia.yml below the root.",
     ),
     output_format: str | None = typer.Option(
         None, "--format", help="Output format: text, compact, json or sarif."
     ),
     output: Path | None = typer.Option(
-        None, "--output", help="File receiving the SARIF log, instead of standard output."
+        None, "--output", "-o", help="File receiving the report, instead of standard output."
     ),
     root: Path | None = typer.Option(
         None,
         "--root",
-        help="Root against which the SARIF log states paths; default: current folder.",
+        "-r",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+        help=(
+            "Folder holding the settings file, against which its paths and the paths of a SARIF "
+            "log resolve; default: HERMENEIA_ROOT, else the nearest ancestor holding the "
+            "settings file, else the current folder."
+        ),
     ),
     rule: list[str] = typer.Option([], "--rule", help="Restrict analysis to these rule ids."),
     disable_rule: list[str] = typer.Option(
@@ -98,17 +106,17 @@ def cli_lint(
     Parameters
     ----------
     targets : list[Path]
-        Files or directories to analyse; the configuration is searched from the first one.
+        Files or directories to analyse, relative to the current folder.
     profile : str
         Resolved profile controlling rule behavior.
     config : Path | None
-        Resolved configuration used by this operation.
+        Settings file; the one found below the root when absent.
     output_format : str | None
         Input value for ``output_format``.
     output : Path | None
-        File receiving the SARIF log; standard output when absent.
+        File receiving the report; standard output when absent.
     root : Path | None
-        Root of the consumer repository, against which the SARIF log states every path.
+        Root of the run, holding the settings file; resolved by ``resolve_root`` when absent.
     rule : list[str]
         Input value for ``rule``.
     disable_rule : list[str]
@@ -130,15 +138,14 @@ def cli_lint(
     """
 
     try:
-        config = config or _discover_config(targets[0])
+        run_root = resolve_root(root)
+        config = config or find_settings(run_root)
         project_config = load_project_config(config)
         effective_format = output_format or project_config.reporting.format
         if effective_format == "sarif" and changed:
             raise typer.BadParameter(
                 "the SARIF format reports every finding, so it cannot be combined with --changed."
             )
-        if effective_format != "sarif" and (output is not None or root is not None):
-            raise typer.BadParameter("--output and --root require the SARIF format.")
         registry = RuleRegistry()
         load_builtin_rules(registry)
         for module_name in (*project_config.runtime.external_rule_modules, *load_rules):
@@ -147,7 +154,7 @@ def cli_lint(
         language_registry = LanguageRegistry()
         language_pack = _with_terms(
             language_registry.get(project_config.language.code),
-            load_terms(project_config.terminology, config.parent if config else Path.cwd()),
+            load_terms(project_config.terminology, run_root),
         )
         resolved_profile = ProfileResolver(registry).resolve(
             project_config,
@@ -195,14 +202,14 @@ def cli_lint(
             batch = _restrict_to_changes(batch, base)
 
         if effective_format == "sarif":
-            log = sarif_log(batch, registry.all(), __version__, root or Path.cwd())
+            log = sarif_log(batch, registry.all(), __version__, run_root)
             _write_or_echo(json.dumps(log, indent=2, ensure_ascii=False), output)
         elif effective_format == "json":
-            typer.echo(_render_json(batch))
+            _write_or_echo(_render_json(batch), output)
         elif effective_format == "compact":
-            typer.echo(_render_compact(batch))
+            _write_or_echo(_render_compact(batch), output)
         else:
-            typer.echo(_render_text(batch))
+            _write_or_echo(_render_text(batch), output)
 
         if _has_failure(batch, fail_on):
             raise typer.Exit(code=1)
@@ -213,10 +220,22 @@ def cli_lint(
         raise typer.Exit(code=2) from exc
 
 
+def _print_version(value: bool) -> None:
+    """Print the version and exit, before any command is required."""
+    if value:
+        typer.echo(__version__)
+        raise typer.Exit()
+
+
 @app.callback()
 def main_callback(
     version: bool = typer.Option(
-        False, "--version", "-v", help="Show the package version and exit."
+        False,
+        "--version",
+        "-v",
+        is_eager=True,
+        callback=_print_version,
+        help="Show the package version and exit.",
     )
 ) -> None:
     """Root command for the Hermeneia command-line interface.
@@ -224,22 +243,8 @@ def main_callback(
     Parameters
     ----------
     version : bool
-        Input value for ``version``.
+        Whether to print the version and exit; handled by ``_print_version``.
     """
-
-    if version:
-        typer.echo(__version__)
-        raise typer.Exit()
-
-
-def _discover_config(target: Path) -> Path | None:
-    """Return the nearest project configuration file at or above a target, if any."""
-    directory = target if target.is_dir() else target.parent
-    for candidate in (directory, *directory.parents):
-        for name in CONFIG_NAMES:
-            if (candidate / name).is_file():
-                return candidate / name
-    return None
 
 
 def _with_terms(language_pack: LanguagePack, terms: frozenset[str]) -> LanguagePack:

@@ -107,12 +107,23 @@ def test_cli_lint_declares_an_incomplete_run_on_a_rule_failure(tmp_path) -> None
     assert "rule_execution_error" in notification["message"]["text"]
 
 
-def test_cli_lint_refuses_sarif_with_changed_and_output_without_sarif(tmp_path) -> None:
+def test_cli_lint_refuses_sarif_with_changed(tmp_path) -> None:
     source = tmp_path / "sample.md"
     source.write_text("A plain sentence.\n", encoding="utf-8")
     changed = CliRunner().invoke(app, ["lint", str(source), "--format", "sarif", "--changed"])
     assert changed.exit_code == 2
     assert "--changed" in changed.output
-    stray = CliRunner().invoke(app, ["lint", str(source), "--output", str(tmp_path / "x")])
-    assert stray.exit_code == 2
-    assert "SARIF format" in changed.output or "SARIF format" in stray.output
+
+
+def test_cli_lint_writes_any_format_to_the_output_file(tmp_path) -> None:
+    source = tmp_path / "sample.md"
+    source.write_text("It's obvious.\n", encoding="utf-8")
+    output = tmp_path / "report.txt"
+    result = CliRunner().invoke(
+        app,
+        ["lint", str(source), "--format", "compact", "-o", str(output)]
+        + ["--rule", "vocabulary.contraction"],
+    )
+    assert result.exit_code == 0, result.output
+    assert result.stdout == ""
+    assert "warning vocabulary.contraction" in output.read_text(encoding="utf-8")

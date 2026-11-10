@@ -68,7 +68,7 @@ hermeneia lint notes.md --disable-rule syntax.passive_voice
 Load resolved policy from YAML:
 
 ```sh
-hermeneia lint notes.md --config hermeneia.yaml
+hermeneia lint notes.md --config config/tools/hermeneia.yml
 ```
 
 See [Configuration](configuration.md) for schema and merge semantics.
