@@ -2,7 +2,7 @@
 
 Each test builds a small project in a temporary directory, with a git repository where the test
 requires a repository, and runs ``hermeneia lint`` in compact format, one finding per line. A test
-reading a settings file runs from that directory, where the search for the root finds the file.
+reading a configuration file runs from that directory, where the search for the root finds the file.
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ def test_terminology_files_exempt_project_terms(
     note.write_text("The violation of the rule fails the run.\n", encoding="utf-8")
     assert "vocabulary.nominalization" in _lint(str(note), "--rule", "vocabulary.nominalization")
     (tmp_path / "terms.yml").write_text("terms:\n  v: {label: violation}\n", encoding="utf-8")
-    # the settings file lies in config/tools/, and its paths resolve against the root
+    # the configuration file lies in config/tools/, and its paths resolve against the root
     (tmp_path / "config" / "tools").mkdir(parents=True)
     (tmp_path / "config" / "tools" / "hermeneia.yml").write_text(
         "terminology:\n  files:\n    - {path: terms.yml, select: terms.*.label}\n", encoding="utf-8"

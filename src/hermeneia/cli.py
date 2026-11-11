@@ -54,7 +54,10 @@ def cli_lint(
         dir_okay=False,
         readable=True,
         resolve_path=True,
-        help="Settings file; default: config/tools/hermeneia.yml or hermeneia.yml below the root.",
+        help=(
+            "Configuration file; default: config/tools/hermeneia.yml or hermeneia.yml below the "
+            "root."
+        ),
     ),
     output_format: str | None = typer.Option(
         None, "--format", help="Output format: text, compact, json or sarif."
@@ -70,9 +73,9 @@ def cli_lint(
         file_okay=False,
         resolve_path=True,
         help=(
-            "Folder holding the settings file, against which its paths and the paths of a SARIF "
-            "log resolve; default: HERMENEIA_ROOT, else the nearest ancestor holding the "
-            "settings file, else the current folder."
+            "Folder holding the configuration file, against which its paths and the paths of a "
+            "SARIF log resolve; default: HERMENEIA_ROOT, else the nearest ancestor holding the "
+            "configuration file, else the current folder."
         ),
     ),
     rule: list[str] = typer.Option([], "--rule", help="Restrict analysis to these rule ids."),
@@ -110,13 +113,13 @@ def cli_lint(
     profile : str
         Resolved profile controlling rule behavior.
     config : Path | None
-        Settings file; the one found below the root when absent.
+        Configuration file; the one found below the root when absent.
     output_format : str | None
         Input value for ``output_format``.
     output : Path | None
         File receiving the report; standard output when absent.
     root : Path | None
-        Root of the run, holding the settings file; resolved by ``resolve_root`` when absent.
+        Root of the run, holding the configuration file; resolved by ``resolve_root`` when absent.
     rule : list[str]
         Input value for ``rule``.
     disable_rule : list[str]

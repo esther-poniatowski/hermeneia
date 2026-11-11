@@ -1,4 +1,4 @@
-"""Tests of the resolution of the root and of the place of the settings file."""
+"""Tests of the resolution of the root and of the place of the configuration file."""
 
 from __future__ import annotations
 

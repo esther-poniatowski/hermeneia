@@ -42,10 +42,10 @@ hermeneia lint [OPTIONS] TARGET...
 **Options**:
 
 - `--profile TEXT` (default `research`): profile preset (`research`, `strict`, `pedagogical`, `math`).
-- `--config`, `-c PATH`: settings file. When absent, `config/tools/hermeneia.yml` or `hermeneia.yml` below the root is read; when both exist, the run stops with an error naming both; when neither exists, the built-in defaults apply. A file named by `--config` and absent is an error.
+- `--config`, `-c PATH`: configuration file. When absent, `config/tools/hermeneia.yml` or `hermeneia.yml` below the root is read; when both exist, the run stops with an error naming both; when neither exists, the built-in defaults apply. A file named by `--config` and absent is an error.
 - `--format TEXT`: output format (`text`, `json`, `compact` or `sarif`). The `compact` format prints one finding per line as `path:line[:column]: severity rule_id: message`. The `sarif` format writes a SARIF 2.1.0 log in the findings profile of the gate Elenchos; [ADR 0009](../adr/0009-findings-output.md) fixes its content.
 - `--output`, `-o PATH`: file receiving the report, in any format, instead of standard output; its missing folders are created, and an existing file is overwritten.
-- `--root`, `-r PATH`: root of the run, from which the settings file is found, and against which the paths written in that file and the paths of a `sarif` log resolve. When absent, the root is the folder named by the environment variable `HERMENEIA_ROOT`, else the nearest ancestor of the current folder holding `config/tools/hermeneia.yml` or `hermeneia.yml`, else the current folder.
+- `--root`, `-r PATH`: root of the run, from which the configuration file is found, and against which the paths written in that file and the paths of a `sarif` log resolve. When absent, the root is the folder named by the environment variable `HERMENEIA_ROOT`, else the nearest ancestor of the current folder holding `config/tools/hermeneia.yml` or `hermeneia.yml`, else the current folder.
 - `--rule TEXT` (repeatable): restrict active rules to explicit ids.
 - `--disable-rule TEXT` (repeatable): disable selected rules after resolution.
 - `--load-rules TEXT` (repeatable): import external rule modules exposing `register(registry)`.
@@ -69,6 +69,6 @@ hermeneia lint --format sarif --output build/hermeneia.sarif docs
 
 - `0`: success; no violations at or above `--fail-on`, and no fatal runtime error.
 - `1`: at least one violation at or above `--fail-on`.
-- `2`: usage error, or fatal runtime/configuration/initialization error, such as an absent file named by `--config` or two competing settings files.
+- `2`: usage error, or fatal runtime/configuration/initialization error, such as an absent file named by `--config` or two competing configuration files.
 
 For post-run audit interpretation and severity semantics, see [Prose Audit Protocol](prose-audit-protocol.md).

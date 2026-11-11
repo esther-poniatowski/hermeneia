@@ -4,9 +4,9 @@ Configuration defines the effective lint policy: which rules run, how overrides 
 This page moves from structure to details: YAML shape, section responsibilities, field controls, then merge and validation behavior.
 For execution workflow, see [Usage](usage.md); for rule behavior examples, see [Rule Registry](rule-registry.md); for command flags, see [CLI Reference](cli-reference.md).
 
-## Settings File
+## Configuration File
 
-The settings file is named `hermeneia.yml`. Without `--config`, Hermeneia reads `config/tools/hermeneia.yml` or `hermeneia.yml` below the root of the run, and stops with an error when both exist. Without any settings file, the built-in defaults apply. The root is resolved as the [CLI Reference](cli-reference.md) states for `--root`. Every path written in the settings file is relative to the root, so the file moves between the root and `config/tools/` without an edit.
+The configuration file is named `hermeneia.yml`. Without `--config`, Hermeneia reads `config/tools/hermeneia.yml` or `hermeneia.yml` below the root of the run, and stops with an error when both exist. Without any configuration file, the built-in defaults apply. The root is resolved as the [CLI Reference](cli-reference.md) states for `--root`. Every path written in the configuration file is relative to the root, so the file moves between the root and `config/tools/` without an edit.
 
 > [!NOTE]
 > The configuration file is strict YAML validated by Pydantic models, so unknown fields, unknown

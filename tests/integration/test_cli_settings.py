@@ -1,4 +1,4 @@
-"""Integration tests of the reserved options: root, settings file and version."""
+"""Integration tests of the reserved options: root, configuration file and version."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def test_two_settings_files_stop_the_run(tmp_path: Path) -> None:
     (tmp_path / "hermeneia.yml").write_text("{}\n", encoding="utf-8")
     result = CliRunner().invoke(app, ["lint", str(note), "-r", str(tmp_path)])
     assert result.exit_code == 2
-    assert "two settings files" in result.output
+    assert "two configuration files" in result.output
 
 
 def test_root_from_the_variable_selects_the_settings_file(

@@ -2,7 +2,7 @@
 
 - Status: Accepted. The decision implements the Hermeneia row of the [producer migration](https://github.com/esther-poniatowski/elenchos/blob/main/docs/producer-migration.md) of Elenchos, under its [findings profile](https://github.com/esther-poniatowski/elenchos/blob/main/docs/profile.md).
 - Date: 2026-11-01
-- Amended: 2026-11-10. The root is resolved as the [command-line reference](../guide/cli-reference.md) states: `--root`, then `HERMENEIA_ROOT`, then the nearest ancestor of the current folder holding the settings file, then the current folder. The option `--output` writes a report in every format.
+- Amended: 2026-11-10. The root is resolved as the [command-line reference](../guide/cli-reference.md) states: `--root`, then `HERMENEIA_ROOT`, then the nearest ancestor of the current folder holding the configuration file, then the current folder. The option `--output` writes a report in every format.
 
 ## Context
 

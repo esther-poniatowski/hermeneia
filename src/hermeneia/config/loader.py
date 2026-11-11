@@ -1,9 +1,9 @@
-"""YAML configuration loading, and the location of the root and of the settings file.
+"""YAML configuration loading, and the location of the root and of the configuration file.
 
-The root of a run is the folder from which Hermeneia finds its settings file, and against which
+The root of a run is the folder from which Hermeneia finds its configuration file, and against which
 the paths written in that file and the paths of a SARIF log resolve. It is resolved in this order:
 the option ``--root``, the environment variable ``HERMENEIA_ROOT``, the nearest ancestor of the
-current folder holding the settings file, then the current folder. The settings file is
+current folder holding the configuration file, then the current folder. The configuration file is
 ``hermeneia.yml``, read from ``config/tools/hermeneia.yml`` or ``hermeneia.yml`` below the root.
 """
 
@@ -18,10 +18,10 @@ import yaml
 from hermeneia.config.schema import ConfigError, ProjectConfig, parse_project_config
 
 SETTINGS_NAME = "hermeneia.yml"
-"""Name of the settings file."""
+"""Name of the configuration file."""
 
 SETTINGS_PLACES = (Path("config") / "tools" / SETTINGS_NAME, Path(SETTINGS_NAME))
-"""Places of the settings file below the root, in the order of the error naming both."""
+"""Places of the configuration file below the root, in the order of the error naming both."""
 
 ROOT_VARIABLE = "HERMENEIA_ROOT"
 """Environment variable naming the root when the option ``--root`` is absent."""
@@ -47,7 +47,7 @@ def resolve_root(
     -------
     Path
         The option when given, else the folder named by ``HERMENEIA_ROOT``, else the nearest
-        ancestor of the current folder holding a settings file, else the current folder.
+        ancestor of the current folder holding a configuration file, else the current folder.
 
     Raises
     ------
@@ -71,7 +71,7 @@ def resolve_root(
 
 
 def find_settings(root: Path) -> Path | None:
-    """Return the settings file below a root, or None when the root holds none.
+    """Return the configuration file below a root, or None when the root holds none.
 
     Raises
     ------
@@ -81,7 +81,7 @@ def find_settings(root: Path) -> Path | None:
     found = [root / place for place in SETTINGS_PLACES if (root / place).is_file()]
     if len(found) > 1:
         raise ConfigError(
-            f"two settings files compete: {found[0]} and {found[1]}; keep only one of them"
+            f"two configuration files compete: {found[0]} and {found[1]}; keep only one of them"
         )
     return found[0] if found else None
 
@@ -92,7 +92,7 @@ def load_project_config(path: Path | None) -> ProjectConfig:
     Parameters
     ----------
     path : Path | None
-        Path of the settings file; the built-in defaults apply when absent.
+        Path of the configuration file; the built-in defaults apply when absent.
 
     Returns
     -------
