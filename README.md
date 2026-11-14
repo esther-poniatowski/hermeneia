@@ -63,7 +63,7 @@ Current input support is Markdown (`.md`, `.markdown`).
 - [x] Pin annotation behavior with snapshots and keep warm-run benchmark artifacts under version control.
 - [ ] Add first-party language packs beyond English.
 - [ ] Support scoring aggregation strategies beyond `hierarchical`.
-- [ ] Add reporting adapters, including SARIF and HTML.
+- [ ] Add an HTML reporting adapter; the SARIF adapter exists.
 - [ ] Integrate with editors and LSP clients for in-editor diagnostics.
 - [ ] Parse native LaTeX (`.tex`) sources directly.
 - [ ] Compute prose metrics directly during lint runs and expose them in reports.
