@@ -1,4 +1,11 @@
-"""Tests of the resolution of the root and of the place of the configuration file."""
+"""Tests of how Hodegos locates the root of a run and its configuration file.
+
+The root is the option ``--root``, else ``HERMENEIA_ROOT``, else the nearest ancestor of the
+current folder holding ``hermeneia.yml`` at one of its places, else the current folder. The places
+are the root, its ``.config/``, and each folder declared by its ``hodegos.yml``. Two places holding
+the file are an error. Hodegos reads a named ``--config`` from the current folder. Without a file
+at any place, the built-in defaults apply.
+"""
 
 from __future__ import annotations
 
@@ -6,67 +13,93 @@ from pathlib import Path
 
 import pytest
 
-from hermeneia.config.loader import find_settings, resolve_root
+from hermeneia.config.loader import discover_configuration
 from hermeneia.config.schema import ConfigError
 
+DECLARED = "shared/hermeneia.yml"
+"""Place of the configuration file in a folder that the declaration lists."""
+DECLARATION = "_schema: hodegos:configuration@1\nfolders:\n  - shared\n"
+"""Declaration of a project keeping its configuration in ``shared/``."""
 
-def _settings(folder: Path, place: str = "hermeneia.yml") -> Path:
+
+def _write(folder: Path, place: str = "hermeneia.yml", content: str = "{}\n") -> Path:
     path = folder / place
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("{}\n", encoding="utf-8")
+    path.write_text(content, encoding="utf-8")
     return path
 
 
 def test_option_wins_over_the_variable_and_the_search(tmp_path: Path) -> None:
-    _settings(tmp_path)
+    _write(tmp_path)
     chosen = tmp_path / "chosen"
     chosen.mkdir()
-    assert resolve_root(chosen, tmp_path, {"HERMENEIA_ROOT": str(tmp_path)}) == chosen.resolve()
+    root, path = discover_configuration(chosen, None, tmp_path, {"HERMENEIA_ROOT": str(tmp_path)})
+    assert (root, path) == (chosen.resolve(), None)
 
 
 def test_variable_wins_over_the_search_and_resolves_from_the_current_folder(
     tmp_path: Path,
 ) -> None:
-    _settings(tmp_path)
-    (tmp_path / "other").mkdir()
-    assert resolve_root(None, tmp_path, {"HERMENEIA_ROOT": "other"}) == (tmp_path / "other")
+    _write(tmp_path)
+    settings = _write(tmp_path / "other")
+    root, path = discover_configuration(None, None, tmp_path, {"HERMENEIA_ROOT": "other"})
+    assert (root, path) == ((tmp_path / "other").resolve(), settings)
 
 
-def test_variable_naming_no_folder_is_an_error(tmp_path: Path) -> None:
-    with pytest.raises(ConfigError, match="HERMENEIA_ROOT"):
-        resolve_root(None, tmp_path, {"HERMENEIA_ROOT": "absent"})
+def test_root_naming_no_folder_is_an_error(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError, match="names no folder"):
+        discover_configuration(None, None, tmp_path, {"HERMENEIA_ROOT": "absent"})
+    with pytest.raises(ConfigError, match="names no folder"):
+        discover_configuration(tmp_path / "absent", None, tmp_path, {})
 
 
-@pytest.mark.parametrize("place", ["hermeneia.yml", "config/tools/hermeneia.yml"])
-def test_search_finds_the_nearest_ancestor_holding_the_settings_file(
+@pytest.mark.parametrize("place", ["hermeneia.yml", ".config/hermeneia.yml", DECLARED])
+def test_search_finds_the_nearest_ancestor_holding_the_file_at_one_of_its_places(
     tmp_path: Path, place: str
 ) -> None:
-    _settings(tmp_path, place)
+    settings = _write(tmp_path, place)
+    _write(tmp_path, "hodegos.yml", DECLARATION)
     nested = tmp_path / "notes" / "deep"
     nested.mkdir(parents=True)
-    assert resolve_root(None, nested, {}) == tmp_path.resolve()
+    assert discover_configuration(None, None, nested, {}) == (tmp_path.resolve(), settings)
+
+
+def test_search_ignores_an_undeclared_folder(tmp_path: Path) -> None:
+    _write(tmp_path, DECLARED)
+    nested = tmp_path / "notes"
+    nested.mkdir()
+    assert discover_configuration(None, None, nested, {}) == (nested.resolve(), None)
+    assert discover_configuration(tmp_path, None, tmp_path, {}) == (tmp_path.resolve(), None)
 
 
 def test_search_ignores_a_former_name(tmp_path: Path) -> None:
-    _settings(tmp_path, ".hermeneia.yaml")
+    _write(tmp_path, ".hermeneia.yaml")
     nested = tmp_path / "notes"
     nested.mkdir()
-    assert resolve_root(None, nested, {}) == nested.resolve()
+    assert discover_configuration(None, None, nested, {}) == (nested.resolve(), None)
 
 
-def test_current_folder_is_the_root_without_settings_file(tmp_path: Path) -> None:
-    assert resolve_root(None, tmp_path, {}) == tmp_path.resolve()
+def test_current_folder_is_the_root_without_configuration_file(tmp_path: Path) -> None:
+    assert discover_configuration(None, None, tmp_path, {}) == (tmp_path.resolve(), None)
 
 
-def test_settings_file_is_read_from_either_place(tmp_path: Path) -> None:
-    assert find_settings(tmp_path) is None
-    tools = _settings(tmp_path, "config/tools/hermeneia.yml")
-    assert find_settings(tmp_path) == tools
-
-
-def test_two_settings_files_are_an_error_naming_both(tmp_path: Path) -> None:
-    tools = _settings(tmp_path, "config/tools/hermeneia.yml")
-    top = _settings(tmp_path)
+def test_two_places_holding_the_file_are_an_error_naming_both(tmp_path: Path) -> None:
+    declared = _write(tmp_path, DECLARED)
+    top = _write(tmp_path)
+    _write(tmp_path, "hodegos.yml", DECLARATION)
     with pytest.raises(ConfigError) as error:
-        find_settings(tmp_path)
-    assert str(tools) in str(error.value) and str(top) in str(error.value)
+        discover_configuration(tmp_path, None, tmp_path, {})
+    assert str(declared) in str(error.value) and str(top) in str(error.value)
+
+
+def test_named_config_is_read_from_the_current_folder(tmp_path: Path) -> None:
+    _write(tmp_path)
+    other = _write(tmp_path / "settings", "other.yml")
+    root, path = discover_configuration(tmp_path, Path("other.yml"), tmp_path / "settings", {})
+    assert (root, path) == (tmp_path.resolve(), other)
+
+
+def test_named_absent_config_is_an_error(tmp_path: Path) -> None:
+    _write(tmp_path)
+    with pytest.raises(ConfigError, match="absent.yml"):
+        discover_configuration(tmp_path, Path("absent.yml"), tmp_path, {})

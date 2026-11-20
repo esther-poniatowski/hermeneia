@@ -9,7 +9,7 @@ from pathlib import Path
 import typer
 
 from hermeneia import __version__, info
-from hermeneia.config.loader import find_settings, load_project_config, resolve_root
+from hermeneia.config.loader import discover_configuration, load_project_config
 from hermeneia.config.profile import CliOverrides, ProfileResolver
 from hermeneia.config.schema import ProjectConfig
 from hermeneia.engine.registry import RuleRegistry
@@ -50,13 +50,9 @@ def cli_lint(
         None,
         "--config",
         "-c",
-        exists=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
         help=(
-            "Configuration file; default: config/tools/hermeneia.yml or hermeneia.yml below the "
-            "root."
+            "Configuration file, relative to the current folder; default: hermeneia.yml at the "
+            "root, in .config/, or in a folder that hodegos.yml declares."
         ),
     ),
     output_format: str | None = typer.Option(
@@ -69,9 +65,6 @@ def cli_lint(
         None,
         "--root",
         "-r",
-        exists=True,
-        file_okay=False,
-        resolve_path=True,
         help=(
             "Folder holding the configuration file, against which its paths and the paths of a "
             "SARIF log resolve; default: HERMENEIA_ROOT, else the nearest ancestor holding the "
@@ -113,13 +106,13 @@ def cli_lint(
     profile : str
         Resolved profile controlling rule behavior.
     config : Path | None
-        Configuration file; the one found below the root when absent.
+        Configuration file; the one that Hodegos finds below the root when absent.
     output_format : str | None
         Input value for ``output_format``.
     output : Path | None
         File receiving the report; standard output when absent.
     root : Path | None
-        Root of the run, holding the configuration file; resolved by ``resolve_root`` when absent.
+        Root of the run, holding the configuration file; found by Hodegos when absent.
     rule : list[str]
         Input value for ``rule``.
     disable_rule : list[str]
@@ -141,8 +134,7 @@ def cli_lint(
     """
 
     try:
-        run_root = resolve_root(root)
-        config = config or find_settings(run_root)
+        run_root, config = discover_configuration(root, config)
         project_config = load_project_config(config)
         effective_format = output_format or project_config.reporting.format
         if effective_format == "sarif" and changed:

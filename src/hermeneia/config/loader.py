@@ -1,43 +1,52 @@
 """YAML configuration loading, and the location of the root and of the configuration file.
 
-The root of a run is the folder from which Hermeneia finds its configuration file, and against which
-the paths written in that file and the paths of a SARIF log resolve. It is resolved in this order:
-the option ``--root``, the environment variable ``HERMENEIA_ROOT``, the nearest ancestor of the
-current folder holding the configuration file, then the current folder. The configuration file is
-``hermeneia.yml``, read from ``config/tools/hermeneia.yml`` or ``hermeneia.yml`` below the root.
+The root of a run is the folder from which Hermeneia finds its configuration file. The paths
+written in that file and the paths of a SARIF log resolve against the root. Hodegos locates the
+root and the file, as its specification states:
+https://github.com/esther-poniatowski/hodegos/blob/main/docs/specification.md
+
+The root is the first folder of this order:
+
+- the option ``--root``;
+- the folder named by the environment variable ``HERMENEIA_ROOT``;
+- the nearest ancestor of the current folder holding the configuration file at one of its places;
+- the current folder.
+
+The configuration file ``hermeneia.yml`` lies at one of three places of the root: the root itself,
+its subfolder ``.config/``, or a folder declared by the ``hodegos.yml`` of the root. Two places
+holding the file are an error, unless ``--config`` names another file.
 """
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Mapping
 
+from hodegos import DiscoveryError, Tool, discover
 import yaml
 
 from hermeneia.config.schema import ConfigError, ProjectConfig, parse_project_config
 
-SETTINGS_NAME = "hermeneia.yml"
-"""Name of the configuration file."""
-
-SETTINGS_PLACES = (Path("config") / "tools" / SETTINGS_NAME, Path(SETTINGS_NAME))
-"""Places of the configuration file below the root, in the order of the error naming both."""
-
-ROOT_VARIABLE = "HERMENEIA_ROOT"
-"""Environment variable naming the root when the option ``--root`` is absent."""
+TOOL = Tool("hermeneia", ("yml",))
+"""Convention of Hermeneia for Hodegos: the file ``hermeneia.yml`` and the variable
+``HERMENEIA_ROOT``."""
 
 
-def resolve_root(
-    option: Path | None,
+def discover_configuration(
+    root: Path | None = None,
+    config: Path | None = None,
     cwd: Path | None = None,
     environ: Mapping[str, str] | None = None,
-) -> Path:
-    """Return the root of a run.
+) -> tuple[Path, Path | None]:
+    """Return the root of a run and its configuration file, located through Hodegos.
 
     Parameters
     ----------
-    option : Path | None
-        Value of the option ``--root``, if given.
+    root : Path | None
+        Value of the option ``--root``, relative to the current folder. When None, Hodegos takes
+        the root from ``HERMENEIA_ROOT`` or searches for it.
+    config : Path | None
+        Value of the option ``--config``, relative to the current folder.
     cwd : Path | None
         Current folder; the working directory of the process when absent.
     environ : Mapping[str, str] | None
@@ -45,45 +54,25 @@ def resolve_root(
 
     Returns
     -------
-    Path
-        The option when given, else the folder named by ``HERMENEIA_ROOT``, else the nearest
-        ancestor of the current folder holding a configuration file, else the current folder.
+    tuple[Path, Path | None]
+        The resolved root, and the configuration file. The file is ``config`` when named, else the
+        single place of the root holding ``hermeneia.yml``. A root without the file at any place
+        gives None, and the built-in defaults apply.
 
     Raises
     ------
     ConfigError
-        If ``HERMENEIA_ROOT`` names no folder.
+        If Hodegos rejects the request, or if the root names no folder. Hodegos rejects a named
+        file that does not exist, an invalid ``hodegos.yml``, and two places holding the file.
     """
-    if option is not None:
-        return option.resolve()
-    environ = os.environ if environ is None else environ
-    current = (cwd or Path.cwd()).resolve()
-    variable = environ.get(ROOT_VARIABLE)
-    if variable:
-        root = (current / variable).resolve()
-        if not root.is_dir():
-            raise ConfigError(f"{ROOT_VARIABLE}={variable} names no folder")
-        return root
-    for candidate in (current, *current.parents):
-        if any((candidate / place).is_file() for place in SETTINGS_PLACES):
-            return candidate
-    return current
-
-
-def find_settings(root: Path) -> Path | None:
-    """Return the configuration file below a root, or None when the root holds none.
-
-    Raises
-    ------
-    ConfigError
-        If both ``config/tools/hermeneia.yml`` and ``hermeneia.yml`` exist below the root.
-    """
-    found = [root / place for place in SETTINGS_PLACES if (root / place).is_file()]
-    if len(found) > 1:
-        raise ConfigError(
-            f"two configuration files compete: {found[0]} and {found[1]}; keep only one of them"
-        )
-    return found[0] if found else None
+    try:
+        found = discover(TOOL, root=root, config=config, cwd=cwd, environ=environ)
+    except DiscoveryError as error:
+        raise ConfigError(str(error)) from error
+    if not found.root.is_dir():
+        raise ConfigError(f"the root {found.root} names no folder")
+    path = found.configuration.path if found.configuration is not None else None
+    return found.root.resolve(), path
 
 
 def load_project_config(path: Path | None) -> ProjectConfig:

@@ -42,10 +42,10 @@ hermeneia lint [OPTIONS] TARGET...
 **Options**:
 
 - `--profile TEXT` (default `research`): profile preset (`research`, `strict`, `pedagogical`, `math`).
-- `--config`, `-c PATH`: configuration file. When absent, `config/tools/hermeneia.yml` or `hermeneia.yml` below the root is read; when both exist, the run stops with an error naming both; when neither exists, the built-in defaults apply. A file named by `--config` and absent is an error.
+- `--config`, `-c PATH`: configuration file, relative to the current folder. Without this option, Hermeneia reads `hermeneia.yml` at the places listed in [Configuration](configuration.md). A file named by `--config` and absent is an error.
 - `--format TEXT`: output format (`text`, `json`, `compact` or `sarif`). The `compact` format prints one finding per line as `path:line[:column]: severity rule_id: message`. The `sarif` format writes a SARIF 2.1.0 log in the findings profile of the gate Elenchos; [ADR 0009](../adr/0009-findings-output.md) fixes its content.
 - `--output`, `-o PATH`: file receiving the report, in any format, instead of standard output; its missing folders are created, and an existing file is overwritten.
-- `--root`, `-r PATH`: root of the run, from which the configuration file is found, and against which the paths written in that file and the paths of a `sarif` log resolve. When absent, the root is the folder named by the environment variable `HERMENEIA_ROOT`, else the nearest ancestor of the current folder holding `config/tools/hermeneia.yml` or `hermeneia.yml`, else the current folder.
+- `--root`, `-r PATH`: root of the run, from which the configuration file is found, and against which the paths written in that file and the paths of a `sarif` log resolve. Without this option, [Hodegos](https://github.com/esther-poniatowski/hodegos/blob/main/docs/specification.md) takes the root from the environment variable `HERMENEIA_ROOT`, else the nearest ancestor of the current folder holding `hermeneia.yml` at one of its places, else the current folder. A root naming no folder is an error.
 - `--rule TEXT` (repeatable): restrict active rules to explicit ids.
 - `--disable-rule TEXT` (repeatable): disable selected rules after resolution.
 - `--load-rules TEXT` (repeatable): import external rule modules exposing `register(registry)`.

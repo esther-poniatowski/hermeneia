@@ -6,7 +6,21 @@ For execution workflow, see [Usage](usage.md); for rule behavior examples, see [
 
 ## Configuration File
 
-The configuration file is named `hermeneia.yml`. Without `--config`, Hermeneia reads `config/tools/hermeneia.yml` or `hermeneia.yml` below the root of the run, and stops with an error when both exist. Without any configuration file, the built-in defaults apply. The root is resolved as the [CLI Reference](cli-reference.md) states for `--root`. Every path written in the configuration file is relative to the root, so the file moves between the root and `config/tools/` without an edit.
+Hermeneia reads its configuration from the file `hermeneia.yml`. Without `--config`, [Hodegos](https://github.com/esther-poniatowski/hodegos/blob/main/docs/specification.md) searches three places of the root for this file:
+
+- the root itself;
+- its subfolder `.config/`;
+- each folder declared by the `hodegos.yml` of the root.
+
+Two places holding the file stop the run with an error naming both. Without any configuration file, the built-in defaults apply. Hodegos finds the root in the order stated by the entry `--root` of the [CLI Reference](cli-reference.md). Every path written in the configuration file is relative to the root. Therefore, the file can move between its places without an edit.
+
+A project keeping its configuration files in `config/tools/` declares that folder in `hodegos.yml`:
+
+```yaml
+_schema: hodegos:configuration@1
+folders:
+  - config/tools
+```
 
 > [!NOTE]
 > The configuration file is strict YAML validated by Pydantic models, so unknown fields, unknown

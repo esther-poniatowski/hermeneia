@@ -29,12 +29,12 @@ def test_absent_settings_file_named_by_config_is_a_usage_error(tmp_path: Path) -
 def test_two_settings_files_stop_the_run(tmp_path: Path) -> None:
     note = tmp_path / "note.md"
     note.write_text(CONTRACTION, encoding="utf-8")
-    (tmp_path / "config" / "tools").mkdir(parents=True)
-    (tmp_path / "config" / "tools" / "hermeneia.yml").write_text("{}\n", encoding="utf-8")
+    (tmp_path / ".config").mkdir()
+    (tmp_path / ".config" / "hermeneia.yml").write_text("{}\n", encoding="utf-8")
     (tmp_path / "hermeneia.yml").write_text("{}\n", encoding="utf-8")
     result = CliRunner().invoke(app, ["lint", str(note), "-r", str(tmp_path)])
     assert result.exit_code == 2
-    assert "two configuration files" in result.output
+    assert "two places hold a configuration" in result.output
 
 
 def test_root_from_the_variable_selects_the_settings_file(
