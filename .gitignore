@@ -23,6 +23,7 @@ build/
 
 ## Test Coverage
 .coverage
+coverage.xml
 htmlcov/
 
 ## Tool Caches
