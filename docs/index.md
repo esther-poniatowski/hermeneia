@@ -22,3 +22,7 @@ profile-aware, stratified rule systems.
 ## Rule Sources
 
 - [Rule Sources](rule-sources/index.md)
+
+## Audits
+
+- [Audits](_audits/index.md)
