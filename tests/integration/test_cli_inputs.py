@@ -78,13 +78,9 @@ def test_terminology_files_exempt_project_terms(
     note.write_text("The violation of the rule fails the run.\n", encoding="utf-8")
     assert "vocabulary.nominalization" in _lint(str(note), "--rule", "vocabulary.nominalization")
     (tmp_path / "terms.yml").write_text("terms:\n  v: {label: violation}\n", encoding="utf-8")
-    # the configuration file lies in a folder that hodegos.yml declares, and its paths resolve
-    # against the root
-    (tmp_path / "hodegos.yml").write_text(
-        "_schema: hodegos:configuration@1\nfolders:\n  - shared\n", encoding="utf-8"
-    )
-    (tmp_path / "shared").mkdir()
-    (tmp_path / "shared" / "hermeneia.yml").write_text(
+    # the configuration file lies in the subfolder config/, and its paths resolve against the root
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "hermeneia.yml").write_text(
         "terminology:\n  files:\n    - {path: terms.yml, select: terms.*.label}\n", encoding="utf-8"
     )
     assert "vocabulary.nominalization" not in _lint(

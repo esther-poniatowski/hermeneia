@@ -2,7 +2,7 @@
 
 The root is the option ``--root``, else ``HERMENEIA_ROOT``, else the nearest ancestor of the
 current folder holding ``hermeneia.yml`` at one of its places, else the current folder. The places
-are the root, its ``.config/``, and each folder declared by its ``hodegos.yml``. Two places holding
+are the root, its ``.config/`` and its ``config/``; no other folder is searched. Two places holding
 the file are an error. Hodegos reads a named ``--config`` from the current folder. Without a file
 at any place, the built-in defaults apply.
 """
@@ -16,10 +16,10 @@ import pytest
 from hermeneia.config.loader import discover_configuration
 from hermeneia.config.schema import ConfigError
 
-DECLARED = "shared/hermeneia.yml"
-"""Place of the configuration file in a folder that the declaration lists."""
-DECLARATION = "_schema: hodegos:configuration@1\nfolders:\n  - shared\n"
-"""Declaration of a project keeping its configuration in ``shared/``."""
+CONFIG = "config/hermeneia.yml"
+"""Place of the configuration file in the subfolder ``config/`` of the root."""
+UNSEARCHED = "shared/hermeneia.yml"
+"""Configuration file in a folder that no place admits."""
 
 
 def _write(folder: Path, place: str = "hermeneia.yml", content: str = "{}\n") -> Path:
@@ -53,19 +53,18 @@ def test_root_naming_no_folder_is_an_error(tmp_path: Path) -> None:
         discover_configuration(tmp_path / "absent", None, tmp_path, {})
 
 
-@pytest.mark.parametrize("place", ["hermeneia.yml", ".config/hermeneia.yml", DECLARED])
+@pytest.mark.parametrize("place", ["hermeneia.yml", ".config/hermeneia.yml", CONFIG])
 def test_search_finds_the_nearest_ancestor_holding_the_file_at_one_of_its_places(
     tmp_path: Path, place: str
 ) -> None:
     settings = _write(tmp_path, place)
-    _write(tmp_path, "hodegos.yml", DECLARATION)
     nested = tmp_path / "notes" / "deep"
     nested.mkdir(parents=True)
     assert discover_configuration(None, None, nested, {}) == (tmp_path.resolve(), settings)
 
 
-def test_search_ignores_an_undeclared_folder(tmp_path: Path) -> None:
-    _write(tmp_path, DECLARED)
+def test_search_ignores_a_folder_outside_the_places(tmp_path: Path) -> None:
+    _write(tmp_path, UNSEARCHED)
     nested = tmp_path / "notes"
     nested.mkdir()
     assert discover_configuration(None, None, nested, {}) == (nested.resolve(), None)
@@ -84,12 +83,11 @@ def test_current_folder_is_the_root_without_configuration_file(tmp_path: Path) -
 
 
 def test_two_places_holding_the_file_are_an_error_naming_both(tmp_path: Path) -> None:
-    declared = _write(tmp_path, DECLARED)
+    config = _write(tmp_path, CONFIG)
     top = _write(tmp_path)
-    _write(tmp_path, "hodegos.yml", DECLARATION)
     with pytest.raises(ConfigError) as error:
         discover_configuration(tmp_path, None, tmp_path, {})
-    assert str(declared) in str(error.value) and str(top) in str(error.value)
+    assert str(config) in str(error.value) and str(top) in str(error.value)
 
 
 def test_named_config_is_read_from_the_current_folder(tmp_path: Path) -> None:
@@ -97,6 +95,14 @@ def test_named_config_is_read_from_the_current_folder(tmp_path: Path) -> None:
     other = _write(tmp_path / "settings", "other.yml")
     root, path = discover_configuration(tmp_path, Path("other.yml"), tmp_path / "settings", {})
     assert (root, path) == (tmp_path.resolve(), other)
+
+
+def test_named_config_outside_the_places_leaves_the_current_folder_as_root(
+    tmp_path: Path,
+) -> None:
+    named = _write(tmp_path, UNSEARCHED)
+    root, path = discover_configuration(None, Path(UNSEARCHED), tmp_path, {})
+    assert (root, path) == (tmp_path.resolve(), named)
 
 
 def test_named_absent_config_is_an_error(tmp_path: Path) -> None:

@@ -52,7 +52,7 @@ def cli_lint(
         "-c",
         help=(
             "Configuration file, relative to the current folder; default: hermeneia.yml at the "
-            "root, in .config/, or in a folder that hodegos.yml declares."
+            "root, in .config/, or in config/."
         ),
     ),
     output_format: str | None = typer.Option(

@@ -13,8 +13,8 @@ The root is the first folder of this order:
 - the current folder.
 
 The configuration file ``hermeneia.yml`` lies at one of three places of the root: the root itself,
-its subfolder ``.config/``, or a folder declared by the ``hodegos.yml`` of the root. Two places
-holding the file are an error, unless ``--config`` names another file.
+its subfolder ``.config/``, or its subfolder ``config/``. Two places holding the file are an error,
+unless ``--config`` names another file. A file kept in any other folder is named by ``--config``.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def discover_configuration(
     ------
     ConfigError
         If Hodegos rejects the request, or if the root names no folder. Hodegos rejects a named
-        file that does not exist, an invalid ``hodegos.yml``, and two places holding the file.
+        file that does not exist, and two places holding the file.
     """
     try:
         found = discover(TOOL, root=root, config=config, cwd=cwd, environ=environ)

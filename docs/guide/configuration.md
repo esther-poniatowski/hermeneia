@@ -10,16 +10,14 @@ Hermeneia reads its configuration from the file `hermeneia.yml`. Without `--conf
 
 - the root itself;
 - its subfolder `.config/`;
-- each folder declared by the `hodegos.yml` of the root.
+- its subfolder `config/`.
 
 Two places holding the file stop the run with an error naming both. Without any configuration file, the built-in defaults apply. Hodegos finds the root in the order stated by the entry `--root` of the [CLI Reference](cli-reference.md). Every path written in the configuration file is relative to the root. Therefore, the file can move between its places without an edit.
 
-A project keeping its configuration files in `config/tools/` declares that folder in `hodegos.yml`:
+A configuration file kept in any other folder is named by `--config`, relative to the current folder. Hodegos searches no other folder. Without `--root` and `HERMENEIA_ROOT`, the root is then the current folder, unless the current folder or one of its ancestors holds `hermeneia.yml` at one of its places:
 
-```yaml
-_schema: hodegos:configuration@1
-folders:
-  - config/tools
+```sh
+hermeneia lint --config settings/tools/hermeneia.yml notes.md
 ```
 
 > [!NOTE]

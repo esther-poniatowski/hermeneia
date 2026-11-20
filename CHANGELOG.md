@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 The command line follows the command-line conventions of the workspace. The former names are retired without an alias.
 
 - The configuration file `.hermeneia.yaml` or `.hermeneia.yml` is renamed `hermeneia.yml`.
-- **Breaking:** [Hodegos](https://github.com/esther-poniatowski/hodegos/blob/main/docs/specification.md) locates the root of the run and the file `hermeneia.yml`. The file lies at one of three places: the root, its subfolder `.config/`, or a folder declared by the `hodegos.yml` of the root. Two places holding the file are an error naming both. `config/tools/hermeneia.yml` is read only when `hodegos.yml` lists `config/tools`. `discover_configuration` replaces `resolve_root` and `find_settings`.
+- **Breaking:** [Hodegos](https://github.com/esther-poniatowski/hodegos/blob/main/docs/specification.md) locates the root of the run and the file `hermeneia.yml`. The file lies at one of three places: the root, its subfolder `.config/`, or its subfolder `config/`. Two places holding the file are an error naming both. `discover_configuration` replaces `resolve_root` and `find_settings`.
+- **Breaking:** `config/tools/hermeneia.yml` is no longer read. A configuration file kept outside the three places of the root is named by `--config`, relative to the current folder.
 - The configuration file is no longer searched upwards from the first target. The root of the run is resolved from `--root`, then the environment variable `HERMENEIA_ROOT`, then the nearest ancestor of the current folder holding the configuration file, then the current folder.
 - The `path` globs of `terminology.files` resolve against the root of the run, no longer against the folder of the configuration file.
 - `--root` names the root of the run in every format; it no longer requires `--format sarif`, and takes the short form `-r`.
